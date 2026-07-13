@@ -116,18 +116,19 @@ export const LENS_FRAG = /* glsl */ `
     col.g = texture2D(tBg, suv + off).g;
     col.b = texture2D(tBg, suv + off / sp).b;
 
-    /* frost: two soft extra taps, stronger toward the rim */
+    /* frost: two soft extra taps, stronger toward the rim (kept light
+       so display type reads clearly through the glass) */
     vec2 j = vec2(0.0022, 0.0017) * (0.4 + 1.6 * rim);
     vec3 soft = texture2D(tBg, suv + off + j).rgb + texture2D(tBg, suv + off - j).rgb;
-    col = mix(col, (col + soft) / 3.0, 0.55);
+    col = mix(col, (col + soft) / 3.0, 0.32);
 
     /* fresnel rim light + a slow moving specular streak */
     float fres = pow(1.0 - face, 3.0);
     float streak = pow(max(0.0, sin(suv.x * 6.2831 + uTime * 0.4) * 0.5 + 0.5), 24.0);
-    col += fres * 0.34 + streak * rim * 0.10;
+    col += fres * 0.30 + streak * rim * 0.08;
 
-    /* interior lift keeps the slab reading as material, not a hole */
-    col = mix(col, vec3(1.0), 0.05 + 0.09 * fres);
+    /* a whisper of interior lift; keep the glass clear, not milky */
+    col = mix(col, vec3(1.0), 0.02 + 0.06 * fres);
 
     gl_FragColor = vec4(col, 1.0);
   }

@@ -333,11 +333,12 @@ export function World() {
       contentCam.layers.set(1);
       renderer.render(contentScene, contentCam);
       renderer.autoClear = true;
-      /* the screen shows the raw world (ghost outline) under the lens */
+      /* the name is solid and readable on screen; the lens glides over
+         it as clear glass, refracting rather than hiding it */
       renderer.setRenderTarget(null);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      contentCam.layers.set(2);
+      contentCam.layers.set(1);
       renderer.render(contentScene, contentCam);
       renderer.render(glassScene, camera);
       renderer.autoClear = true;
