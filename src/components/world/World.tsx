@@ -68,6 +68,10 @@ export function World() {
     const typeCanvas = document.createElement("canvas");
     const typeCtx = typeCanvas.getContext("2d");
     const typeTex = new THREE.CanvasTexture(typeCanvas);
+    /* measured extent of the drawn name in uv (y from top). The slab is
+       anchored to this every frame, so the overlap is guaranteed by
+       construction for any language, viewport or aspect. */
+    const typeBounds = { x0: 0.07, x1: 0.4, y0: 0.36, y1: 0.66 };
 
     function drawType(l: Lang) {
       if (!typeCtx) return;
@@ -91,8 +95,18 @@ export function World() {
         /* tracking is cosmetic; older engines just skip it */
       }
       const x = W * 0.07;
-      typeCtx.fillText(en ? "Masaki" : "川上", x, H * 0.5);
-      typeCtx.fillText(en ? "Kawakami" : "勝基", x, H * 0.635);
+      const l1 = en ? "Masaki" : "川上";
+      const l2 = en ? "Kawakami" : "勝基";
+      typeCtx.fillText(l1, x, H * 0.5);
+      typeCtx.fillText(l2, x, H * 0.635);
+      const wMax = Math.max(
+        typeCtx.measureText(l1).width,
+        typeCtx.measureText(l2).width,
+      );
+      typeBounds.x0 = 0.07;
+      typeBounds.x1 = (x + wMax) / W;
+      typeBounds.y0 = (H * 0.5 - size * 0.76) / H;
+      typeBounds.y1 = (H * 0.635 + size * 0.06) / H;
       typeTex.needsUpdate = true;
     }
     drawTypeRef.current = drawType;
@@ -233,10 +247,19 @@ export function World() {
       camera.position.y = -my * 0.12 + e * 0.35;
       camera.lookAt(e * 1.2, e * 0.5, 0);
 
-      /* the slab overlaps the name and keeps turning, so the letters
-         visibly bend and disperse inside it even at rest */
-      lens.position.x = 0.95 + e * 1.7;
-      lens.position.y = Math.sin(time * 0.4) * 0.07 - e * 0.15;
+      /* anchor the slab to the measured name box (rest geometry:
+         camera z=6 looking at the origin), so its left edge always
+         cuts into the last third of the letters and the refraction
+         is guaranteed on every language and viewport */
+      const halfH = Math.tan((35 * Math.PI) / 360) * 6;
+      const halfW = halfH * camera.aspect;
+      const edgeU = typeBounds.x0 + 0.64 * (typeBounds.x1 - typeBounds.x0);
+      const nameCyU = (typeBounds.y0 + typeBounds.y1) / 2;
+      const anchorX = (edgeU - 0.5) * 2 * halfW + 1.42;
+      const anchorY = (0.5 - nameCyU) * 2 * halfH;
+
+      lens.position.x = anchorX + e * 1.7;
+      lens.position.y = anchorY + Math.sin(time * 0.4) * 0.07 - e * 0.15;
       lens.rotation.y =
         -0.3 + Math.sin(time * 0.13) * 0.22 + mx * 0.12 + e * 0.9;
       lens.rotation.x = 0.05 - my * 0.09 + Math.cos(time * 0.17) * 0.05;
