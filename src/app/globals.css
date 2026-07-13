@@ -1,26 +1,353 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Primary stack: Inter + Noto Sans JP for UI copy. */
+  --font-sans: var(--font-inter), var(--font-noto-jp), system-ui, sans-serif;
+  /* Monospace stack: JetBrains Mono for the terminal UI. */
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
+    monospace;
+  /* Japanese-first font utility — use with `font-jp`. */
+  --font-jp: var(--font-noto-jp), var(--font-inter), sans-serif;
+
+  /* --- Terminal palette (Home page) -------------------------------- */
+  /* Names follow the Claude-Design HTML exactly so classes like
+     bg-bg / text-ink / border-line / bg-mint / pulse-soft on bg-mint
+     all resolve. camelCase tokens are intentional (inkMuted, inkDim). */
+  --color-bg: #0a0a0b;
+  --color-bg2: #111114;
+  --color-panel: #16161a;
+  --color-line: #26262b;
+  --color-line2: #333339;
+  --color-ink: #ededef;
+  --color-inkMuted: #9a9aa3;
+  --color-inkDim: #6b6b73;
+  --color-amber: #f5a524;
+  --color-mint: #7cf0c2;
+  --color-accent: #7cf0c2;
+  --color-warn: #ffb86b;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * Editorial palette
+ *   Background: warm cream (#FAF8F3-ish) — paper, not screen
+ *   Foreground: warm near-black (slight brown tint)
+ *   Accent: ink-blue (#1E3A5F) used sparingly for hover underlines and
+ *           inline link highlights only. No filled primary buttons on
+ *           editorial pages — use inline underlined links with arrows.
+ *   Rationale: bookshop/magazine feel, distinct from SaaS landing pages.
+ */
+:root {
+  --background: oklch(0.98 0.006 85); /* warm cream */
+  --foreground: oklch(0.22 0.018 60); /* warm near-black */
+  --card: oklch(0.985 0.005 85);
+  --card-foreground: oklch(0.22 0.018 60);
+  --popover: oklch(0.985 0.005 85);
+  --popover-foreground: oklch(0.22 0.018 60);
+  --primary: oklch(0.34 0.055 250); /* ink-blue — editorial accent */
+  --primary-foreground: oklch(0.98 0.006 85);
+  --secondary: oklch(0.94 0.008 85); /* light paper */
+  --secondary-foreground: oklch(0.22 0.018 60);
+  --muted: oklch(0.94 0.008 85);
+  --muted-foreground: oklch(0.5 0.018 60); /* warm gray */
+  --accent: oklch(0.94 0.012 80);
+  --accent-foreground: oklch(0.34 0.055 250);
+  --destructive: oklch(0.56 0.18 25);
+  --border: oklch(0.9 0.01 75); /* warm slate */
+  --input: oklch(0.9 0.01 75);
+  --ring: oklch(0.34 0.055 250);
+  --chart-1: oklch(0.34 0.055 250);
+  --chart-2: oklch(0.45 0.05 245);
+  --chart-3: oklch(0.55 0.04 240);
+  --chart-4: oklch(0.6 0.03 55);
+  --chart-5: oklch(0.5 0.02 50);
+  --radius: 0.375rem; /* tighter radius — editorial not startup-y */
+  --sidebar: oklch(0.98 0.006 85);
+  --sidebar-foreground: oklch(0.22 0.018 60);
+  --sidebar-primary: oklch(0.34 0.055 250);
+  --sidebar-primary-foreground: oklch(0.98 0.006 85);
+  --sidebar-accent: oklch(0.94 0.008 85);
+  --sidebar-accent-foreground: oklch(0.34 0.055 250);
+  --sidebar-border: oklch(0.9 0.01 75);
+  --sidebar-ring: oklch(0.34 0.055 250);
+}
+
+.dark {
+  --background: oklch(0.17 0.012 60); /* warm dark */
+  --foreground: oklch(0.95 0.005 85);
+  --card: oklch(0.22 0.015 60);
+  --card-foreground: oklch(0.95 0.005 85);
+  --popover: oklch(0.22 0.015 60);
+  --popover-foreground: oklch(0.95 0.005 85);
+  --primary: oklch(0.72 0.08 245); /* lighter ink-blue */
+  --primary-foreground: oklch(0.17 0.012 60);
+  --secondary: oklch(0.28 0.015 60);
+  --secondary-foreground: oklch(0.95 0.005 85);
+  --muted: oklch(0.28 0.015 60);
+  --muted-foreground: oklch(0.7 0.015 70);
+  --accent: oklch(0.28 0.015 60);
+  --accent-foreground: oklch(0.72 0.08 245);
+  --destructive: oklch(0.62 0.18 25);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.08 245);
+  --sidebar: oklch(0.22 0.015 60);
+  --sidebar-foreground: oklch(0.95 0.005 85);
+  --sidebar-primary: oklch(0.72 0.08 245);
+  --sidebar-primary-foreground: oklch(0.17 0.012 60);
+  --sidebar-accent: oklch(0.28 0.015 60);
+  --sidebar-accent-foreground: oklch(0.72 0.08 245);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.72 0.08 245);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =================================================================
+ * Terminal Home — custom CSS
+ * Ported 1:1 from the Claude-Design HomePage.html prototype.
+ * Scoped by class; the editorial pages (which still use shadcn tokens)
+ * are unaffected because they don't use these utility classes.
+ * ================================================================= */
+
+.font-mono {
+  font-feature-settings: "ss01", "zero";
+}
+
+::selection {
+  background: #7cf0c2;
+  color: #0a0a0b;
+}
+
+/* Subtle scanlines + vignette for CRT feel — gentle, not campy */
+.crt-scan {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.018) 0 1px,
+    transparent 1px 3px
+  );
+}
+.crt-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+/* Blinking block cursor */
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Slow soft pulse for live dot */
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+/* Subtle horizontal shimmer line */
+@keyframes scan-line {
+  0% {
+    transform: translateY(-20%);
+  }
+  100% {
+    transform: translateY(120%);
+  }
+}
+.scan-line {
+  animation: scan-line 8s linear infinite;
+}
+
+/* Hover glitch — no animation libs */
+@keyframes glitch-x {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-1px, 1px);
+  }
+  40% {
+    transform: translate(1px, -1px);
+  }
+  60% {
+    transform: translate(-1px, 0);
+  }
+  80% {
+    transform: translate(1px, 1px);
+  }
+}
+.glitch:hover {
+  animation: glitch-x 180ms steps(2) 1;
+}
+
+/* Custom cursor dot — applied to hero region only */
+.track-dot {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #7cf0c2;
+  box-shadow:
+    0 0 0 6px rgba(124, 240, 194, 0.18),
+    0 0 24px rgba(124, 240, 194, 0.35);
+  transform: translate(-50%, -50%);
+}
+
+/* Key cap */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid #26262b;
+  border-bottom-width: 2px;
+  background: #16161a;
+  color: #ededef;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  min-width: 18px;
+  justify-content: center;
+}
+
+/* Terminal window */
+.win-chrome {
+  background: linear-gradient(180deg, #17171b, #121215);
+  border-bottom: 1px solid #26262b;
+}
+.dot-r {
+  background: #ff5f57;
+}
+.dot-y {
+  background: #febc2e;
+}
+.dot-g {
+  background: #28c840;
+}
+
+/* Hairlines on hover row reveal */
+.row-reveal .row-detail {
+  max-height: 0;
+  opacity: 0;
+  transition:
+    max-height 400ms ease,
+    opacity 300ms ease;
+  overflow: hidden;
+}
+.row-reveal:hover .row-detail,
+.row-reveal:focus-within .row-detail {
+  max-height: 400px;
+  opacity: 1;
+}
+
+/* Pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #26262b;
+  border-radius: 9999px;
+  padding: 3px 9px;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9a9aa3;
+  background: rgba(22, 22, 26, 0.5);
+}
+
+/* Soft spotlight follow (hero background) */
+.spot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Focus ring — applied across interactive elements on the terminal */
+a:focus-visible,
+button:focus-visible {
+  outline: 1px dashed #7cf0c2;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Disable scanlines on <sm screens to reduce moiré */
+@media (max-width: 640px) {
+  .crt-scan {
+    background-image: none;
+  }
 }
