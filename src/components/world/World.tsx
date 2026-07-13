@@ -232,6 +232,8 @@ export function World() {
     let tmy = 0;
     let gx = 0;
     let gy = 0;
+    let pgx = 0;
+    let roll = 0;
     let gInit = false;
     let raf = 0;
     let running = true;
@@ -347,21 +349,26 @@ export function World() {
       if (!gInit) {
         gx = txw;
         gy = tyw;
+        pgx = txw;
         gInit = true;
       }
       const k = reduced ? 1 : 0.22;
       gx += (txw - gx) * k;
       gy += (tyw - gy) * k;
 
-      /* bank into the direction of travel */
-      const ahead = lensTarget(y + 40);
-      const bank = Math.atan2(ahead.y - tyw, ahead.x - txw + 1e-5);
+      /* bank smoothly into actual horizontal motion: velocity-based and
+         then low-passed, so the roll eases through changes of direction
+         instead of snapping between leans. Level at rest. */
+      const vx = gx - pgx;
+      pgx = gx;
+      const targetRoll = Math.max(-0.14, Math.min(0.14, vx * 1.5));
+      roll += (targetRoll - roll) * (reduced ? 1 : 0.05);
 
       lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05, 0);
       shadow.position.set(gx + 0.14, gy - 1.08, -0.5);
       lens.rotation.y = -0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1;
       lens.rotation.x = 0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04;
-      lens.rotation.z = reduced ? 0 : Math.max(-0.2, Math.min(0.2, bank * 0.1));
+      lens.rotation.z = roll;
 
       /* shards start off-screen and drift in with scroll, so the hero
          top stays clean — no clipped fragment glinting in the corner */
