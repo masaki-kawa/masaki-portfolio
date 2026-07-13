@@ -254,12 +254,14 @@ export function World() {
       if (yy <= nB) {
         return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      /* once the name is read the lens glides on: a soft glass presence
-         that travels with you, refracting the field behind the content */
+      /* once the name is read the lens glides on: it swings wide, into
+         the gutters beside the floating content card, so the square of
+         glass visibly travels down the page with you and weaves behind
+         the card rather than vanishing */
       const travel = (yy - nB) / vh;
       return {
-        x: toWorldX(0.5 + 0.2 * Math.sin(travel * 0.7)),
-        y: toWorldY(0.44 + 0.14 * Math.sin(travel * 0.9 + 1.2)),
+        x: toWorldX(0.5 + 0.46 * Math.sin(travel * 0.6)),
+        y: toWorldY(0.4 + 0.18 * Math.sin(travel * 0.95 + 1.2)),
       };
     }
 

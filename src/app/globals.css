@@ -564,20 +564,21 @@ button:focus-visible {
 .w-sheet {
   position: relative;
   z-index: 10;
+  max-width: 1180px;
+  width: calc(100% - clamp(32px, 9vw, 180px));
+  margin: 0 auto;
   background: linear-gradient(
     180deg,
-    rgba(244, 246, 249, 0.84) 0%,
-    rgba(238, 241, 245, 0.87) 42%,
-    rgba(232, 235, 240, 0.9) 100%
+    rgba(245, 247, 250, 0.88) 0%,
+    rgba(238, 241, 245, 0.9) 100%
   );
-  -webkit-backdrop-filter: blur(20px) saturate(1.18);
-  backdrop-filter: blur(20px) saturate(1.18);
-  border-top-left-radius: 26px;
-  border-top-right-radius: 26px;
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+  border-radius: 30px;
   box-shadow:
-    0 -26px 60px rgba(28, 32, 40, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  padding: clamp(52px, 9vh, 104px) 0 40px;
+    0 30px 80px rgba(28, 32, 40, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: clamp(52px, 9vh, 104px) 0 48px;
 }
 .w-block {
   max-width: 940px;
