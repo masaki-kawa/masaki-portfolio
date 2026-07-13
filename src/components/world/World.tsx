@@ -31,6 +31,8 @@ import {
   PART_FRAG,
 } from "@/lib/world/shaders";
 import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
+import Link from "next/link";
+import { WORK, RESEARCH } from "@/lib/content/work";
 
 /* lens half extents in world units (geometry is 3.0 x 1.85). The flight
    plan is derived from the measured text blocks, not hand-tuned points:
@@ -40,8 +42,6 @@ import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
 const LENS_HW = 1.5;
 const LENS_HH = 0.925;
 
-type Row = { name: string; desc: string; tag?: string };
-type WorkItem = Row & { slug: string; detail: string };
 
 export function World() {
   const { lang, setLang } = useLang();
@@ -54,6 +54,7 @@ export function World() {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [slide, setSlide] = useState(0);
   const [detail, setDetail] = useState(0);
+  const [aboutOpen, setAboutOpen] = useState<number | null>(null);
 
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -430,85 +431,21 @@ export function World() {
 
   const en = lang === "en";
 
-  /* visual slots: drop screenshots at public/work/<slug>.png and they
-     replace the gradient placeholders automatically */
-  const workItems: WorkItem[] = en
-    ? [
-        {
-          slug: "vai-studio",
-          name: "VAI Studio",
-          desc: "AI video and web studio serving Japan and Australia. Client work live, including Yukoala Concierge.",
-          detail:
-            "Motion produces AI assisted video, Build ships client sites. For Yukoala Concierge that meant a full company site, live in production, plus ongoing Instagram content.",
-        },
-        {
-          slug: "review365",
-          name: "Review365",
-          desc: "LLM reporting for paying local clients, run on Japanese SOPs. Rankings tracked monthly.",
-          detail:
-            "Review growth and local search for hospitality clients, run as a monthly measurement loop: rankings, profile insights and AI visibility, written up so owners can act. Generation runs on Japanese SOPs executed by Claude, with a human final pass.",
-        },
-        {
-          slug: "vacanti-ai",
-          name: "Vacanti AI",
-          desc: "AI job matching SaaS, designed, built and shipped solo. Live in production.",
-          detail:
-            "A matching engine with four axis scoring, embeddings on pgvector, and a vision based evaluation pipeline that catches false positives before users see them. Next.js, Supabase, Drizzle and Stripe, taken to production by one person.",
-        },
-        {
-          slug: "fabric-sampling",
-          name: "Fabric Sampling Tool",
-          desc: "WeChat mini program digitising sample lending for a textile trading company.",
-          detail:
-            "Fabric sample lending digitised end to end: QR scan to borrow, return tracking, and a partner briefing deck. Built as a WeChat mini program so it runs inside China without a VPN.",
-        },
-        {
-          slug: "kodoku",
-          name: "Kodoku",
-          tag: "In development",
-          desc: "Solo founders running a company with AI agents as staff.",
-          detail:
-            "An operating layer where AI agents hold real roles in a one person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
-        },
-      ]
-    : [
-        {
-          slug: "vai-studio",
-          name: "VAI Studio",
-          desc: "日豪で動くAI動画・Web制作スタジオ。Yukoala Concierge など実クライアント案件が稼働中。",
-          detail:
-            "Motion が AI 動画を、Build がクライアントサイトを届ける。Yukoala Concierge には本番公開の企業サイトと、継続中の Instagram コンテンツを提供。",
-        },
-        {
-          slug: "review365",
-          name: "Review365",
-          desc: "日本語SOPで回すLLMレポーティング。課金クライアントの順位を毎月計測。",
-          detail:
-            "飲食クライアントのレビュー成長とローカル検索を、月次の計測ループとして運用。順位、プロフィールインサイト、AI上の可視性を計測し、オーナーが動ける形のレポートに。生成は日本語SOP × Claude、最終判断は人間。",
-        },
-        {
-          slug: "vacanti-ai",
-          name: "Vacanti AI",
-          desc: "一人で設計から本番投入まで。稼働中のAIジョブマッチングSaaS。",
-          detail:
-            "4軸スコアリングのマッチングエンジン、pgvector の埋め込み、偽陽性を配信前に検知する Vision 評価パイプライン。Next.js、Supabase、Drizzle、Stripe を一人で本番まで。",
-        },
-        {
-          slug: "fabric-sampling",
-          name: "Fabric Sampling Tool",
-          desc: "ある繊維商社のサンプル貸出業務をWeChatミニプログラムでデジタル化。",
-          detail:
-            "生地サンプルの貸出を、QRスキャンでの貸出から返却管理までデジタル化し、取引先向け説明資料まで用意。中国国内でVPNなしで動くよう、WeChatミニプログラムで構築。",
-        },
-        {
-          slug: "kodoku",
-          name: "Kodoku",
-          tag: "開発中",
-          desc: "AIエージェントのチームで1人の会社を回す。",
-          detail:
-            "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡し。開発中、いま一番つくりたいもの。",
-        },
-      ];
+  /* content comes from lib/content/work.ts (shared with the detail
+     pages); visual slots fill from public/work/<slug>.png */
+  const pick = (l: { en: string; ja: string }) => (en ? l.en : l.ja);
+  const workItems = WORK.map((w) => ({
+    slug: w.slug,
+    name: w.name,
+    tag: w.tag ? pick(w.tag) : undefined,
+    desc: pick(w.desc),
+  }));
+  const researchItems = RESEARCH.map((w) => ({
+    slug: w.slug,
+    name: w.name,
+    desc: pick(w.desc),
+    detail: pick(w.detail),
+  }));
 
   function goTo(i: number) {
     const t = trackRef.current;
@@ -531,53 +468,27 @@ export function World() {
     );
   }
 
-  const research: Row[] = en
+  const community = en
     ? [
         {
-          name: "Warden",
-          desc: "Prompt injection detection research: CoT monitoring, LLM as judge. Submitted at UTS.",
-        },
-        {
-          name: "Cloud ELT Pipeline",
-          desc: "dbt, Airflow, Medallion architecture, SCD Type 2, monthly loads on GCP.",
-        },
-        {
-          name: "Crypto Forecast API",
-          desc: "From model to service: PyPI package, FastAPI, Docker, deployed and callable.",
-        },
-      ]
-    : [
-        {
-          name: "Warden",
-          desc: "プロンプトインジェクション検出の研究。CoT監視、LLM-as-judge。UTS提出済み。",
-        },
-        {
-          name: "Cloud ELT Pipeline",
-          desc: "dbt、Airflow、Medallion 構成、SCD Type 2。GCP 上の月次ロード。",
-        },
-        {
-          name: "Crypto Forecast API",
-          desc: "モデルからサービスまで。PyPIパッケージ、FastAPI、Docker、稼働中のAPI。",
-        },
-      ];
-
-  const community: Row[] = en
-    ? [
-        {
+          slug: "ai-salon",
           name: "AI Salon Sydney",
           desc: "Co-organiser of AI community events in Sydney.",
         },
         {
+          slug: "workshops",
           name: "Workshops",
           desc: "Speaker at Sydney community workshops: LinkedIn, Notion, and Claude Code next.",
         },
       ]
     : [
         {
+          slug: "ai-salon",
           name: "AI Salon Sydney",
           desc: "シドニーのAIコミュニティイベントを共同運営。",
         },
         {
+          slug: "workshops",
           name: "Workshops",
           desc: "シドニーのコミュニティワークショップに登壇。LinkedIn、Notion、次は Claude Code。",
         },
@@ -641,7 +552,11 @@ export function World() {
           </div>
           <div className="w-cartrack" ref={trackRef} onScroll={onTrackScroll}>
             {workItems.map((it) => (
-              <article className="w-slide" key={it.slug}>
+              <Link
+                className="w-slide"
+                href={`/work/${it.slug}`}
+                key={it.slug}
+              >
                 <div
                   className="w-slide-media"
                   style={{
@@ -655,8 +570,11 @@ export function World() {
                     {it.tag ? <em className="w-tag">{it.tag}</em> : null}
                   </h3>
                   <p className="w-slide-desc">{it.desc}</p>
+                  <span className="w-slide-plus" aria-hidden>
+                    +
+                  </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
           <div className="w-carctl">
@@ -687,17 +605,22 @@ export function World() {
           </div>
         </section>
 
-        {/* Details: pick a project, the visual and copy follow */}
-        <section className="w-detsec" aria-label={en ? "Details" : "詳細"}>
+        {/* Research & University: pick one, the visual and copy follow */}
+        <section
+          className="w-detsec"
+          aria-label={en ? "Research and university" : "研究・大学"}
+        >
           <div className="w-carhead">
-            <p className="w-label w-reveal">{en ? "Details" : "ディテール"}</p>
+            <p className="w-label w-reveal">
+              {en ? "Research & University" : "研究・大学"}
+            </p>
             <h2 className="w-headline w-reveal">
               {en ? "Take a closer look." : "近づいて見る。"}
             </h2>
           </div>
           <div className="w-detgrid">
             <div className="w-detlist">
-              {workItems.map((it, i) => (
+              {researchItems.map((it, i) => (
                 <div className={i === detail ? "w-det on" : "w-det"} key={it.slug}>
                   <button
                     className="w-det-pill"
@@ -720,93 +643,163 @@ export function World() {
             <div
               className="w-detvis"
               style={{
-                backgroundImage: `url(/work/${workItems[detail].slug}.png), linear-gradient(160deg, #f1f3f8 0%, #dde2ea 100%)`,
+                backgroundImage: `url(/work/${researchItems[detail].slug}.png), linear-gradient(160deg, #f1f3f8 0%, #dde2ea 100%)`,
               }}
               aria-hidden
             />
           </div>
         </section>
 
-        <div className="w-flow">
-
-          <section
-            className="w-block"
-            aria-label={en ? "Research and university" : "研究・大学"}
-          >
-            <p className="w-label w-reveal">
-              {en ? "Research & University" : "研究・大学"}
-            </p>
-            <ul className="w-list">
-              {research.map((it) => (
-                <li className="w-item w-reveal" key={it.name}>
-                  <span className="w-item-name">{it.name}</span>
-                  <span className="w-item-desc">{it.desc}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section
-            className="w-block"
-            aria-label={en ? "Community and speaking" : "コミュニティ・登壇"}
-          >
+        {/* Community: two large photo cards */}
+        <section
+          className="w-comsec"
+          aria-label={en ? "Community and speaking" : "コミュニティ・登壇"}
+        >
+          <div className="w-carhead">
             <p className="w-label w-reveal">
               {en ? "Community & Speaking" : "コミュニティ・登壇"}
             </p>
-            <ul className="w-list">
-              {community.map((it) => (
-                <li className="w-item w-reveal" key={it.name}>
-                  <span className="w-item-name">{it.name}</span>
-                  <span className="w-item-desc">{it.desc}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+            <h2 className="w-headline w-reveal">
+              {en ? "Out in the community." : "コミュニティでも。"}
+            </h2>
+          </div>
+          <div className="w-two">
+            {community.map((it) => (
+              <figure className="w-photo w-reveal" key={it.slug}>
+                <div
+                  className="w-photo-media"
+                  style={{
+                    backgroundImage: `url(/work/${it.slug}.png), linear-gradient(160deg, #eff2f7 0%, #dde2eb 100%)`,
+                  }}
+                  aria-hidden
+                />
+                <figcaption className="w-photo-cap">
+                  <strong>{it.name}.</strong> {it.desc}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
 
-          <section
-            className="w-block w-about"
-            aria-label={en ? "About" : "自己紹介"}
-          >
+        {/* About: three cards, plus to expand */}
+        <section className="w-aboutsec" aria-label={en ? "About" : "自己紹介"}>
+          <div className="w-carhead">
             <p className="w-label w-reveal">{en ? "About" : "自己紹介"}</p>
-            <p className="w-prose w-reveal">
-              {en ? (
-                <>
-                  I build AI systems that change how businesses run, and keep
-                  them running in production: an AI job matching SaaS, LLM
-                  reporting that paying clients rely on, and the workflows
-                  behind them. I work both sides of the table: as COO of{" "}
-                  <a
-                    href="https://cubic-innov8-group.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Cubic Innov8
-                  </a>
-                  , an IT and innovation group across Kyoto and Sydney, I bring
-                  in clients and run operations, then build the systems that
-                  serve them. I also built and shipped Vacanti AI, an AI job
-                  matching SaaS, as an independent venture. Before this I spent
-                  five years in HR at Canon Marketing Japan, then moved to
-                  Sydney and completed a Master of Data Science at the
-                  University of Technology Sydney. Native Japanese speaker,
-                  working in English.
-                </>
-              ) : (
-                <>
-                  ビジネスの回り方を変えるAIをつくり、本番で動かし続けています。AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。京都とシドニーのIT企業{" "}
-                  <a
-                    href="https://cubic-innov8-group.com/"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Cubic Innov8
-                  </a>{" "}
-                  のCOOとして、クライアント開拓や運営という事業側と、それを支えるシステムの実装側の両方をやっています。また、独立ベンチャーとして AIジョブマッチングSaaS「Vacanti AI」を一人でつくり、本番公開しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニーに渡り、シドニー工科大学でデータサイエンス修士を修了しました。日本語ネイティブ、仕事は英語です。
-                </>
-              )}
-            </p>
-          </section>
+            <h2 className="w-headline w-reveal">
+              {en ? "Who's building this." : "つくっている人。"}
+            </h2>
+          </div>
+          <div className="w-three">
+            <div
+              className={
+                aboutOpen === 0 ? "w-acard w-reveal on" : "w-acard w-reveal"
+              }
+            >
+              <p className="w-acard-lead">
+                {en
+                  ? "AI systems that stay in production."
+                  : "本番で動き続けるAIをつくる。"}
+              </p>
+              <div className="w-det-body">
+                <div className="w-det-inner">
+                  <p className="w-acard-text">
+                    {en
+                      ? "An AI job matching SaaS, LLM reporting that paying clients rely on, and the workflows behind them. I build them and keep them running."
+                      : "AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。つくって、動かし続ける。"}
+                  </p>
+                </div>
+              </div>
+              <button
+                className="w-acard-plus"
+                aria-expanded={aboutOpen === 0}
+                aria-label={en ? "More" : "詳しく"}
+                onClick={() => setAboutOpen(aboutOpen === 0 ? null : 0)}
+              >
+                +
+              </button>
+            </div>
+            <div
+              className={
+                aboutOpen === 1 ? "w-acard w-reveal on" : "w-acard w-reveal"
+              }
+            >
+              <p className="w-acard-lead">
+                {en ? "Business and build, both sides." : "事業と実装、その両方。"}
+              </p>
+              <div className="w-det-body">
+                <div className="w-det-inner">
+                  <p className="w-acard-text">
+                    {en ? (
+                      <>
+                        As COO of{" "}
+                        <a
+                          href="https://cubic-innov8-group.com/"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Cubic Innov8
+                        </a>
+                        , an IT and innovation group across Kyoto and Sydney, I
+                        bring in clients and run operations, then build the
+                        systems that serve them. I also built and shipped
+                        Vacanti AI as an independent venture.
+                      </>
+                    ) : (
+                      <>
+                        京都とシドニーのIT企業{" "}
+                        <a
+                          href="https://cubic-innov8-group.com/"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Cubic Innov8
+                        </a>{" "}
+                        のCOOとして、クライアント開拓や運営という事業側と、それを支える実装側の両方。独立ベンチャーとして
+                        Vacanti AI もつくり、本番公開。
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <button
+                className="w-acard-plus"
+                aria-expanded={aboutOpen === 1}
+                aria-label={en ? "More" : "詳しく"}
+                onClick={() => setAboutOpen(aboutOpen === 1 ? null : 1)}
+              >
+                +
+              </button>
+            </div>
+            <div
+              className={
+                aboutOpen === 2 ? "w-acard w-reveal on" : "w-acard w-reveal"
+              }
+            >
+              <p className="w-acard-lead">
+                {en ? "From HR to data science." : "人事からデータサイエンスへ。"}
+              </p>
+              <div className="w-det-body">
+                <div className="w-det-inner">
+                  <p className="w-acard-text">
+                    {en
+                      ? "Five years in HR at Canon Marketing Japan, then a Master of Data Science at the University of Technology Sydney. Native Japanese speaker based in Sydney, working in English."
+                      : "キヤノンマーケティングジャパンの人事に5年。その後シドニーへ渡り、シドニー工科大学でデータサイエンス修士を修了。日本語ネイティブ、仕事は英語。"}
+                  </p>
+                </div>
+              </div>
+              <button
+                className="w-acard-plus"
+                aria-expanded={aboutOpen === 2}
+                aria-label={en ? "More" : "詳しく"}
+                onClick={() => setAboutOpen(aboutOpen === 2 ? null : 2)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </section>
 
+        <div className="w-flow">
           <section
             className="w-block w-contact"
             aria-label={en ? "Contact" : "連絡先"}
