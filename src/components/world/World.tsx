@@ -40,11 +40,12 @@ import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
 const LENS_HW = 1.5;
 const LENS_HH = 0.925;
 
+type Row = { name: string; desc: string; tag?: string };
+
 export function World() {
   const { lang, setLang } = useLang();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const heroSecRef = useRef<HTMLElement | null>(null);
-  const stmtSecRef = useRef<HTMLElement | null>(null);
   const cueRef = useRef<HTMLDivElement | null>(null);
   const [intro, setIntro] = useState(true);
   const langRef = useRef<Lang>(lang);
@@ -106,9 +107,7 @@ export function World() {
 
     const nameQuad = makeTextBlock("left");
     nameQuad.setLineWorld(0.52);
-    const stmtQuad = makeTextBlock("center");
-    stmtQuad.setLineWorld(0.27);
-    contentScene.add(nameQuad.group, stmtQuad.group);
+    contentScene.add(nameQuad.group);
 
     function redraw(l: Lang) {
       const en = l === "en";
@@ -116,13 +115,6 @@ export function World() {
         en ? ["Masaki", "Kawakami"] : ["川上", "勝基"],
         en ? EN_FONT : JA_FONT,
         en ? -0.035 : 0.03,
-      );
-      stmtQuad.draw(
-        en
-          ? ["I build data and AI", "systems that stay", "in production."]
-          : ["本番で動き続ける、", "データとAIの", "システムをつくる。"],
-        en ? EN_FONT : JA_FONT,
-        en ? -0.025 : 0.01,
       );
     }
     redrawRef.current = redraw;
@@ -182,7 +174,6 @@ export function World() {
     let vh = 1;
     let docH = 1;
     let heroTop = 0;
-    let stmtTop = 0;
     let mx = 0;
     let my = 0;
     let tmx = 0;
@@ -207,7 +198,6 @@ export function World() {
       bgUniforms.uRes.value.set(vw * dpr, vh * dpr);
       docH = document.documentElement.scrollHeight;
       heroTop = heroSecRef.current ? heroSecRef.current.offsetTop : 0;
-      stmtTop = stmtSecRef.current ? stmtSecRef.current.offsetTop : vh;
     }
     measure();
     redraw(langRef.current);
@@ -241,53 +231,30 @@ export function World() {
 
     function lensTarget(yy: number) {
       const margin = 0.14;
-      /* block centers at scroll position yy */
+      /* the name block's center at this scroll position */
       const nC = {
         x: toWorldX(0.07) + nameQuad.width() / 2,
         y: toWorldY((heroTop + vh * 0.5 - yy) / vh),
       };
-      const sC = {
-        x: 0,
-        y: toWorldY((stmtTop + vh * 0.45 - yy) / vh),
-      };
-      /* enter/exit offsets: just outside opposite corners of the block */
+      /* enter/exit just outside opposite corners, so the diagonal sweep
+         covers every glyph regardless of language or viewport */
       const nOff = {
         x: nameQuad.width() / 2 + LENS_HW + margin,
         y: nameQuad.height() / 2 + LENS_HH * 0.75,
       };
-      const sOff = {
-        x: stmtQuad.width() / 2 + LENS_HW + margin,
-        y: stmtQuad.height() / 2 + LENS_HH * 0.75,
-      };
       const nameEnter = { x: nC.x + nOff.x, y: nC.y + nOff.y }; /* ↗ of name */
       const nameExit = { x: nC.x - nOff.x, y: nC.y - nOff.y }; /* ↙ of name */
-      const stmtEnter = { x: sC.x - sOff.x, y: sC.y + sOff.y }; /* ↖ of stmt */
-      const stmtExit = { x: sC.x + sOff.x, y: sC.y - sOff.y }; /* ↘ of stmt */
 
-      /* scroll ranges (px): name pass while the hero is on screen,
-         statement pass while the statement is on screen */
+      /* the whole sweep lives inside the hero; by the time the name
+         scrolls up under the rising content sheet it is fully read.
+         Past the sweep the lens rides the name off the top. */
       const nA = vh * 0.02;
-      const nB = vh * 0.5;
-      const sA = vh * 0.68;
-      const sB = vh * 1.22;
-      const endY = Math.max(sB + 1, docH - vh);
-
+      const nB = vh * 0.92;
       if (yy <= nA) return nameEnter;
       if (yy <= nB) {
         return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      if (yy <= sA) {
-        return lerp2(nameExit, stmtEnter, easeIO((yy - nB) / (sA - nB)));
-      }
-      if (yy <= sB) {
-        return lerp2(stmtEnter, stmtExit, easeIO((yy - sA) / (sB - sA)));
-      }
-      const endPos = { x: toWorldX(0.34), y: toWorldY(0.92) };
-      return lerp2(
-        stmtExit,
-        endPos,
-        easeIO(Math.min(1, (yy - sB) / Math.max(1, endY - sB))),
-      );
+      return nameExit;
     }
 
     const t0 = performance.now();
@@ -296,19 +263,19 @@ export function World() {
       const time = reduced ? 2.0 : (now - t0) / 1000;
       const y = window.scrollY;
       const p = Math.max(0, Math.min(1, y / Math.max(1, docH - vh)));
+      const hp = Math.min(1, y / vh); /* hero-local progress */
+      const heroVisible = y < vh * 1.05;
 
       mx += (tmx - mx) * 0.06;
       my += (tmy - my) * 0.06;
 
-      /* display type follows the document exactly */
+      /* the name follows the document exactly */
       const nameV = (heroTop + vh * 0.5 - y) / vh;
       nameQuad.group.position.set(
         toWorldX(0.07) + nameQuad.width() / 2,
         toWorldY(nameV),
         0,
       );
-      const stmtV = (stmtTop + vh * 0.45 - y) / vh;
-      stmtQuad.group.position.set(0, toWorldY(stmtV), 0);
 
       /* the glass flies its plan; smoothing polishes, never gates */
       const wp = lensTarget(y);
@@ -334,12 +301,12 @@ export function World() {
 
       /* shards start off-screen and drift in with scroll, so the hero
          top stays clean — no clipped fragment glinting in the corner */
-      shardA.position.x = -2.6 + mx * 0.5 + p * 0.7;
+      shardA.position.x = -2.6 + mx * 0.5 + hp * 0.7;
       shardA.position.y =
-        2.9 - p * 2.6 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
+        2.9 - hp * 2.6 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
       shardA.rotation.y = 0.42 + Math.sin(time * 0.19) * 0.3 + mx * 0.2;
       shardB.position.x = 2.9 + mx * 0.16;
-      shardB.position.y = -2.9 + p * 1.7;
+      shardB.position.y = -2.9 + hp * 1.7;
       shardB.rotation.y = -0.3 + Math.cos(time * 0.15) * 0.24;
 
       /* glass camera carries the pointer parallax; content stays true */
@@ -348,27 +315,31 @@ export function World() {
       camera.lookAt(0, 0, 0);
 
       bgUniforms.uTime.value = time;
-      bgUniforms.uDrift.value = p;
+      bgUniforms.uDrift.value = hp;
       lensUniforms.uTime.value = time;
       partMat.uniforms.uTime.value = time;
 
-      /* RT holds the resolved world (solid ink); only the lens reads it */
-      renderer.setRenderTarget(rt);
-      renderer.render(fieldScene, bgCam);
-      renderer.autoClear = false;
-      contentCam.layers.set(1);
-      renderer.render(contentScene, contentCam);
-      renderer.autoClear = true;
-      /* the screen shows the raw world (ghost outline) under the lens */
-      renderer.setRenderTarget(null);
-      renderer.render(fieldScene, bgCam);
-      renderer.autoClear = false;
-      contentCam.layers.set(2);
-      renderer.render(contentScene, contentCam);
-      renderer.render(glassScene, camera);
-      renderer.autoClear = true;
+      /* the content sheet is opaque, so the world only needs to draw
+         while the hero is still on screen */
+      if (heroVisible) {
+        /* RT holds the resolved world (solid ink); only the lens reads it */
+        renderer.setRenderTarget(rt);
+        renderer.render(fieldScene, bgCam);
+        renderer.autoClear = false;
+        contentCam.layers.set(1);
+        renderer.render(contentScene, contentCam);
+        renderer.autoClear = true;
+        /* the screen shows the raw world (ghost outline) under the lens */
+        renderer.setRenderTarget(null);
+        renderer.render(fieldScene, bgCam);
+        renderer.autoClear = false;
+        contentCam.layers.set(2);
+        renderer.render(contentScene, contentCam);
+        renderer.render(glassScene, camera);
+        renderer.autoClear = true;
+      }
 
-      if (cue) cue.style.opacity = String(1 - Math.min(1, p * 6));
+      if (cue) cue.style.opacity = String(1 - Math.min(1, hp * 2.2));
 
       raf = requestAnimationFrame(frame);
     }
@@ -394,10 +365,26 @@ export function World() {
       bgMat.dispose();
       lensMat.dispose();
       nameQuad.dispose();
-      stmtQuad.dispose();
       rt.dispose();
       renderer.dispose();
     };
+  }, []);
+
+  /* reveal content rows as they enter view (transform/opacity only) */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 },
+    );
+    document.querySelectorAll(".w-reveal").forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 
   /* language flip: re-rasterize the display type */
@@ -407,6 +394,106 @@ export function World() {
   }, [lang]);
 
   const en = lang === "en";
+
+  const work: Row[] = en
+    ? [
+        {
+          name: "VAI Studio",
+          desc: "AI video and web studio serving Japan and Australia. Client work live, including Yukoala Concierge.",
+        },
+        {
+          name: "Review365",
+          desc: "LLM reporting for paying local clients, run on Japanese SOPs. Rankings tracked monthly.",
+        },
+        {
+          name: "Vacanti AI",
+          desc: "AI job matching SaaS, designed, built and shipped solo. Live in production.",
+        },
+        {
+          name: "Fabric Sampling Tool",
+          desc: "WeChat mini program digitising sample lending for a textile trading company.",
+        },
+        {
+          name: "Kodoku",
+          tag: "In development",
+          desc: "Solo founders running a company with AI agents as staff.",
+        },
+      ]
+    : [
+        {
+          name: "VAI Studio",
+          desc: "日豪で動くAI動画・Web制作スタジオ。Yukoala Concierge など実クライアント案件が稼働中。",
+        },
+        {
+          name: "Review365",
+          desc: "日本語SOPで回すLLMレポーティング。課金クライアントの順位を毎月計測。",
+        },
+        {
+          name: "Vacanti AI",
+          desc: "一人で設計から本番投入まで。稼働中のAIジョブマッチングSaaS。",
+        },
+        {
+          name: "Fabric Sampling Tool",
+          desc: "ある繊維商社のサンプル貸出業務をWeChatミニプログラムでデジタル化。",
+        },
+        {
+          name: "Kodoku",
+          tag: "開発中",
+          desc: "AIエージェントのチームで1人の会社を回す。",
+        },
+      ];
+
+  const research: Row[] = en
+    ? [
+        {
+          name: "Warden",
+          desc: "Prompt injection detection research: CoT monitoring, LLM as judge. Submitted at UTS.",
+        },
+        {
+          name: "Cloud ELT Pipeline",
+          desc: "dbt, Airflow, Medallion architecture, SCD Type 2, monthly loads on GCP.",
+        },
+        {
+          name: "Crypto Forecast API",
+          desc: "From model to service: PyPI package, FastAPI, Docker, deployed and callable.",
+        },
+      ]
+    : [
+        {
+          name: "Warden",
+          desc: "プロンプトインジェクション検出の研究。CoT監視、LLM-as-judge。UTS提出済み。",
+        },
+        {
+          name: "Cloud ELT Pipeline",
+          desc: "dbt、Airflow、Medallion 構成、SCD Type 2。GCP 上の月次ロード。",
+        },
+        {
+          name: "Crypto Forecast API",
+          desc: "モデルからサービスまで。PyPIパッケージ、FastAPI、Docker、稼働中のAPI。",
+        },
+      ];
+
+  const community: Row[] = en
+    ? [
+        {
+          name: "AI Salon Sydney",
+          desc: "Co-organiser of AI community events in Sydney.",
+        },
+        {
+          name: "Workshops",
+          desc: "Speaker at Sydney community workshops: LinkedIn, Notion, and Claude Code next.",
+        },
+      ]
+    : [
+        {
+          name: "AI Salon Sydney",
+          desc: "シドニーのAIコミュニティイベントを共同運営。",
+        },
+        {
+          name: "Workshops",
+          desc: "シドニーのコミュニティワークショップに登壇。LinkedIn、Notion、次は Claude Code。",
+        },
+      ];
 
   return (
     <div className="w-root" data-intro={intro ? "on" : "off"}>
@@ -452,24 +539,130 @@ export function World() {
         <section className="w-sec w-sec-hero" ref={heroSecRef}>
           <h1 className="w-sr">Masaki Kawakami</h1>
           <p className="w-kicker">
-            {en ? "Data & AI Analyst · Sydney" : "データ/AIアナリスト・シドニー"}
-          </p>
-          <p className="w-sub">
-            {en
-              ? "Systems that stay in production, for real clients."
-              : "実クライアントのために、本番で動き続けるシステムを。"}
+            {en ? "Data & AI · Sydney" : "データ & AI · シドニー"}
           </p>
         </section>
 
-        <section className="w-sec w-sec-stmt" ref={stmtSecRef}>
-          <p className="w-cap">
-            {en
-              ? "Five years in HR at Canon. Now shipping analytics and LLM systems for paying clients across Australia and Japan."
-              : "キヤノンの人事で5年。いまは日豪の実クライアントに向けて、分析とLLMのシステムを届けている。"}
-          </p>
-        </section>
+        <div className="w-sheet">
+          <section className="w-block" aria-label={en ? "Work" : "仕事"}>
+            <p className="w-label w-reveal">{en ? "Work" : "仕事"}</p>
+            <ul className="w-list">
+              {work.map((it) => (
+                <li className="w-item w-reveal" key={it.name}>
+                  <span className="w-item-name">
+                    {it.name}
+                    {it.tag ? <em className="w-tag">{it.tag}</em> : null}
+                  </span>
+                  <span className="w-item-desc">{it.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        <section className="w-sec w-tail" aria-hidden />
+          <section
+            className="w-block"
+            aria-label={en ? "Research and university" : "研究・大学"}
+          >
+            <p className="w-label w-reveal">
+              {en ? "Research & University" : "研究・大学"}
+            </p>
+            <ul className="w-list">
+              {research.map((it) => (
+                <li className="w-item w-reveal" key={it.name}>
+                  <span className="w-item-name">{it.name}</span>
+                  <span className="w-item-desc">{it.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section
+            className="w-block"
+            aria-label={en ? "Community and speaking" : "コミュニティ・登壇"}
+          >
+            <p className="w-label w-reveal">
+              {en ? "Community & Speaking" : "コミュニティ・登壇"}
+            </p>
+            <ul className="w-list">
+              {community.map((it) => (
+                <li className="w-item w-reveal" key={it.name}>
+                  <span className="w-item-name">{it.name}</span>
+                  <span className="w-item-desc">{it.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section
+            className="w-block w-about"
+            aria-label={en ? "About" : "自己紹介"}
+          >
+            <p className="w-label w-reveal">{en ? "About" : "自己紹介"}</p>
+            <p className="w-prose w-reveal">
+              {en ? (
+                <>
+                  I build AI systems that change how businesses run, and keep
+                  them running in production: an AI job matching SaaS, LLM
+                  reporting that paying clients rely on, and the workflows
+                  behind them. I work both sides of the table: as COO of{" "}
+                  <a
+                    href="https://cubic-innov8-group.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Cubic Innov8
+                  </a>
+                  , an IT and innovation group across Kyoto and Sydney, I bring
+                  in clients and run operations, then build the systems that
+                  serve them. I also built and shipped Vacanti AI, an AI job
+                  matching SaaS, as an independent venture. Before this I spent
+                  five years in HR at Canon Marketing Japan, then moved to
+                  Sydney and completed a Master of Data Science at the
+                  University of Technology Sydney. Native Japanese speaker,
+                  working in English.
+                </>
+              ) : (
+                <>
+                  ビジネスの回り方を変えるAIをつくり、本番で動かし続けています。AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。京都とシドニーのIT企業{" "}
+                  <a
+                    href="https://cubic-innov8-group.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Cubic Innov8
+                  </a>{" "}
+                  のCOOとして、クライアント開拓や運営という事業側と、それを支えるシステムの実装側の両方をやっています。また、独立ベンチャーとして AIジョブマッチングSaaS「Vacanti AI」を一人でつくり、本番公開しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニーに渡り、シドニー工科大学でデータサイエンス修士を修了しました。日本語ネイティブ、仕事は英語です。
+                </>
+              )}
+            </p>
+          </section>
+
+          <section
+            className="w-block w-contact"
+            aria-label={en ? "Contact" : "連絡先"}
+          >
+            <p className="w-label w-reveal">{en ? "Contact" : "連絡先"}</p>
+            <div className="w-contact-row w-reveal">
+              <a href="mailto:sng1006.trade@gmail.com">Email</a>
+              <a
+                href="https://www.linkedin.com/in/masaki-kawakami-563643354/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                LinkedIn
+              </a>
+              <a
+                href="https://github.com/masaki-kawa"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub
+              </a>
+            </div>
+          </section>
+
+          <footer className="w-foot">© 2026 Masaki Kawakami</footer>
+        </div>
       </main>
 
       <div className="w-cue" ref={cueRef}>
