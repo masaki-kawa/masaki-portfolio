@@ -434,7 +434,12 @@ button:focus-visible {
   }
 }
 
-/* ---------- hud ---------- */
+/* ---------- hud: silver liquid-glass pill with a prism rim ---------- */
+@property --w-ring {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
 .w-hud {
   position: fixed;
   top: 20px;
@@ -443,19 +448,72 @@ button:focus-visible {
   z-index: 40;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 8px 9px 8px 18px;
+  gap: 12px;
+  padding: 6px 8px 6px 7px;
   border-radius: 999px;
-  background: linear-gradient(170deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
-  -webkit-backdrop-filter: blur(10px) saturate(1.3);
-  backdrop-filter: blur(10px) saturate(1.3);
-  box-shadow: 0 14px 40px rgba(28, 32, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: linear-gradient(
+    172deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(243, 246, 250, 0.4) 46%,
+    rgba(224, 229, 238, 0.5)
+  );
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  box-shadow:
+    0 14px 40px rgba(28, 32, 40, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -9px 16px -10px rgba(110, 122, 145, 0.35);
 }
-.w-brand {
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
+/* the rim: a slowly turning spectral ring, dispersion as ornament */
+.w-hud::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: conic-gradient(
+    from var(--w-ring),
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 176, 194, 0.6) 12%,
+    rgba(255, 226, 158, 0.55) 26%,
+    rgba(168, 236, 197, 0.55) 42%,
+    rgba(158, 202, 255, 0.68) 58%,
+    rgba(216, 176, 255, 0.62) 74%,
+    rgba(255, 255, 255, 0.95)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: w-ring-spin 16s linear infinite;
+}
+@keyframes w-ring-spin {
+  to {
+    --w-ring: 360deg;
+  }
+}
+.w-avatar {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow:
+    0 1px 5px rgba(28, 32, 40, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+.w-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .w-lang {
   display: flex;
@@ -1223,7 +1281,8 @@ a.w-slide:hover .w-slide-plus {
 @media (prefers-reduced-motion: reduce) {
   .w-emblem,
   .w-mono-mark,
-  .w-mono-sub {
+  .w-mono-sub,
+  .w-hud::before {
     animation: none;
   }
   .w-loading {
@@ -1343,5 +1402,9 @@ a.w-slide:hover .w-slide-plus {
   .wd-media {
     -webkit-backdrop-filter: blur(8px) saturate(1.16) url("#w-glass");
     backdrop-filter: blur(8px) saturate(1.16) url("#w-glass");
+  }
+  .w-hud {
+    -webkit-backdrop-filter: blur(14px) saturate(1.5) url("#w-glass");
+    backdrop-filter: blur(14px) saturate(1.5) url("#w-glass");
   }
 }

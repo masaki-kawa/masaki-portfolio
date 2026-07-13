@@ -32,6 +32,7 @@ import {
 } from "@/lib/world/shaders";
 import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
 import Link from "next/link";
+import Image from "next/image";
 import { WORK, RESEARCH } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
 
@@ -678,7 +679,15 @@ export function World() {
       </div>
 
       <nav className="w-hud" aria-label="Navigation">
-        <span className="w-brand">Masaki Kawakami</span>
+        <Link className="w-avatar" href="/" aria-label="Masaki Kawakami">
+          <Image
+            src="/avatar.png"
+            alt="Masaki Kawakami"
+            width={64}
+            height={64}
+            priority
+          />
+        </Link>
         <button
           className="w-lang"
           onClick={() => setLang(en ? "ja" : "en")}
