@@ -67,8 +67,10 @@ function makeTextQuad(align: "left" | "center"): TextQuad {
   const state = { aspect: 1, lines: 1, lineWorld: 0.5 };
 
   function applyScale() {
+    /* the canvas holds all lines, so its aspect already covers the full
+       block: width = fullHeight * (canvasW / canvasH). No per-line divisor. */
     const h = state.lines * state.lineWorld;
-    mesh.scale.set(h * state.aspect * (1 / state.lines), h, 1);
+    mesh.scale.set(h * state.aspect, h, 1);
   }
   function draw(lines: string[], font: string, spacingEm: number) {
     if (!ctx) return;
@@ -368,11 +370,14 @@ export function World() {
       lens.rotation.x = 0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04;
       lens.rotation.z = reduced ? 0 : Math.max(-0.2, Math.min(0.2, bank * 0.1));
 
-      shardA.position.x = -2.35 + mx * 0.5;
-      shardA.position.y = 1.35 - my * 0.32 + p * 1.1 + Math.sin(time * 0.5) * 0.06;
+      /* shards start off-screen and drift in with scroll, so the hero
+         top stays clean — no clipped fragment glinting in the corner */
+      shardA.position.x = -2.6 + mx * 0.5 + p * 0.7;
+      shardA.position.y =
+        2.9 - p * 2.6 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
       shardA.rotation.y = 0.42 + Math.sin(time * 0.19) * 0.3 + mx * 0.2;
-      shardB.position.x = 2.75 + mx * 0.16;
-      shardB.position.y = -1.55 - p * 0.9;
+      shardB.position.x = 2.9 + mx * 0.16;
+      shardB.position.y = -2.9 + p * 1.7;
       shardB.rotation.y = -0.3 + Math.cos(time * 0.15) * 0.24;
 
       /* glass camera carries the pointer parallax; content stays true */
