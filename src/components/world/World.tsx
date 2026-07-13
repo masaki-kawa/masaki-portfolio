@@ -41,6 +41,7 @@ const LENS_HW = 1.5;
 const LENS_HH = 0.925;
 
 type Row = { name: string; desc: string; tag?: string };
+type WorkItem = Row & { slug: string; detail: string };
 
 export function World() {
   const { lang, setLang } = useLang();
@@ -50,6 +51,9 @@ export function World() {
   const [intro, setIntro] = useState(true);
   const langRef = useRef<Lang>(lang);
   const redrawRef = useRef<(l: Lang) => void>(() => {});
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [slide, setSlide] = useState(0);
+  const [detail, setDetail] = useState(0);
 
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -145,6 +149,32 @@ export function World() {
     shardA.position.set(-2.35, 1.35, 1.3);
     shardB.position.set(2.75, -1.55, -1.6);
     glassScene.add(shardA, shardB);
+
+    /* soft contact shadow: grounds the glass on the bright field so it
+       never reads as a washed-out outline on white */
+    const shCv = document.createElement("canvas");
+    shCv.width = 256;
+    shCv.height = 256;
+    const shCtx = shCv.getContext("2d");
+    if (shCtx) {
+      const g = shCtx.createRadialGradient(128, 128, 10, 128, 128, 126);
+      g.addColorStop(0, "rgba(24, 28, 36, 0.34)");
+      g.addColorStop(0.55, "rgba(24, 28, 36, 0.12)");
+      g.addColorStop(1, "rgba(24, 28, 36, 0)");
+      shCtx.fillStyle = g;
+      shCtx.fillRect(0, 0, 256, 256);
+    }
+    const shTex = new THREE.CanvasTexture(shCv);
+    const shGeo = new THREE.PlaneGeometry(1, 1);
+    const shMat = new THREE.MeshBasicMaterial({
+      map: shTex,
+      transparent: true,
+      depthWrite: false,
+    });
+    const shadow = new THREE.Mesh(shGeo, shMat);
+    shadow.scale.set(4.7, 2.9, 1);
+    shadow.position.z = -0.5;
+    glassScene.add(shadow);
 
     const PART_N = 170;
     const partGeo = new THREE.BufferGeometry();
@@ -254,15 +284,10 @@ export function World() {
       if (yy <= nB) {
         return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      /* once the name is read the lens glides on: it swings wide, into
-         the gutters beside the floating content card, so the square of
-         glass visibly travels down the page with you and weaves behind
-         the card rather than vanishing */
-      const travel = (yy - nB) / vh;
-      return {
-        x: toWorldX(0.5 + 0.46 * Math.sin(travel * 0.6)),
-        y: toWorldY(0.4 + 0.18 * Math.sin(travel * 0.95 + 1.2)),
-      };
+      /* once the name is read the lens rides the diagonal off screen,
+         a clean exit: the sections below carry their own show */
+      const t2 = easeIO(Math.min(1, (yy - nB) / (vh * 0.55)));
+      return lerp2(nameExit, { x: toWorldX(-0.3), y: toWorldY(1.35) }, t2);
     }
 
     const t0 = performance.now();
@@ -302,6 +327,7 @@ export function World() {
       const bank = Math.atan2(ahead.y - tyw, ahead.x - txw + 1e-5);
 
       lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05, 0);
+      shadow.position.set(gx + 0.14, gy - 1.08, -0.5);
       lens.rotation.y = -0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1;
       lens.rotation.x = 0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04;
       lens.rotation.z = reduced ? 0 : Math.max(-0.2, Math.min(0.2, bank * 0.1));
@@ -366,6 +392,9 @@ export function World() {
       tri.dispose();
       lensGeo.dispose();
       shardGeo.dispose();
+      shGeo.dispose();
+      shMat.dispose();
+      shTex.dispose();
       partGeo.dispose();
       partMat.dispose();
       bgMat.dispose();
@@ -401,53 +430,106 @@ export function World() {
 
   const en = lang === "en";
 
-  const work: Row[] = en
+  /* visual slots: drop screenshots at public/work/<slug>.png and they
+     replace the gradient placeholders automatically */
+  const workItems: WorkItem[] = en
     ? [
         {
+          slug: "vai-studio",
           name: "VAI Studio",
           desc: "AI video and web studio serving Japan and Australia. Client work live, including Yukoala Concierge.",
+          detail:
+            "Motion produces AI assisted video, Build ships client sites. For Yukoala Concierge that meant a full company site, live in production, plus ongoing Instagram content.",
         },
         {
+          slug: "review365",
           name: "Review365",
           desc: "LLM reporting for paying local clients, run on Japanese SOPs. Rankings tracked monthly.",
+          detail:
+            "Review growth and local search for hospitality clients, run as a monthly measurement loop: rankings, profile insights and AI visibility, written up so owners can act. Generation runs on Japanese SOPs executed by Claude, with a human final pass.",
         },
         {
+          slug: "vacanti-ai",
           name: "Vacanti AI",
           desc: "AI job matching SaaS, designed, built and shipped solo. Live in production.",
+          detail:
+            "A matching engine with four axis scoring, embeddings on pgvector, and a vision based evaluation pipeline that catches false positives before users see them. Next.js, Supabase, Drizzle and Stripe, taken to production by one person.",
         },
         {
+          slug: "fabric-sampling",
           name: "Fabric Sampling Tool",
           desc: "WeChat mini program digitising sample lending for a textile trading company.",
+          detail:
+            "Fabric sample lending digitised end to end: QR scan to borrow, return tracking, and a partner briefing deck. Built as a WeChat mini program so it runs inside China without a VPN.",
         },
         {
+          slug: "kodoku",
           name: "Kodoku",
           tag: "In development",
           desc: "Solo founders running a company with AI agents as staff.",
+          detail:
+            "An operating layer where AI agents hold real roles in a one person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
         },
       ]
     : [
         {
+          slug: "vai-studio",
           name: "VAI Studio",
           desc: "日豪で動くAI動画・Web制作スタジオ。Yukoala Concierge など実クライアント案件が稼働中。",
+          detail:
+            "Motion が AI 動画を、Build がクライアントサイトを届ける。Yukoala Concierge には本番公開の企業サイトと、継続中の Instagram コンテンツを提供。",
         },
         {
+          slug: "review365",
           name: "Review365",
           desc: "日本語SOPで回すLLMレポーティング。課金クライアントの順位を毎月計測。",
+          detail:
+            "飲食クライアントのレビュー成長とローカル検索を、月次の計測ループとして運用。順位、プロフィールインサイト、AI上の可視性を計測し、オーナーが動ける形のレポートに。生成は日本語SOP × Claude、最終判断は人間。",
         },
         {
+          slug: "vacanti-ai",
           name: "Vacanti AI",
           desc: "一人で設計から本番投入まで。稼働中のAIジョブマッチングSaaS。",
+          detail:
+            "4軸スコアリングのマッチングエンジン、pgvector の埋め込み、偽陽性を配信前に検知する Vision 評価パイプライン。Next.js、Supabase、Drizzle、Stripe を一人で本番まで。",
         },
         {
+          slug: "fabric-sampling",
           name: "Fabric Sampling Tool",
           desc: "ある繊維商社のサンプル貸出業務をWeChatミニプログラムでデジタル化。",
+          detail:
+            "生地サンプルの貸出を、QRスキャンでの貸出から返却管理までデジタル化し、取引先向け説明資料まで用意。中国国内でVPNなしで動くよう、WeChatミニプログラムで構築。",
         },
         {
+          slug: "kodoku",
           name: "Kodoku",
           tag: "開発中",
           desc: "AIエージェントのチームで1人の会社を回す。",
+          detail:
+            "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡し。開発中、いま一番つくりたいもの。",
         },
       ];
+
+  function goTo(i: number) {
+    const t = trackRef.current;
+    if (!t) return;
+    const kids = Array.from(t.children) as HTMLElement[];
+    const j = Math.max(0, Math.min(kids.length - 1, i));
+    const el = kids[j];
+    t.scrollTo({
+      left: el.offsetLeft - (t.clientWidth - el.clientWidth) / 2,
+      behavior: "smooth",
+    });
+  }
+  function onTrackScroll() {
+    const t = trackRef.current;
+    const first = t?.firstElementChild as HTMLElement | null;
+    if (!t || !first) return;
+    const w = first.clientWidth + 22;
+    setSlide(
+      Math.max(0, Math.min(workItems.length - 1, Math.round(t.scrollLeft / w))),
+    );
+  }
 
   const research: Row[] = en
     ? [
@@ -549,21 +631,103 @@ export function World() {
           </p>
         </section>
 
-        <div className="w-sheet">
-          <section className="w-block" aria-label={en ? "Work" : "仕事"}>
+        {/* Work: full-width highlights carousel, one slide per project */}
+        <section className="w-carsec" aria-label={en ? "Work" : "仕事"}>
+          <div className="w-carhead">
             <p className="w-label w-reveal">{en ? "Work" : "仕事"}</p>
-            <ul className="w-list">
-              {work.map((it) => (
-                <li className="w-item w-reveal" key={it.name}>
-                  <span className="w-item-name">
+            <h2 className="w-headline w-reveal">
+              {en ? "Start with the work." : "まずは、仕事から。"}
+            </h2>
+          </div>
+          <div className="w-cartrack" ref={trackRef} onScroll={onTrackScroll}>
+            {workItems.map((it) => (
+              <article className="w-slide" key={it.slug}>
+                <div
+                  className="w-slide-media"
+                  style={{
+                    backgroundImage: `url(/work/${it.slug}.png), linear-gradient(165deg, #f0f2f7 0%, #e2e6ee 55%, #d8dde7 100%)`,
+                  }}
+                  aria-hidden
+                />
+                <div className="w-slide-cap">
+                  <h3 className="w-slide-name">
                     {it.name}
                     {it.tag ? <em className="w-tag">{it.tag}</em> : null}
-                  </span>
-                  <span className="w-item-desc">{it.desc}</span>
-                </li>
+                  </h3>
+                  <p className="w-slide-desc">{it.desc}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="w-carctl">
+            <button
+              className="w-arrow"
+              aria-label={en ? "Previous" : "前へ"}
+              onClick={() => goTo(slide - 1)}
+            >
+              ‹
+            </button>
+            <div className="w-dots">
+              {workItems.map((it, i) => (
+                <button
+                  key={it.slug}
+                  className={i === slide ? "w-dot on" : "w-dot"}
+                  aria-label={it.name}
+                  onClick={() => goTo(i)}
+                />
               ))}
-            </ul>
-          </section>
+            </div>
+            <button
+              className="w-arrow"
+              aria-label={en ? "Next" : "次へ"}
+              onClick={() => goTo(slide + 1)}
+            >
+              ›
+            </button>
+          </div>
+        </section>
+
+        {/* Details: pick a project, the visual and copy follow */}
+        <section className="w-detsec" aria-label={en ? "Details" : "詳細"}>
+          <div className="w-carhead">
+            <p className="w-label w-reveal">{en ? "Details" : "ディテール"}</p>
+            <h2 className="w-headline w-reveal">
+              {en ? "Take a closer look." : "近づいて見る。"}
+            </h2>
+          </div>
+          <div className="w-detgrid">
+            <div className="w-detlist">
+              {workItems.map((it, i) => (
+                <div className={i === detail ? "w-det on" : "w-det"} key={it.slug}>
+                  <button
+                    className="w-det-pill"
+                    onClick={() => setDetail(i)}
+                    aria-expanded={i === detail}
+                  >
+                    <span className="w-det-plus" aria-hidden>
+                      +
+                    </span>
+                    {it.name}
+                  </button>
+                  <div className="w-det-body">
+                    <div className="w-det-inner">
+                      <p>{it.detail}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              className="w-detvis"
+              style={{
+                backgroundImage: `url(/work/${workItems[detail].slug}.png), linear-gradient(160deg, #f1f3f8 0%, #dde2ea 100%)`,
+              }}
+              aria-hidden
+            />
+          </div>
+        </section>
+
+        <div className="w-flow">
 
           <section
             className="w-block"

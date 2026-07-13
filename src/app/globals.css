@@ -561,20 +561,16 @@ button:focus-visible {
    The hero hands the viewport to the WebGL world; below it a calm
    silver panel rises over the canvas and carries the crisp,
    selectable copy. Text never sits on the busy field. */
-.w-sheet {
+.w-flow {
   position: relative;
   z-index: 10;
-  max-width: 1140px;
-  width: calc(100% - clamp(32px, 9vw, 200px));
-  margin: 0 auto;
-  /* transparent layout container; the world and the gliding glass show
-     in the outer margins and in the gaps between the cards */
-  padding: clamp(72px, 13vh, 168px) 0 96px;
+  padding: clamp(40px, 7vh, 90px) 0 96px;
 }
 .w-block {
-  /* each section is its own floating glass card; the gap between cards
-     is where the world and the travelling lens weave through */
-  margin: 0 0 clamp(22px, 3.5vh, 46px);
+  /* each remaining section is its own floating glass card */
+  max-width: 1140px;
+  width: calc(100% - clamp(32px, 9vw, 200px));
+  margin: 0 auto clamp(22px, 3.5vh, 46px);
   padding: clamp(38px, 5.5vh, 68px) clamp(28px, 5vw, 76px);
   background: linear-gradient(
     177deg,
@@ -679,10 +675,226 @@ button:focus-visible {
   box-shadow: 0 10px 22px rgba(28, 32, 40, 0.13);
 }
 .w-foot {
-  margin: 4px 0 0;
-  padding: 0 clamp(28px, 5vw, 76px);
+  max-width: 1140px;
+  margin: 4px auto 0;
+  width: calc(100% - clamp(32px, 9vw, 200px));
   font-size: 12px;
   color: var(--w-ink-3);
+}
+
+/* ---------- Work: highlights carousel (one slide per project) ------- */
+.w-carsec,
+.w-detsec {
+  position: relative;
+  z-index: 10;
+  padding: clamp(70px, 12vh, 150px) 0 10px;
+}
+.w-carhead {
+  max-width: 1140px;
+  width: calc(100% - clamp(32px, 9vw, 200px));
+  margin: 0 auto clamp(26px, 4.5vh, 48px);
+}
+.w-headline {
+  margin: 10px 0 0;
+  font-size: clamp(30px, 4.4vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  color: var(--w-ink);
+}
+.w-cartrack {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 6px calc((100vw - min(940px, 86vw)) / 2) 30px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.w-cartrack::-webkit-scrollbar {
+  display: none;
+}
+.w-slide {
+  flex: 0 0 min(940px, 86vw);
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  border-radius: 32px;
+  overflow: hidden;
+  background: linear-gradient(
+    177deg,
+    rgba(250, 251, 253, 0.9),
+    rgba(238, 241, 246, 0.93)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 30px 70px rgba(28, 32, 40, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.w-slide-media {
+  height: clamp(280px, 44vh, 460px);
+  background-size: cover;
+  background-position: center;
+}
+.w-slide-cap {
+  padding: 24px clamp(24px, 4vw, 44px) 30px;
+  display: grid;
+  gap: 8px;
+}
+.w-slide-name {
+  margin: 0;
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--w-ink);
+}
+.w-slide-desc {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--w-ink-2);
+  max-width: 64ch;
+}
+.w-carctl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.w-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(252, 253, 255, 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(28, 32, 40, 0.1);
+  font-size: 21px;
+  line-height: 1;
+  color: var(--w-ink-2);
+  cursor: pointer;
+  transition: color 200ms;
+}
+.w-arrow:hover {
+  color: var(--w-ink);
+}
+.w-dots {
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(22, 23, 26, 0.06);
+}
+.w-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(22, 23, 26, 0.22);
+  cursor: pointer;
+  transition:
+    width 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background 300ms;
+}
+.w-dot.on {
+  width: 22px;
+  background: var(--w-ink);
+}
+
+/* ---------- Details: pick a project, visual follows ---------------- */
+.w-detgrid {
+  max-width: 1140px;
+  width: calc(100% - clamp(32px, 9vw, 200px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(300px, 410px) 1fr;
+  gap: clamp(20px, 3vw, 44px);
+  align-items: stretch;
+}
+.w-det {
+  margin-bottom: 10px;
+  border-radius: 22px;
+  background: rgba(250, 251, 253, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(28, 32, 40, 0.08);
+  overflow: hidden;
+}
+.w-det-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--w-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.w-det-plus {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(22, 23, 26, 0.07);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--w-ink-2);
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background 300ms,
+    color 300ms;
+}
+.w-det.on .w-det-plus {
+  transform: rotate(45deg);
+  background: var(--w-ink);
+  color: #fff;
+}
+.w-det-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.w-det.on .w-det-body {
+  grid-template-rows: 1fr;
+}
+.w-det-inner {
+  overflow: hidden;
+}
+.w-det-inner p {
+  margin: 0;
+  padding: 0 22px 18px 56px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--w-ink-2);
+}
+.w-detvis {
+  border-radius: 30px;
+  min-height: 460px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 30px 70px rgba(28, 32, 40, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 900px) {
+  .w-detgrid {
+    grid-template-columns: 1fr;
+  }
+  .w-detvis {
+    order: -1;
+    min-height: 280px;
+  }
+  .w-slide-media {
+    height: clamp(200px, 32vh, 300px);
+  }
 }
 .w-reveal {
   opacity: 0;
