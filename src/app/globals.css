@@ -1317,3 +1317,31 @@ a.w-slide:hover .w-slide-plus {
   color: var(--w-ink);
   box-shadow: 0 1px 6px rgba(28, 32, 40, 0.14);
 }
+
+/* ---------- liquid-glass refraction on the section cards ----------
+   Static SVG displacement (see GlassFilter) bent into each card's
+   backdrop, so the world behind the glass refracts like the hero lens
+   rather than only blurring. Kept subtle: the cards stay legible, so
+   the bend reads most where they overlap the world (edges, margins).
+   Never mutated per frame -> composites on the GPU, no scroll jank.
+   Browsers without url() backdrop keep the plain frost above. */
+.w-svgdefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+@supports (backdrop-filter: url("#w-glass")) or
+  (-webkit-backdrop-filter: url("#w-glass")) {
+  .w-slide,
+  .w-photo,
+  .w-acard,
+  .w-block,
+  .w-detvis,
+  .w-det,
+  .wd-media {
+    -webkit-backdrop-filter: blur(8px) saturate(1.16) url("#w-glass");
+    backdrop-filter: blur(8px) saturate(1.16) url("#w-glass");
+  }
+}

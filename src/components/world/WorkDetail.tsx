@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLang } from "@/components/lang-provider";
 import { WORK, RESEARCH, type Localized } from "@/lib/content/work";
+import { GlassFilter } from "@/components/world/GlassFilter";
 
 /**
  * /work/[slug] — quiet detail page for one project. Same silver world
@@ -22,6 +23,7 @@ export function WorkDetail({ slug }: { slug: string }) {
 
   return (
     <div className="w-root wd-root">
+      <GlassFilter />
       <div className="w-grain" aria-hidden />
 
       <nav className="w-hud" aria-label="Navigation">

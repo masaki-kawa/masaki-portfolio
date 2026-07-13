@@ -33,6 +33,7 @@ import {
 import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
 import Link from "next/link";
 import { WORK, RESEARCH } from "@/lib/content/work";
+import { GlassFilter } from "@/components/world/GlassFilter";
 
 /* lens half extents in world units (geometry is 3.0 x 1.85). The flight
    plan is derived from the measured text blocks, not hand-tuned points:
@@ -642,6 +643,7 @@ export function World() {
 
   return (
     <div className="w-root" data-intro={intro ? "on" : "off"}>
+      <GlassFilter />
       <canvas ref={canvasRef} className="w-canvas" aria-hidden />
       <div className="w-grain" aria-hidden />
 
