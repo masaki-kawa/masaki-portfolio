@@ -564,34 +564,36 @@ button:focus-visible {
 .w-sheet {
   position: relative;
   z-index: 10;
-  max-width: 1180px;
-  width: calc(100% - clamp(32px, 9vw, 180px));
+  max-width: 1140px;
+  width: calc(100% - clamp(32px, 9vw, 200px));
   margin: 0 auto;
-  background: linear-gradient(
-    180deg,
-    rgba(245, 247, 250, 0.88) 0%,
-    rgba(238, 241, 245, 0.9) 100%
-  );
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  backdrop-filter: blur(14px) saturate(1.15);
-  border-radius: 30px;
-  box-shadow:
-    0 30px 80px rgba(28, 32, 40, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  padding: clamp(52px, 9vh, 104px) 0 48px;
+  /* transparent layout container; the world and the gliding glass show
+     in the outer margins and in the gaps between the cards */
+  padding: clamp(72px, 13vh, 168px) 0 96px;
 }
 .w-block {
-  max-width: 940px;
-  margin: 0 auto clamp(52px, 8vh, 100px);
-  padding: 0 clamp(24px, 7vw, 84px);
+  /* each section is its own floating glass card; the gap between cards
+     is where the world and the travelling lens weave through */
+  margin: 0 0 clamp(22px, 3.5vh, 46px);
+  padding: clamp(38px, 5.5vh, 68px) clamp(28px, 5vw, 76px);
+  background: linear-gradient(
+    177deg,
+    rgba(247, 249, 251, 0.8) 0%,
+    rgba(240, 243, 247, 0.85) 100%
+  );
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 30px;
+  box-shadow:
+    0 24px 64px rgba(28, 32, 40, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 .w-label {
-  margin: 0 0 22px;
-  padding-bottom: 13px;
-  border-bottom: 1px solid rgba(22, 23, 26, 0.09);
+  margin: 0 0 24px;
   font-size: 11.5px;
-  font-weight: 550;
-  letter-spacing: 0.26em;
+  font-weight: 600;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--w-ink-3);
 }
@@ -602,24 +604,25 @@ button:focus-visible {
 }
 .w-item {
   display: grid;
-  grid-template-columns: minmax(180px, 264px) 1fr;
-  gap: 6px 44px;
+  grid-template-columns: minmax(200px, 300px) 1fr;
+  gap: 8px 52px;
   align-items: baseline;
-  padding: 22px 0;
-  border-bottom: 1px solid rgba(22, 23, 26, 0.07);
+  padding: 27px 0;
+  border-top: 1px solid rgba(22, 23, 26, 0.08);
 }
-.w-item:last-child {
-  border-bottom: none;
+.w-item:first-child {
+  border-top: none;
+  padding-top: 4px;
 }
 .w-item-name {
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 600;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
   color: var(--w-ink);
 }
 .w-item-desc {
-  font-size: 14.5px;
-  line-height: 1.62;
+  font-size: 15px;
+  line-height: 1.66;
   color: var(--w-ink-2);
 }
 .w-tag {
@@ -676,9 +679,8 @@ button:focus-visible {
   box-shadow: 0 10px 22px rgba(28, 32, 40, 0.13);
 }
 .w-foot {
-  max-width: 940px;
-  margin: 8px auto 0;
-  padding: 0 clamp(24px, 7vw, 84px);
+  margin: 4px 0 0;
+  padding: 0 clamp(28px, 5vw, 76px);
   font-size: 12px;
   color: var(--w-ink-3);
 }
