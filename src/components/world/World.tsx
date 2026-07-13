@@ -19,7 +19,15 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { useLang } from "@/components/lang-provider";
-import { BG_VERT, BG_FRAG, LENS_VERT, LENS_FRAG } from "@/lib/world/shaders";
+import type { Lang } from "@/types/lang";
+import {
+  BG_VERT,
+  BG_FRAG,
+  LENS_VERT,
+  LENS_FRAG,
+  PART_VERT,
+  PART_FRAG,
+} from "@/lib/world/shaders";
 
 const SCROLL_VH = 320; /* total page height in vh; scrub = SCROLL_VH - 100 */
 
@@ -30,6 +38,8 @@ export function World() {
   const stmtRef = useRef<HTMLDivElement | null>(null);
   const cueRef = useRef<HTMLDivElement | null>(null);
   const [intro, setIntro] = useState(true);
+  const langRef = useRef<Lang>(lang);
+  const drawTypeRef = useRef<(l: Lang) => void>(() => {});
 
   /* intro emblem: a fixed beat, then the world opens */
   useEffect(() => {
@@ -54,10 +64,46 @@ export function World() {
     /* --- pass 1: the light field --- */
     const bgScene = new THREE.Scene();
     const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    /* the name is drawn into the field itself so the glass can bend it */
+    const typeCanvas = document.createElement("canvas");
+    const typeCtx = typeCanvas.getContext("2d");
+    const typeTex = new THREE.CanvasTexture(typeCanvas);
+
+    function drawType(l: Lang) {
+      if (!typeCtx) return;
+      const W = typeCanvas.width;
+      const H = typeCanvas.height;
+      if (W < 2 || H < 2) return;
+      typeCtx.clearRect(0, 0, W, H);
+      typeCtx.fillStyle = "#131419";
+      const size = Math.round(H * 0.125);
+      const en = l === "en";
+      typeCtx.font = `700 ${size}px ${
+        en
+          ? '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
+          : '"Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif'
+      }`;
+      try {
+        (
+          typeCtx as CanvasRenderingContext2D & { letterSpacing: string }
+        ).letterSpacing = `${(en ? -0.035 : 0.03) * size}px`;
+      } catch {
+        /* tracking is cosmetic; older engines just skip it */
+      }
+      const x = W * 0.07;
+      typeCtx.fillText(en ? "Masaki" : "川上", x, H * 0.5);
+      typeCtx.fillText(en ? "Kawakami" : "勝基", x, H * 0.635);
+      typeTex.needsUpdate = true;
+    }
+    drawTypeRef.current = drawType;
+
     const bgUniforms = {
       uRes: { value: new THREE.Vector2(1, 1) },
       uTime: { value: 0 },
       uDrift: { value: 0 },
+      tType: { value: typeTex },
+      uTypeFade: { value: 1 },
+      uTypeShift: { value: 0 },
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
@@ -97,6 +143,38 @@ export function World() {
     const lens = new THREE.Mesh(lensGeo, lensMat);
     scene.add(lens);
 
+    /* two smaller shards give the volume near/far layers */
+    const shardGeo = new RoundedBoxGeometry(0.85, 0.55, 0.16, 4, 0.09);
+    const shardA = new THREE.Mesh(shardGeo, lensMat);
+    const shardB = new THREE.Mesh(shardGeo, lensMat);
+    shardA.position.set(-2.35, 1.35, 1.3);
+    shardB.position.set(2.75, -1.55, -1.6);
+    scene.add(shardA, shardB);
+
+    /* dust motes: the idle pulse of the world */
+    const PART_N = 170;
+    const partGeo = new THREE.BufferGeometry();
+    const pPos = new Float32Array(PART_N * 3);
+    const pSeed = new Float32Array(PART_N);
+    for (let i = 0; i < PART_N; i++) {
+      pPos[i * 3] = (Math.random() * 2 - 1) * 5.2;
+      pPos[i * 3 + 1] = (Math.random() * 2 - 1) * 2.8;
+      pPos[i * 3 + 2] = -2.6 + Math.random() * 4.2;
+      pSeed[i] = Math.random();
+    }
+    partGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    partGeo.setAttribute("aSeed", new THREE.BufferAttribute(pSeed, 1));
+    const partMat = new THREE.ShaderMaterial({
+      vertexShader: PART_VERT,
+      fragmentShader: PART_FRAG,
+      uniforms: { uTime: { value: 0 } },
+      transparent: true,
+      depthWrite: false,
+    });
+    const parts = new THREE.Points(partGeo, partMat);
+    parts.frustumCulled = false;
+    scene.add(parts);
+
     /* --- state driven by scroll + pointer --- */
     let vw = 1;
     let vh = 1;
@@ -119,6 +197,9 @@ export function World() {
       camera.aspect = vw / vh;
       camera.updateProjectionMatrix();
       bgUniforms.uRes.value.set(vw * dpr, vh * dpr);
+      typeCanvas.width = Math.min(2048, Math.round(vw * dpr));
+      typeCanvas.height = Math.max(2, Math.round(typeCanvas.width * (vh / vw)));
+      drawType(langRef.current);
     }
     resize();
 
@@ -152,15 +233,29 @@ export function World() {
       camera.position.y = -my * 0.12 + e * 0.35;
       camera.lookAt(e * 1.2, e * 0.5, 0);
 
-      /* the slab breathes, tilts to the pointer, steps aside as you pass */
-      lens.position.x = e * 2.1;
-      lens.position.y = Math.sin(time * 0.4) * 0.06 - e * 0.15;
-      lens.rotation.y = -0.32 + mx * 0.1 + e * 0.9 + Math.sin(time * 0.23) * 0.03;
-      lens.rotation.x = 0.06 - my * 0.08 + Math.cos(time * 0.31) * 0.02;
+      /* the slab overlaps the name and keeps turning, so the letters
+         visibly bend and disperse inside it even at rest */
+      lens.position.x = 0.95 + e * 1.7;
+      lens.position.y = Math.sin(time * 0.4) * 0.07 - e * 0.15;
+      lens.rotation.y =
+        -0.3 + Math.sin(time * 0.13) * 0.22 + mx * 0.12 + e * 0.9;
+      lens.rotation.x = 0.05 - my * 0.09 + Math.cos(time * 0.17) * 0.05;
+
+      /* shards drift on their own layers: near moves with the pointer,
+         far slides away as the camera passes */
+      shardA.position.x = -2.35 + mx * 0.5;
+      shardA.position.y = 1.35 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
+      shardA.rotation.y = 0.42 + Math.sin(time * 0.19) * 0.3 + mx * 0.2;
+      shardA.rotation.z = 0.28 + Math.cos(time * 0.16) * 0.08;
+      shardB.position.x = 2.75 + mx * 0.16 + e * 1.4;
+      shardB.rotation.y = -0.3 + Math.cos(time * 0.15) * 0.24;
 
       bgUniforms.uTime.value = time;
       bgUniforms.uDrift.value = e;
+      bgUniforms.uTypeFade.value = 1 - Math.min(1, p * 2.1);
+      bgUniforms.uTypeShift.value = e * 0.34;
       lensUniforms.uTime.value = time;
+      partMat.uniforms.uTime.value = time;
 
       renderer.setRenderTarget(rt);
       renderer.render(bgScene, bgCam);
@@ -199,12 +294,22 @@ export function World() {
       document.removeEventListener("visibilitychange", onVis);
       tri.dispose();
       lensGeo.dispose();
+      shardGeo.dispose();
+      partGeo.dispose();
+      partMat.dispose();
       bgMat.dispose();
       lensMat.dispose();
+      typeTex.dispose();
       rt.dispose();
       renderer.dispose();
     };
   }, []);
+
+  /* redraw the in-field name when the language flips */
+  useEffect(() => {
+    langRef.current = lang;
+    drawTypeRef.current(lang);
+  }, [lang]);
 
   const en = lang === "en";
 
@@ -250,24 +355,14 @@ export function World() {
         </button>
       </nav>
 
-      {/* hero type */}
+      {/* hero frame: the name itself lives inside the WebGL field
+          (so the glass can bend it); the DOM keeps kicker + sub crisp,
+          plus a visually-hidden h1 for semantics and search */}
       <div className="w-hero" ref={heroRef}>
+        <h1 className="w-sr">Masaki Kawakami</h1>
         <p className="w-kicker">
           {en ? "Data & AI Analyst · Sydney" : "データ/AIアナリスト・シドニー"}
         </p>
-        <h1 className="w-name">
-          {en ? (
-            <>
-              <span>Masaki</span>
-              <span>Kawakami</span>
-            </>
-          ) : (
-            <>
-              <span>川上</span>
-              <span>勝基</span>
-            </>
-          )}
-        </h1>
         <p className="w-sub">
           {en
             ? "Systems that stay in production, for real clients."
