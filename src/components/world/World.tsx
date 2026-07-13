@@ -249,12 +249,18 @@ export function World() {
          scrolls up under the rising content sheet it is fully read.
          Past the sweep the lens rides the name off the top. */
       const nA = vh * 0.02;
-      const nB = vh * 0.92;
+      const nB = vh * 0.28; /* sweep fast, while the name is still centered */
       if (yy <= nA) return nameEnter;
       if (yy <= nB) {
         return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      return nameExit;
+      /* once the name is read the lens glides on: a soft glass presence
+         that travels with you, refracting the field behind the content */
+      const travel = (yy - nB) / vh;
+      return {
+        x: toWorldX(0.5 + 0.2 * Math.sin(travel * 0.7)),
+        y: toWorldY(0.44 + 0.14 * Math.sin(travel * 0.9 + 1.2)),
+      };
     }
 
     const t0 = performance.now();
@@ -264,7 +270,6 @@ export function World() {
       const y = window.scrollY;
       const p = Math.max(0, Math.min(1, y / Math.max(1, docH - vh)));
       const hp = Math.min(1, y / vh); /* hero-local progress */
-      const heroVisible = y < vh * 1.05;
 
       mx += (tmx - mx) * 0.06;
       my += (tmy - my) * 0.06;
@@ -286,7 +291,7 @@ export function World() {
         gy = tyw;
         gInit = true;
       }
-      const k = reduced ? 1 : 0.16;
+      const k = reduced ? 1 : 0.22;
       gx += (txw - gx) * k;
       gy += (tyw - gy) * k;
 
@@ -319,25 +324,23 @@ export function World() {
       lensUniforms.uTime.value = time;
       partMat.uniforms.uTime.value = time;
 
-      /* the content sheet is opaque, so the world only needs to draw
-         while the hero is still on screen */
-      if (heroVisible) {
-        /* RT holds the resolved world (solid ink); only the lens reads it */
-        renderer.setRenderTarget(rt);
-        renderer.render(fieldScene, bgCam);
-        renderer.autoClear = false;
-        contentCam.layers.set(1);
-        renderer.render(contentScene, contentCam);
-        renderer.autoClear = true;
-        /* the screen shows the raw world (ghost outline) under the lens */
-        renderer.setRenderTarget(null);
-        renderer.render(fieldScene, bgCam);
-        renderer.autoClear = false;
-        contentCam.layers.set(2);
-        renderer.render(contentScene, contentCam);
-        renderer.render(glassScene, camera);
-        renderer.autoClear = true;
-      }
+      /* the content sheet is translucent frost, so the world and the
+         gliding glass stay visible behind it — draw every frame */
+      /* RT holds the resolved world (solid ink); only the lens reads it */
+      renderer.setRenderTarget(rt);
+      renderer.render(fieldScene, bgCam);
+      renderer.autoClear = false;
+      contentCam.layers.set(1);
+      renderer.render(contentScene, contentCam);
+      renderer.autoClear = true;
+      /* the screen shows the raw world (ghost outline) under the lens */
+      renderer.setRenderTarget(null);
+      renderer.render(fieldScene, bgCam);
+      renderer.autoClear = false;
+      contentCam.layers.set(2);
+      renderer.render(contentScene, contentCam);
+      renderer.render(glassScene, camera);
+      renderer.autoClear = true;
 
       if (cue) cue.style.opacity = String(1 - Math.min(1, hp * 2.2));
 
