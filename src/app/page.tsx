@@ -1,31 +1,13 @@
-import { TopBar } from "@/components/home/TopBar";
-import { Hero } from "@/components/home/Hero";
-import { Work } from "@/components/home/Work";
-import { About } from "@/components/home/About";
-import { Stack } from "@/components/home/Stack";
-import { Contact } from "@/components/home/Contact";
-import { HomeFooter } from "@/components/home/Footer";
+import { World } from "@/components/world/World";
 
 /**
- * Terminal Home — ported from the Claude-Design `Masaki-Kawakami-Home.html`
- * prototype (Variant 02 TERMINAL + Notion warmth + language switch).
+ * Home — the liquid glass world (redesign/liquid-glass).
  *
- * Thin Server Component shell; the interactive chrome (keyboard shortcut,
- * live clock, cursor spotlight, mock shell) lives inside the child
- * client components under `src/components/home/`.
+ * The previous terminal home lives at `src/components/home/*` and is
+ * preserved on `main` (checkpoint e623e29). This page hands the whole
+ * viewport to the WebGL world; DOM copy layers render above it inside
+ * <World />.
  */
 export default function HomePage() {
-  return (
-    <div className="flex min-h-screen flex-col bg-bg text-ink">
-      <TopBar />
-      <main className="flex-1">
-        <Hero />
-        <Work />
-        <About />
-        <Stack />
-        <Contact />
-      </main>
-      <HomeFooter />
-    </div>
-  );
+  return <World />;
 }
