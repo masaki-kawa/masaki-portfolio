@@ -1424,3 +1424,48 @@ a.w-slide:hover .w-slide-plus {
   height: 100%;
   object-fit: cover;
 }
+
+/* ---------- /work/[slug] case-study sections ----------------------- */
+.wd-body {
+  margin-bottom: 38px;
+}
+.wd-sec {
+  margin: 0 0 36px;
+}
+.wd-h2 {
+  margin: 0 0 10px;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--w-ink);
+}
+.wd-p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--w-ink-2);
+  max-width: 66ch;
+}
+.wd-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 6px 0 54px;
+}
+.wd-links a {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 12px rgba(28, 32, 40, 0.07);
+  font-size: 14px;
+  color: var(--w-ink);
+  text-decoration: none;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.wd-links a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(28, 32, 40, 0.13);
+}

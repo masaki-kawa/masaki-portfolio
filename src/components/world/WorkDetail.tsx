@@ -58,6 +58,21 @@ export function WorkDetail({ slug }: { slug: string }) {
         <p className="wd-lead">{pick(w.desc)}</p>
         <Media className="wd-media" slug={w.slug} />
         <p className="wd-body">{pick(w.detail)}</p>
+        {w.body?.map((s) => (
+          <section className="wd-sec" key={s.h.en}>
+            <h2 className="wd-h2">{pick(s.h)}</h2>
+            <p className="wd-p">{pick(s.p)}</p>
+          </section>
+        ))}
+        {w.links && w.links.length > 0 ? (
+          <div className="wd-links">
+            {w.links.map((l) => (
+              <a key={l.href} href={l.href} target="_blank" rel="noreferrer">
+                {l.label} ↗
+              </a>
+            ))}
+          </div>
+        ) : null}
         <div className="wd-next">
           <span>{en ? "Next" : "次"}</span>
           <Link href={`/work/${next.slug}`}>{next.name} →</Link>
