@@ -162,3 +162,98 @@ export const PART_FRAG = /* glsl */ `
     gl_FragColor = vec4(vec3(1.0, 0.995, 0.97), a);
   }
 `;
+
+/*
+ * Lens lab (/lab): the lens as a screen-space SDF region instead of a
+ * 3D slab. One shader, five shapes (uShape): 0 rounded rect, 1 disc,
+ * 2 droplet, 3 scan band, 4 iris. Disc and droplet magnify their
+ * interior; refraction comes from the SDF gradient, and the
+ * rim-boosted dispersion / frost / rim light match the slab so the
+ * forms compare fairly.
+ */
+export const SDF_LENS_FRAG = /* glsl */ `
+  precision highp float;
+
+  uniform sampler2D tBg;
+  uniform vec2 uRes;
+  uniform float uTime;
+  uniform int uShape;
+  uniform vec2 uCenter; /* px, bottom-left origin */
+  uniform float uRefr;
+  uniform float uSplit;
+
+  float sdRoundBox(vec2 p, vec2 b, float r) {
+    vec2 q = abs(p) - b + r;
+    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+  }
+  float sdPolygon(vec2 p, float r, float n, float rot) {
+    float ang = atan(p.y, p.x) + rot;
+    float seg = 6.28318530718 / n;
+    ang = mod(ang, seg) - seg * 0.5;
+    return length(p) * cos(ang) - r * cos(seg * 0.5);
+  }
+  float wobble(float th, float t) {
+    return 0.055 * sin(3.0 * th + t * 0.9)
+         + 0.038 * sin(5.0 * th - t * 0.7)
+         + 0.020 * sin(8.0 * th + t * 1.3);
+  }
+  float shapeSDF(vec2 p, float t) {
+    if (uShape == 0) return sdRoundBox(p, vec2(0.66, 0.40), 0.09);
+    if (uShape == 1) return length(p) - 0.46;
+    if (uShape == 2) { /* droplet: live blob, a little heavier below */
+      vec2 q = p;
+      q.y *= (q.y > 0.0) ? 1.07 : 0.94;
+      float th = atan(q.y, q.x);
+      return length(q) - 0.42 * (1.0 + wobble(th, t));
+    }
+    if (uShape == 3) return abs(p.y) - 0.19; /* full-width scan band */
+    /* iris: seven blades, breathing aperture, slow rotation */
+    float r = 0.46 * (0.92 + 0.08 * sin(t * 0.45));
+    return sdPolygon(p, r, 7.0, t * 0.12);
+  }
+
+  void main() {
+    float s = 0.5 * min(uRes.x, uRes.y);
+    vec2 p = (gl_FragCoord.xy - uCenter) / s;
+    float d = shapeSDF(p, uTime);
+
+    float aa = 2.0 / s;
+    float alpha = 1.0 - smoothstep(-aa, aa, d);
+    if (alpha <= 0.001) discard;
+
+    float e = 0.004;
+    vec2 g = vec2(
+      shapeSDF(p + vec2(e, 0.0), uTime) - shapeSDF(p - vec2(e, 0.0), uTime),
+      shapeSDF(p + vec2(0.0, e), uTime) - shapeSDF(p - vec2(0.0, e), uTime)
+    );
+    vec2 n = g / max(length(g), 1e-5);
+    float edge = 1.0 - smoothstep(0.0, 0.16, -d); /* 1 at rim, 0 inside */
+
+    /* disc and droplet magnify what they cover: the closer look */
+    vec2 pix = gl_FragCoord.xy;
+    if (uShape == 1 || uShape == 2) {
+      float inside = clamp(-d / 0.44, 0.0, 1.0);
+      float mag = 1.0 + 0.13 * smoothstep(0.0, 1.0, inside);
+      pix = uCenter + (gl_FragCoord.xy - uCenter) / mag;
+    }
+    vec2 suv = pix / uRes;
+
+    vec2 off = n * uRefr * (0.22 + 1.9 * edge);
+    float sp = 1.0 + uSplit * (0.6 + 6.0 * edge);
+    vec3 col;
+    col.r = texture2D(tBg, suv + off * sp).r;
+    col.g = texture2D(tBg, suv + off).g;
+    col.b = texture2D(tBg, suv + off / sp).b;
+
+    vec2 j = vec2(0.0022, 0.0017) * (0.4 + 1.6 * edge);
+    vec3 soft = texture2D(tBg, suv + off + j).rgb + texture2D(tBg, suv + off - j).rgb;
+    col = mix(col, (col + soft) / 3.0, 0.55);
+
+    float rim = 1.0 - smoothstep(0.006, 0.024, abs(d));
+    float streak = pow(max(0.0, sin(suv.x * 6.2831 + uTime * 0.4) * 0.5 + 0.5), 24.0);
+    col += rim * 0.38 + streak * edge * 0.10;
+    col = mix(col, vec3(1.0), 0.04 + 0.08 * edge);
+
+    gl_FragColor = vec4(col, alpha);
+  }
+`;

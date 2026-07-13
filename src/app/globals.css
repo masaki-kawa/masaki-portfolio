@@ -573,3 +573,85 @@ button:focus-visible {
     transition: none;
   }
 }
+
+/* ---------- lens lab (/lab): shape comparison playground ---------- */
+.wl-root {
+  position: fixed;
+  inset: 0;
+  background: #eceef2;
+}
+.wl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.wl-hud {
+  position: absolute;
+  top: 22px;
+  left: 26px;
+  z-index: 40;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--w-ink-2);
+}
+.wl-hud a {
+  color: var(--w-ink-3);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+.wl-hud a:hover {
+  color: var(--w-ink);
+}
+.wl-note {
+  position: absolute;
+  bottom: 86px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  font-size: 11.5px;
+  color: var(--w-ink-3);
+}
+.wl-shapes {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(252, 253, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 24px rgba(28, 32, 40, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.wl-shapes button {
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--w-ink-2);
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
+}
+.wl-shapes button:hover {
+  color: var(--w-ink);
+}
+.wl-shapes button.on {
+  background: #fff;
+  color: var(--w-ink);
+  box-shadow: 0 1px 6px rgba(28, 32, 40, 0.14);
+}
