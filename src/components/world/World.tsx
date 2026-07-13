@@ -1,18 +1,20 @@
 "use client";
 
 /**
- * World v1 — the liquid glass volume.
+ * World v2 — free scroll, traveling glass.
  *
- * Structure
- *   · fixed WebGL canvas: silver light field (RT) + refracting glass slab
- *   · DOM layers above it: loading emblem, hud, hero type, statement
- *   · a 320vh scroll spacer drives the camera (transform/opacity only)
+ * The page scrolls like a normal document (no pinning, no waiting).
+ * Display typography (the name, the statement) lives inside the WebGL
+ * scene as text quads that move in sync with the document, so the
+ * glass can bend it; functional copy stays in the DOM, crisp.
  *
- * Performance contract (learned the hard way in prototyping):
- *   · rAF reads scrollY once, writes transforms only
- *   · no per-frame layout reads, no per-frame filter/attribute mutation
- *   · DPR capped, canvas paused when the tab is hidden
- *   · prefers-reduced-motion → static frame, no intro
+ * The glass slab travels a diagonal path through the viewport as you
+ * scroll: parked top-right → down-left THROUGH the name → banks
+ * toward bottom-right where the statement rises to meet it → drifts
+ * on. Scroll fast and it flies; it never gates the page.
+ *
+ * Performance contract: one scrollY read per rAF, transforms only,
+ * DPR capped, pauses when hidden, reduced-motion = no smoothing.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -29,19 +31,105 @@ import {
   PART_FRAG,
 } from "@/lib/world/shaders";
 
-const SCROLL_VH = 320; /* total page height in vh; scrub = SCROLL_VH - 100 */
+const EN_FONT =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
+const JA_FONT = '"Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif';
+
+/* glass flight plan: (page progress, screen-x fraction, screen-y fraction) */
+const PATH = [
+  { p: 0.0, x: 0.76, y: 0.2 },
+  { p: 0.3, x: 0.3, y: 0.55 } /* down-left, through the name          */,
+  { p: 0.62, x: 0.71, y: 0.62 } /* bank right, meet the statement     */,
+  { p: 1.0, x: 0.32, y: 0.9 } /* carry on down-left                   */,
+];
+
+type TextQuad = {
+  mesh: THREE.Mesh;
+  draw: (lines: string[], font: string, spacingEm: number) => void;
+  setLineWorld: (lw: number) => void;
+  dispose: () => void;
+};
+
+function makeTextQuad(align: "left" | "center"): TextQuad {
+  const cv = document.createElement("canvas");
+  const ctx = cv.getContext("2d");
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+  });
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const mesh = new THREE.Mesh(geo, mat);
+  const state = { aspect: 1, lines: 1, lineWorld: 0.5 };
+
+  function applyScale() {
+    const h = state.lines * state.lineWorld;
+    mesh.scale.set(h * state.aspect * (1 / state.lines), h, 1);
+  }
+  function draw(lines: string[], font: string, spacingEm: number) {
+    if (!ctx) return;
+    const px = 220;
+    const setFont = () => {
+      ctx.font = `700 ${px}px ${font}`;
+      try {
+        (
+          ctx as CanvasRenderingContext2D & { letterSpacing: string }
+        ).letterSpacing = `${spacingEm * px}px`;
+      } catch {
+        /* cosmetic */
+      }
+    };
+    setFont();
+    const widths = lines.map((l) => ctx.measureText(l).width);
+    const maxW = Math.ceil(Math.max(...widths, 1));
+    const lineH = px * 1.14;
+    const padX = px * 0.1;
+    const ascent = px * 0.78;
+    cv.width = maxW + padX * 2;
+    cv.height = Math.ceil(ascent + lineH * (lines.length - 1) + px * 0.34);
+    setFont(); /* canvas resize resets ctx state */
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = "#15161a";
+    lines.forEach((l, i) => {
+      const w = ctx.measureText(l).width;
+      const x = align === "left" ? padX : (cv.width - w) / 2;
+      ctx.fillText(l, x, ascent + i * lineH);
+    });
+    tex.needsUpdate = true;
+    state.aspect = cv.width / cv.height;
+    state.lines = lines.length;
+    applyScale();
+  }
+  function setLineWorld(lw: number) {
+    state.lineWorld = lw;
+    applyScale();
+  }
+  return {
+    mesh,
+    draw,
+    setLineWorld,
+    dispose: () => {
+      geo.dispose();
+      mat.dispose();
+      tex.dispose();
+    },
+  };
+}
 
 export function World() {
   const { lang, setLang } = useLang();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const stmtRef = useRef<HTMLDivElement | null>(null);
+  const heroSecRef = useRef<HTMLElement | null>(null);
+  const stmtSecRef = useRef<HTMLElement | null>(null);
   const cueRef = useRef<HTMLDivElement | null>(null);
   const [intro, setIntro] = useState(true);
   const langRef = useRef<Lang>(lang);
-  const drawTypeRef = useRef<(l: Lang) => void>(() => {});
+  const redrawRef = useRef<(l: Lang) => void>(() => {});
 
-  /* intro emblem: a fixed beat, then the world opens */
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const t = setTimeout(() => setIntro(false), reduced ? 0 : 1700);
@@ -61,63 +149,13 @@ export function World() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(dpr);
 
-    /* --- pass 1: the light field --- */
-    const bgScene = new THREE.Scene();
+    /* --- the light field --- */
+    const fieldScene = new THREE.Scene();
     const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    /* the name is drawn into the field itself so the glass can bend it */
-    const typeCanvas = document.createElement("canvas");
-    const typeCtx = typeCanvas.getContext("2d");
-    const typeTex = new THREE.CanvasTexture(typeCanvas);
-    /* measured extent of the drawn name in uv (y from top). The slab is
-       anchored to this every frame, so the overlap is guaranteed by
-       construction for any language, viewport or aspect. */
-    const typeBounds = { x0: 0.07, x1: 0.4, y0: 0.36, y1: 0.66 };
-
-    function drawType(l: Lang) {
-      if (!typeCtx) return;
-      const W = typeCanvas.width;
-      const H = typeCanvas.height;
-      if (W < 2 || H < 2) return;
-      typeCtx.clearRect(0, 0, W, H);
-      typeCtx.fillStyle = "#131419";
-      const size = Math.round(H * 0.125);
-      const en = l === "en";
-      typeCtx.font = `700 ${size}px ${
-        en
-          ? '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
-          : '"Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif'
-      }`;
-      try {
-        (
-          typeCtx as CanvasRenderingContext2D & { letterSpacing: string }
-        ).letterSpacing = `${(en ? -0.035 : 0.03) * size}px`;
-      } catch {
-        /* tracking is cosmetic; older engines just skip it */
-      }
-      const x = W * 0.07;
-      const l1 = en ? "Masaki" : "川上";
-      const l2 = en ? "Kawakami" : "勝基";
-      typeCtx.fillText(l1, x, H * 0.5);
-      typeCtx.fillText(l2, x, H * 0.635);
-      const wMax = Math.max(
-        typeCtx.measureText(l1).width,
-        typeCtx.measureText(l2).width,
-      );
-      typeBounds.x0 = 0.07;
-      typeBounds.x1 = (x + wMax) / W;
-      typeBounds.y0 = (H * 0.5 - size * 0.76) / H;
-      typeBounds.y1 = (H * 0.635 + size * 0.06) / H;
-      typeTex.needsUpdate = true;
-    }
-    drawTypeRef.current = drawType;
-
     const bgUniforms = {
       uRes: { value: new THREE.Vector2(1, 1) },
       uTime: { value: 0 },
       uDrift: { value: 0 },
-      tType: { value: typeTex },
-      uTypeFade: { value: 1 },
-      uTypeShift: { value: 0 },
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
@@ -129,16 +167,48 @@ export function World() {
     const tri = new THREE.BufferGeometry();
     tri.setAttribute(
       "position",
-      new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]), 3),
+      new THREE.BufferAttribute(
+        new Float32Array([-1, -1, 0, 3, -1, 0, -1, 3, 0]),
+        3,
+      ),
     );
     const bgMesh = new THREE.Mesh(tri, bgMat);
     bgMesh.frustumCulled = false;
-    bgScene.add(bgMesh);
+    fieldScene.add(bgMesh);
 
     const rt = new THREE.WebGLRenderTarget(2, 2, { depthBuffer: false });
 
-    /* --- pass 2: the slab --- */
-    const scene = new THREE.Scene();
+    /* --- content layer: display type that scrolls with the page --- */
+    const contentScene = new THREE.Scene();
+    const contentCam = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+    contentCam.position.set(0, 0, 6);
+    contentCam.lookAt(0, 0, 0);
+
+    const nameQuad = makeTextQuad("left");
+    nameQuad.setLineWorld(0.52);
+    const stmtQuad = makeTextQuad("center");
+    stmtQuad.setLineWorld(0.27);
+    contentScene.add(nameQuad.mesh, stmtQuad.mesh);
+
+    function redraw(l: Lang) {
+      const en = l === "en";
+      nameQuad.draw(
+        en ? ["Masaki", "Kawakami"] : ["川上", "勝基"],
+        en ? EN_FONT : JA_FONT,
+        en ? -0.035 : 0.03,
+      );
+      stmtQuad.draw(
+        en
+          ? ["I build data and AI", "systems that stay", "in production."]
+          : ["本番で動き続ける、", "データとAIの", "システムをつくる。"],
+        en ? EN_FONT : JA_FONT,
+        en ? -0.025 : 0.01,
+      );
+    }
+    redrawRef.current = redraw;
+
+    /* --- glass layer --- */
+    const glassScene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
     camera.position.set(0, 0, 6);
 
@@ -153,19 +223,17 @@ export function World() {
       fragmentShader: LENS_FRAG,
       uniforms: lensUniforms,
     });
-    const lensGeo = new RoundedBoxGeometry(3.1, 1.9, 0.34, 5, 0.17);
+    const lensGeo = new RoundedBoxGeometry(3.0, 1.85, 0.34, 5, 0.17);
     const lens = new THREE.Mesh(lensGeo, lensMat);
-    scene.add(lens);
+    glassScene.add(lens);
 
-    /* two smaller shards give the volume near/far layers */
     const shardGeo = new RoundedBoxGeometry(0.85, 0.55, 0.16, 4, 0.09);
     const shardA = new THREE.Mesh(shardGeo, lensMat);
     const shardB = new THREE.Mesh(shardGeo, lensMat);
     shardA.position.set(-2.35, 1.35, 1.3);
     shardB.position.set(2.75, -1.55, -1.6);
-    scene.add(shardA, shardB);
+    glassScene.add(shardA, shardB);
 
-    /* dust motes: the idle pulse of the world */
     const PART_N = 170;
     const partGeo = new THREE.BufferGeometry();
     const pPos = new Float32Array(PART_N * 3);
@@ -187,35 +255,46 @@ export function World() {
     });
     const parts = new THREE.Points(partGeo, partMat);
     parts.frustumCulled = false;
-    scene.add(parts);
+    glassScene.add(parts);
 
-    /* --- state driven by scroll + pointer --- */
+    /* --- layout + state --- */
     let vw = 1;
     let vh = 1;
+    let docH = 1;
+    let heroTop = 0;
+    let stmtTop = 0;
     let mx = 0;
     let my = 0;
     let tmx = 0;
     let tmy = 0;
+    let gx = 0;
+    let gy = 0;
+    let gInit = false;
     let raf = 0;
     let running = true;
 
-    const hero = heroRef.current;
-    const stmt = stmtRef.current;
     const cue = cueRef.current;
 
-    function resize() {
+    function measure() {
       vw = window.innerWidth;
       vh = window.innerHeight;
       renderer.setSize(vw, vh, false);
       rt.setSize(Math.round(vw * dpr), Math.round(vh * dpr));
       camera.aspect = vw / vh;
       camera.updateProjectionMatrix();
+      contentCam.aspect = vw / vh;
+      contentCam.updateProjectionMatrix();
       bgUniforms.uRes.value.set(vw * dpr, vh * dpr);
-      typeCanvas.width = Math.min(2048, Math.round(vw * dpr));
-      typeCanvas.height = Math.max(2, Math.round(typeCanvas.width * (vh / vw)));
-      drawType(langRef.current);
+      docH = document.documentElement.scrollHeight;
+      heroTop = heroSecRef.current ? heroSecRef.current.offsetTop : 0;
+      stmtTop = stmtSecRef.current ? stmtSecRef.current.offsetTop : vh;
     }
-    resize();
+    measure();
+    redraw(langRef.current);
+
+    const HALF_H = Math.tan((35 * Math.PI) / 360) * 6;
+    const toWorldX = (u: number) => (u - 0.5) * 2 * HALF_H * (vw / vh);
+    const toWorldY = (v: number) => (0.5 - v) * 2 * HALF_H;
 
     function onPointer(e: PointerEvent) {
       tmx = (e.clientX / vw) * 2 - 1;
@@ -226,101 +305,105 @@ export function World() {
       if (running) raf = requestAnimationFrame(frame);
       else cancelAnimationFrame(raf);
     }
-    const ease = (x: number) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+    const easeIO = (x: number) =>
+      x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+
+    function samplePath(p: number) {
+      const last = PATH[PATH.length - 1];
+      if (p <= PATH[0].p) return { x: PATH[0].x, y: PATH[0].y };
+      if (p >= last.p) return { x: last.x, y: last.y };
+      for (let i = 0; i < PATH.length - 1; i++) {
+        const a = PATH[i];
+        const b = PATH[i + 1];
+        if (p >= a.p && p <= b.p) {
+          const t = easeIO((p - a.p) / (b.p - a.p));
+          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+        }
+      }
+      return { x: last.x, y: last.y };
+    }
 
     const t0 = performance.now();
     function frame(now: number) {
       if (!running) return;
       const time = reduced ? 2.0 : (now - t0) / 1000;
+      const y = window.scrollY;
+      const p = Math.max(0, Math.min(1, y / Math.max(1, docH - vh)));
 
-      const scrub = ((SCROLL_VH - 100) / 100) * vh;
-      const p = Math.max(0, Math.min(1, window.scrollY / Math.max(1, scrub)));
-      /* two acts: A = the glass passes over the name (camera frozen,
-         scrub tied 1:1 to scroll) · B = the name departs, the camera
-         pushes in, the statement arrives */
-      const pA = Math.min(1, p / 0.45);
-      const pB = Math.max(0, Math.min(1, (p - 0.45) / 0.55));
-      const eB = ease(pB);
-
-      /* pointer smoothing */
       mx += (tmx - mx) * 0.06;
       my += (tmy - my) * 0.06;
 
-      /* camera: frozen during the pass, then a slow push-in */
-      camera.position.z = 6 - 2.7 * eB;
-      camera.position.x = mx * 0.18 + eB * 0.5;
-      camera.position.y = -my * 0.12 + eB * 0.35;
-      camera.lookAt(eB * 1.2, eB * 0.5, 0);
+      /* display type follows the document exactly */
+      const nameV = (heroTop + vh * 0.5 - y) / vh;
+      nameQuad.mesh.position.set(
+        toWorldX(0.07) + nameQuad.mesh.scale.x / 2,
+        toWorldY(nameV),
+        0,
+      );
+      const stmtV = (stmtTop + vh * 0.45 - y) / vh;
+      stmtQuad.mesh.position.set(0, toWorldY(stmtV), 0);
 
-      /* the pass: rest position sits clear of the measured name box,
-         and scroll carries the slab right-to-left across the letters.
-         Camera stays at rest geometry during act A, so the screen
-         anchoring is exact for every language and viewport */
-      const halfH = Math.tan((35 * Math.PI) / 360) * 6;
-      const halfW = halfH * camera.aspect;
-      const toWorldX = (u: number) => (u - 0.5) * 2 * halfW;
-      const nameCyU = (typeBounds.y0 + typeBounds.y1) / 2;
-      const anchorY = (0.5 - nameCyU) * 2 * halfH;
-      /* parked: left edge 5% right of the name · done: right edge 5%
-         left of the name (fully passed, letters crisp again) */
-      const startX = toWorldX(Math.min(0.99, typeBounds.x1 + 0.09)) + 1.72;
-      const endX = toWorldX(Math.max(0.02, typeBounds.x0 - 0.07)) - 1.72;
+      /* the glass flies its plan; smoothing polishes, never gates */
+      const wp = samplePath(p);
+      const txw = toWorldX(wp.x);
+      const tyw = toWorldY(wp.y);
+      if (!gInit) {
+        gx = txw;
+        gy = tyw;
+        gInit = true;
+      }
+      const k = reduced ? 1 : 0.16;
+      gx += (txw - gx) * k;
+      gy += (tyw - gy) * k;
 
-      lens.position.x = startX + (endX - startX) * pA - eB * 1.3;
-      lens.position.y =
-        anchorY + Math.sin(time * 0.4) * 0.07 - eB * 0.3;
-      /* nearly flat while parked (no stray refraction at rest); tilts
-         open as it travels so the bend deepens mid-pass */
-      lens.rotation.y =
-        -0.1 + Math.sin(time * 0.13) * 0.07 + mx * 0.1 - pA * 0.38 + eB * 0.5;
-      lens.rotation.x = 0.05 - my * 0.09 + Math.cos(time * 0.17) * 0.05;
+      /* bank into the direction of travel */
+      const ahead = samplePath(Math.min(1, p + 0.02));
+      const bank = Math.atan2(
+        toWorldY(ahead.y) - tyw,
+        toWorldX(ahead.x) - txw + 1e-5,
+      );
 
-      /* shards drift on their own layers: near moves with the pointer,
-         far slides away as the camera passes */
+      lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05, 0);
+      lens.rotation.y = -0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1;
+      lens.rotation.x = 0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04;
+      lens.rotation.z = reduced ? 0 : Math.max(-0.2, Math.min(0.2, bank * 0.1));
+
       shardA.position.x = -2.35 + mx * 0.5;
-      shardA.position.y = 1.35 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
+      shardA.position.y = 1.35 - my * 0.32 + p * 1.1 + Math.sin(time * 0.5) * 0.06;
       shardA.rotation.y = 0.42 + Math.sin(time * 0.19) * 0.3 + mx * 0.2;
-      shardA.rotation.z = 0.28 + Math.cos(time * 0.16) * 0.08;
-      shardB.position.x = 2.75 + mx * 0.16 + eB * 1.4;
+      shardB.position.x = 2.75 + mx * 0.16;
+      shardB.position.y = -1.55 - p * 0.9;
       shardB.rotation.y = -0.3 + Math.cos(time * 0.15) * 0.24;
 
+      /* glass camera carries the pointer parallax; content stays true */
+      camera.position.x = mx * 0.1;
+      camera.position.y = -my * 0.07;
+      camera.lookAt(0, 0, 0);
+
       bgUniforms.uTime.value = time;
-      bgUniforms.uDrift.value = eB;
-      /* the name stays fully present while the glass passes over it */
-      bgUniforms.uTypeFade.value = 1 - Math.min(1, pB * 1.6);
-      bgUniforms.uTypeShift.value = eB * 0.34;
+      bgUniforms.uDrift.value = p;
       lensUniforms.uTime.value = time;
       partMat.uniforms.uTime.value = time;
 
       renderer.setRenderTarget(rt);
-      renderer.render(bgScene, bgCam);
-      renderer.setRenderTarget(null);
-      renderer.autoClear = true;
-      renderer.render(bgScene, bgCam);
+      renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      renderer.render(scene, camera);
+      renderer.render(contentScene, contentCam);
+      renderer.autoClear = true;
+      renderer.setRenderTarget(null);
+      renderer.render(fieldScene, bgCam);
+      renderer.autoClear = false;
+      renderer.render(contentScene, contentCam);
+      renderer.render(glassScene, camera);
       renderer.autoClear = true;
 
-      /* DOM layers: transforms and opacity only */
-      if (hero) {
-        hero.style.opacity = String(1 - Math.min(1, pB * 1.8));
-        hero.style.transform = `translate3d(0, ${-eB * 0.34 * vh}px, 0)`;
-      }
-      if (stmt) {
-        const sp = Math.max(0, Math.min(1, (pB - 0.35) / 0.4));
-        const se = ease(sp);
-        stmt.style.opacity = String(se);
-        stmt.style.transform = `translate3d(0, ${(1 - se) * 40}px, 0)`;
-      }
-      if (cue) cue.style.opacity = String(1 - Math.min(1, p * 4));
+      if (cue) cue.style.opacity = String(1 - Math.min(1, p * 6));
 
       raf = requestAnimationFrame(frame);
     }
 
-    window.addEventListener("resize", resize, { passive: true });
-    /* some embedded webviews resize the viewport without firing a
-       window resize; observe the root element as a reliable backstop */
-    const ro = new ResizeObserver(() => resize());
+    window.addEventListener("resize", measure, { passive: true });
+    const ro = new ResizeObserver(() => measure());
     ro.observe(document.documentElement);
     window.addEventListener("pointermove", onPointer, { passive: true });
     document.addEventListener("visibilitychange", onVis);
@@ -329,7 +412,7 @@ export function World() {
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", measure);
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVis);
       tri.dispose();
@@ -339,16 +422,17 @@ export function World() {
       partMat.dispose();
       bgMat.dispose();
       lensMat.dispose();
-      typeTex.dispose();
+      nameQuad.dispose();
+      stmtQuad.dispose();
       rt.dispose();
       renderer.dispose();
     };
   }, []);
 
-  /* redraw the in-field name when the language flips */
+  /* language flip: re-rasterize the display type */
   useEffect(() => {
     langRef.current = lang;
-    drawTypeRef.current(lang);
+    redrawRef.current(lang);
   }, [lang]);
 
   const en = lang === "en";
@@ -358,7 +442,6 @@ export function World() {
       <canvas ref={canvasRef} className="w-canvas" aria-hidden />
       <div className="w-grain" aria-hidden />
 
-      {/* loading emblem */}
       <div className="w-loading" aria-hidden={!intro}>
         <svg viewBox="0 0 200 200" className="w-emblem">
           <defs>
@@ -382,7 +465,6 @@ export function World() {
         </svg>
       </div>
 
-      {/* hud */}
       <nav className="w-hud" aria-label="Navigation">
         <span className="w-brand">Masaki Kawakami</span>
         <button
@@ -395,41 +477,33 @@ export function World() {
         </button>
       </nav>
 
-      {/* hero frame: the name itself lives inside the WebGL field
-          (so the glass can bend it); the DOM keeps kicker + sub crisp,
-          plus a visually-hidden h1 for semantics and search */}
-      <div className="w-hero" ref={heroRef}>
-        <h1 className="w-sr">Masaki Kawakami</h1>
-        <p className="w-kicker">
-          {en ? "Data & AI Analyst · Sydney" : "データ/AIアナリスト・シドニー"}
-        </p>
-        <p className="w-sub">
-          {en
-            ? "Systems that stay in production, for real clients."
-            : "実クライアントのために、本番で動き続けるシステムを。"}
-        </p>
-      </div>
+      <main>
+        <section className="w-sec w-sec-hero" ref={heroSecRef}>
+          <h1 className="w-sr">Masaki Kawakami</h1>
+          <p className="w-kicker">
+            {en ? "Data & AI Analyst · Sydney" : "データ/AIアナリスト・シドニー"}
+          </p>
+          <p className="w-sub">
+            {en
+              ? "Systems that stay in production, for real clients."
+              : "実クライアントのために、本番で動き続けるシステムを。"}
+          </p>
+        </section>
 
-      {/* first scroll payoff */}
-      <div className="w-stmt" ref={stmtRef}>
-        <p>
-          {en
-            ? "I build data and AI systems that stay in production."
-            : "本番で動き続ける、データとAIのシステムをつくる。"}
-        </p>
-        <span>
-          {en
-            ? "Five years in HR at Canon. Now shipping for paying clients in Australia and Japan."
-            : "キヤノンの人事で5年。いまは日豪の実クライアントに届けている。"}
-        </span>
-      </div>
+        <section className="w-sec w-sec-stmt" ref={stmtSecRef}>
+          <p className="w-cap">
+            {en
+              ? "Five years in HR at Canon. Now shipping analytics and LLM systems for paying clients across Australia and Japan."
+              : "キヤノンの人事で5年。いまは日豪の実クライアントに向けて、分析とLLMのシステムを届けている。"}
+          </p>
+        </section>
+
+        <section className="w-sec w-tail" aria-hidden />
+      </main>
 
       <div className="w-cue" ref={cueRef}>
         {en ? "Scroll" : "スクロール"}
       </div>
-
-      {/* scroll driver */}
-      <div style={{ height: `${SCROLL_VH}vh` }} aria-hidden />
     </div>
   );
 }

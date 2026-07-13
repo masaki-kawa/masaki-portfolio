@@ -22,10 +22,7 @@ export const BG_FRAG = /* glsl */ `
 
   uniform vec2 uRes;
   uniform float uTime;
-  uniform float uDrift;    /* scroll-linked drift of the light field */
-  uniform sampler2D tType; /* the name, drawn to a canvas texture      */
-  uniform float uTypeFade; /* hero fade on scroll                      */
-  uniform float uTypeShift;/* hero rise on scroll (uv units)           */
+  uniform float uDrift; /* scroll-linked drift of the light field */
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -68,10 +65,6 @@ export const BG_FRAG = /* glsl */ `
     col += lightAt(q, vec2(aspect * 0.24, 0.78), vec3(0.055, 0.045, 0.020), 0.85); /* warm */
     col += lightAt(q, vec2(aspect * 0.80, 0.30), vec3(0.020, 0.030, 0.055), 0.90); /* cool */
     col += lightAt(q, vec2(aspect * 0.58, 0.86), vec3(0.030, 0.030, 0.035), 0.70); /* neutral */
-
-    /* the name lives in the field itself, so the glass can bend it */
-    vec4 ty = texture2D(tType, vec2(uv.x, uv.y - uTypeShift));
-    col = mix(col, vec3(0.078, 0.081, 0.09), ty.a * uTypeFade);
 
     /* faint large-grain texture keeps the field from banding */
     col += (noise(p * 3.0 + t) - 0.5) * 0.012;

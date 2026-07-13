@@ -484,17 +484,23 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* ---------- hero + statement + cue ---------- */
-/* the name itself is rendered inside the WebGL field (canvas texture,
-   lines at 50% / 63.5% of viewport height); the DOM frames it */
-.w-hero {
-  position: fixed;
+/* ---------- sections: normal document flow, no pinning ----------
+   Display type (name, statement) is rendered inside the WebGL scene
+   and moves with the document; these sections reserve its space and
+   carry the crisp functional copy. */
+.w-sec {
+  position: relative;
   z-index: 10;
-  inset: 0;
-  left: 7vw;
   pointer-events: none;
-  will-change: transform, opacity;
-  text-shadow: 0 1px 18px rgba(246, 247, 249, 0.85);
+}
+.w-sec-hero {
+  height: 100vh;
+}
+.w-sec-stmt {
+  height: 100vh;
+}
+.w-tail {
+  height: 46vh;
 }
 .w-sr {
   position: absolute;
@@ -508,43 +514,36 @@ button:focus-visible {
 .w-kicker {
   position: absolute;
   top: 33vh;
+  left: 7vw;
   margin: 0;
   font-size: 11.5px;
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--w-ink-2);
   font-weight: 550;
+  text-shadow: 0 1px 18px rgba(246, 247, 249, 0.85);
 }
 .w-sub {
   position: absolute;
-  top: 67.5vh;
+  top: 67vh;
+  left: 7vw;
   margin: 0;
   font-size: 15.5px;
   color: var(--w-ink-2);
-}
-.w-stmt {
-  position: fixed;
-  z-index: 10;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(88vw, 760px);
-  text-align: center;
-  opacity: 0;
-  will-change: transform, opacity;
   text-shadow: 0 1px 18px rgba(246, 247, 249, 0.85);
 }
-.w-stmt p {
-  margin: 0 0 18px;
-  font-size: clamp(26px, 3.6vw, 44px);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.25;
-}
-.w-stmt span {
+.w-cap {
+  position: absolute;
+  top: 63vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, 86vw);
+  margin: 0;
+  text-align: center;
   font-size: 14.5px;
-  color: var(--w-ink-2);
   line-height: 1.75;
+  color: var(--w-ink-2);
+  text-shadow: 0 1px 18px rgba(246, 247, 249, 0.85);
 }
 .w-cue {
   position: fixed;
@@ -559,9 +558,9 @@ button:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .w-hero {
+  .w-kicker,
+  .w-sub {
     left: 6vw;
-    right: 6vw;
   }
 }
 @media (prefers-reduced-motion: reduce) {
