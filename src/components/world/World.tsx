@@ -17,7 +17,7 @@
  * DPR capped, pauses when hidden, reduced-motion = no smoothing.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { useLang } from "@/components/lang-provider";
@@ -57,8 +57,16 @@ export function World() {
   const [aboutOpen, setAboutOpen] = useState<number | null>(null);
 
   useEffect(() => {
+    /* the emblem plays once per session; returning from a detail page
+       goes straight to the world */
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setIntro(false), reduced ? 0 : 1700);
+    const seen = sessionStorage.getItem("w-intro") === "1";
+    if (reduced || seen) {
+      setIntro(false);
+      return;
+    }
+    sessionStorage.setItem("w-intro", "1");
+    const t = setTimeout(() => setIntro(false), 1700);
     return () => clearTimeout(t);
   }, []);
 
@@ -406,6 +414,21 @@ export function World() {
     };
   }, []);
 
+  /* about modal: Esc closes, page scroll locks while open */
+  useEffect(() => {
+    if (aboutOpen === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAboutOpen(null);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [aboutOpen]);
+
   /* reveal content rows as they enter view (transform/opacity only) */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -494,6 +517,57 @@ export function World() {
         },
       ];
 
+  /* About: three cards; the plus opens an Apple-style modal */
+  const aboutCards: { lead: string; body: ReactNode }[] = [
+    {
+      lead: en
+        ? "AI systems that stay in production."
+        : "本番で動き続けるAIをつくる。",
+      body: en
+        ? "An AI job matching SaaS, LLM reporting that paying clients rely on, and the workflows behind them. I build them and keep them running."
+        : "AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。つくって、動かし続ける。",
+    },
+    {
+      lead: en
+        ? "Business and build, both sides."
+        : "事業と実装、その両方。",
+      body: en ? (
+        <>
+          As COO of{" "}
+          <a
+            href="https://cubic-innov8-group.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Cubic Innov8
+          </a>
+          , an IT and innovation group across Kyoto and Sydney, I bring in
+          clients and run operations, then build the systems that serve them. I
+          also built and shipped Vacanti AI as an independent venture.
+        </>
+      ) : (
+        <>
+          京都とシドニーのIT企業{" "}
+          <a
+            href="https://cubic-innov8-group.com/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Cubic Innov8
+          </a>{" "}
+          のCOOとして、クライアント開拓や運営という事業側と、それを支える実装側の両方。独立ベンチャーとして
+          Vacanti AI もつくり、本番公開。
+        </>
+      ),
+    },
+    {
+      lead: en ? "From HR to data science." : "人事からデータサイエンスへ。",
+      body: en
+        ? "Five years in HR at Canon Marketing Japan, then a Master of Data Science at the University of Technology Sydney. Native Japanese speaker based in Sydney, working in English."
+        : "キヤノンマーケティングジャパンの人事に5年。その後シドニーへ渡り、シドニー工科大学でデータサイエンス修士を修了。日本語ネイティブ、仕事は英語。",
+    },
+  ];
+
   return (
     <div className="w-root" data-intro={intro ? "on" : "off"}>
       <canvas ref={canvasRef} className="w-canvas" aria-hidden />
@@ -543,7 +617,7 @@ export function World() {
         </section>
 
         {/* Work: full-width highlights carousel, one slide per project */}
-        <section className="w-carsec" aria-label={en ? "Work" : "仕事"}>
+        <section id="work" className="w-carsec" aria-label={en ? "Work" : "仕事"}>
           <div className="w-carhead">
             <p className="w-label w-reveal">{en ? "Work" : "仕事"}</p>
             <h2 className="w-headline w-reveal">
@@ -690,112 +764,19 @@ export function World() {
             </h2>
           </div>
           <div className="w-three">
-            <div
-              className={
-                aboutOpen === 0 ? "w-acard w-reveal on" : "w-acard w-reveal"
-              }
-            >
-              <p className="w-acard-lead">
-                {en
-                  ? "AI systems that stay in production."
-                  : "本番で動き続けるAIをつくる。"}
-              </p>
-              <div className="w-det-body">
-                <div className="w-det-inner">
-                  <p className="w-acard-text">
-                    {en
-                      ? "An AI job matching SaaS, LLM reporting that paying clients rely on, and the workflows behind them. I build them and keep them running."
-                      : "AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。つくって、動かし続ける。"}
-                  </p>
-                </div>
+            {aboutCards.map((c, i) => (
+              <div className="w-acard w-reveal" key={c.lead}>
+                <p className="w-acard-lead">{c.lead}</p>
+                <button
+                  className="w-acard-plus"
+                  aria-haspopup="dialog"
+                  aria-label={en ? "More" : "詳しく"}
+                  onClick={() => setAboutOpen(i)}
+                >
+                  +
+                </button>
               </div>
-              <button
-                className="w-acard-plus"
-                aria-expanded={aboutOpen === 0}
-                aria-label={en ? "More" : "詳しく"}
-                onClick={() => setAboutOpen(aboutOpen === 0 ? null : 0)}
-              >
-                +
-              </button>
-            </div>
-            <div
-              className={
-                aboutOpen === 1 ? "w-acard w-reveal on" : "w-acard w-reveal"
-              }
-            >
-              <p className="w-acard-lead">
-                {en ? "Business and build, both sides." : "事業と実装、その両方。"}
-              </p>
-              <div className="w-det-body">
-                <div className="w-det-inner">
-                  <p className="w-acard-text">
-                    {en ? (
-                      <>
-                        As COO of{" "}
-                        <a
-                          href="https://cubic-innov8-group.com/"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Cubic Innov8
-                        </a>
-                        , an IT and innovation group across Kyoto and Sydney, I
-                        bring in clients and run operations, then build the
-                        systems that serve them. I also built and shipped
-                        Vacanti AI as an independent venture.
-                      </>
-                    ) : (
-                      <>
-                        京都とシドニーのIT企業{" "}
-                        <a
-                          href="https://cubic-innov8-group.com/"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Cubic Innov8
-                        </a>{" "}
-                        のCOOとして、クライアント開拓や運営という事業側と、それを支える実装側の両方。独立ベンチャーとして
-                        Vacanti AI もつくり、本番公開。
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <button
-                className="w-acard-plus"
-                aria-expanded={aboutOpen === 1}
-                aria-label={en ? "More" : "詳しく"}
-                onClick={() => setAboutOpen(aboutOpen === 1 ? null : 1)}
-              >
-                +
-              </button>
-            </div>
-            <div
-              className={
-                aboutOpen === 2 ? "w-acard w-reveal on" : "w-acard w-reveal"
-              }
-            >
-              <p className="w-acard-lead">
-                {en ? "From HR to data science." : "人事からデータサイエンスへ。"}
-              </p>
-              <div className="w-det-body">
-                <div className="w-det-inner">
-                  <p className="w-acard-text">
-                    {en
-                      ? "Five years in HR at Canon Marketing Japan, then a Master of Data Science at the University of Technology Sydney. Native Japanese speaker based in Sydney, working in English."
-                      : "キヤノンマーケティングジャパンの人事に5年。その後シドニーへ渡り、シドニー工科大学でデータサイエンス修士を修了。日本語ネイティブ、仕事は英語。"}
-                  </p>
-                </div>
-              </div>
-              <button
-                className="w-acard-plus"
-                aria-expanded={aboutOpen === 2}
-                aria-label={en ? "More" : "詳しく"}
-                onClick={() => setAboutOpen(aboutOpen === 2 ? null : 2)}
-              >
-                +
-              </button>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -831,6 +812,28 @@ export function World() {
       <div className="w-cue" ref={cueRef}>
         {en ? "Scroll" : "スクロール"}
       </div>
+
+      {aboutOpen !== null && (
+        <div
+          className="w-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={aboutCards[aboutOpen].lead}
+          onClick={() => setAboutOpen(null)}
+        >
+          <div className="w-modal-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="w-modal-x"
+              aria-label={en ? "Close" : "閉じる"}
+              onClick={() => setAboutOpen(null)}
+            >
+              ×
+            </button>
+            <h3 className="w-modal-title">{aboutCards[aboutOpen].lead}</h3>
+            <p className="w-modal-text">{aboutCards[aboutOpen].body}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

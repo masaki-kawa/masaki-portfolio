@@ -40,7 +40,7 @@ export function WorkDetail({ slug }: { slug: string }) {
 
       <main className="wd-main">
         <p className="wd-back">
-          <Link href="/">{en ? "← Work" : "← 仕事一覧"}</Link>
+          <Link href="/#work">{en ? "← Work" : "← 仕事一覧"}</Link>
         </p>
         <h1 className="wd-name">
           {w.name}
