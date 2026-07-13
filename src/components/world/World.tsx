@@ -35,17 +35,18 @@ const EN_FONT =
   '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif';
 const JA_FONT = '"Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif';
 
-/* glass flight plan: (page progress, screen-x fraction, screen-y fraction) */
-const PATH = [
-  { p: 0.0, x: 0.76, y: 0.2 },
-  { p: 0.3, x: 0.3, y: 0.55 } /* down-left, through the name          */,
-  { p: 0.62, x: 0.71, y: 0.62 } /* bank right, meet the statement     */,
-  { p: 1.0, x: 0.32, y: 0.9 } /* carry on down-left                   */,
-];
+/* lens half extents in world units (geometry is 3.0 x 1.85). The flight
+   plan is derived from the measured text blocks, not hand-tuned points:
+   during a pass the lens position is defined RELATIVE to the block, so
+   the diagonal traverse covers every letter on any language, viewport
+   or scroll speed — coverage by construction. */
+const LENS_HW = 1.5;
+const LENS_HH = 0.925;
 
 type TextBlock = {
   group: THREE.Group;
   width: () => number;
+  height: () => number;
   draw: (lines: string[], font: string, spacingEm: number) => void;
   setLineWorld: (lw: number) => void;
   dispose: () => void;
@@ -151,6 +152,7 @@ function makeTextBlock(align: "left" | "center"): TextBlock {
   return {
     group,
     width: () => state.lines * state.lineWorld * state.aspect,
+    height: () => state.lines * state.lineWorld,
     draw,
     setLineWorld,
     dispose: () => {
@@ -351,19 +353,66 @@ export function World() {
     const easeIO = (x: number) =>
       x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 
-    function samplePath(p: number) {
-      const last = PATH[PATH.length - 1];
-      if (p <= PATH[0].p) return { x: PATH[0].x, y: PATH[0].y };
-      if (p >= last.p) return { x: last.x, y: last.y };
-      for (let i = 0; i < PATH.length - 1; i++) {
-        const a = PATH[i];
-        const b = PATH[i + 1];
-        if (p >= a.p && p <= b.p) {
-          const t = easeIO((p - a.p) / (b.p - a.p));
-          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-        }
+    /* Flight plan derived from the measured blocks. During a pass the
+       lens position is block-relative (center + offset), so the
+       enter→exit diagonal is exact in the block's own frame even while
+       the block scrolls — every letter gets covered, in any language,
+       at any viewport. Between passes we blend exit → next entry. */
+    const lerp2 = (
+      a: { x: number; y: number },
+      b: { x: number; y: number },
+      t: number,
+    ) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+    function lensTarget(yy: number) {
+      const margin = 0.14;
+      /* block centers at scroll position yy */
+      const nC = {
+        x: toWorldX(0.07) + nameQuad.width() / 2,
+        y: toWorldY((heroTop + vh * 0.5 - yy) / vh),
+      };
+      const sC = {
+        x: 0,
+        y: toWorldY((stmtTop + vh * 0.45 - yy) / vh),
+      };
+      /* enter/exit offsets: just outside opposite corners of the block */
+      const nOff = {
+        x: nameQuad.width() / 2 + LENS_HW + margin,
+        y: nameQuad.height() / 2 + LENS_HH * 0.75,
+      };
+      const sOff = {
+        x: stmtQuad.width() / 2 + LENS_HW + margin,
+        y: stmtQuad.height() / 2 + LENS_HH * 0.75,
+      };
+      const nameEnter = { x: nC.x + nOff.x, y: nC.y + nOff.y }; /* ↗ of name */
+      const nameExit = { x: nC.x - nOff.x, y: nC.y - nOff.y }; /* ↙ of name */
+      const stmtEnter = { x: sC.x - sOff.x, y: sC.y + sOff.y }; /* ↖ of stmt */
+      const stmtExit = { x: sC.x + sOff.x, y: sC.y - sOff.y }; /* ↘ of stmt */
+
+      /* scroll ranges (px): name pass while the hero is on screen,
+         statement pass while the statement is on screen */
+      const nA = vh * 0.02;
+      const nB = vh * 0.5;
+      const sA = vh * 0.68;
+      const sB = vh * 1.22;
+      const endY = Math.max(sB + 1, docH - vh);
+
+      if (yy <= nA) return nameEnter;
+      if (yy <= nB) {
+        return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      return { x: last.x, y: last.y };
+      if (yy <= sA) {
+        return lerp2(nameExit, stmtEnter, easeIO((yy - nB) / (sA - nB)));
+      }
+      if (yy <= sB) {
+        return lerp2(stmtEnter, stmtExit, easeIO((yy - sA) / (sB - sA)));
+      }
+      const endPos = { x: toWorldX(0.34), y: toWorldY(0.92) };
+      return lerp2(
+        stmtExit,
+        endPos,
+        easeIO(Math.min(1, (yy - sB) / Math.max(1, endY - sB))),
+      );
     }
 
     const t0 = performance.now();
@@ -387,9 +436,9 @@ export function World() {
       stmtQuad.group.position.set(0, toWorldY(stmtV), 0);
 
       /* the glass flies its plan; smoothing polishes, never gates */
-      const wp = samplePath(p);
-      const txw = toWorldX(wp.x);
-      const tyw = toWorldY(wp.y);
+      const wp = lensTarget(y);
+      const txw = wp.x;
+      const tyw = wp.y;
       if (!gInit) {
         gx = txw;
         gy = tyw;
@@ -400,11 +449,8 @@ export function World() {
       gy += (tyw - gy) * k;
 
       /* bank into the direction of travel */
-      const ahead = samplePath(Math.min(1, p + 0.02));
-      const bank = Math.atan2(
-        toWorldY(ahead.y) - tyw,
-        toWorldX(ahead.x) - txw + 1e-5,
-      );
+      const ahead = lensTarget(y + 40);
+      const bank = Math.atan2(ahead.y - tyw, ahead.x - txw + 1e-5);
 
       lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05, 0);
       lens.rotation.y = -0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1;
