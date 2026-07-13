@@ -134,21 +134,21 @@ export const LENS_FRAG = /* glsl */ `
   }
 `;
 
-/* drifting dust motes that catch the light: the world's idle pulse */
+/* comet swarm: motes simulated on the CPU fall toward the glass and
+   orbit it; aGlow (proximity) brightens and warms the captured ones */
 export const PART_VERT = /* glsl */ `
   attribute float aSeed;
-  uniform float uTime;
+  attribute float aGlow;
   varying float vAlpha;
+  varying float vGlow;
 
   void main() {
-    vec3 p = position;
-    p.y += sin(uTime * 0.14 + aSeed * 6.2831) * 0.28;
-    p.x += cos(uTime * 0.10 + aSeed * 9.42) * 0.22;
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    float size = (0.5 + aSeed * 0.9);
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    float size = (0.5 + aSeed * 0.9) * (1.0 + aGlow * 0.9);
     gl_PointSize = size * (140.0 / max(0.1, -mv.z));
     /* nearer motes read a touch stronger */
     vAlpha = clamp(0.9 - (-mv.z - 3.0) * 0.14, 0.15, 0.8);
+    vGlow = aGlow;
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -156,11 +156,13 @@ export const PART_VERT = /* glsl */ `
 export const PART_FRAG = /* glsl */ `
   precision mediump float;
   varying float vAlpha;
+  varying float vGlow;
 
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.12, d) * vAlpha * 0.32;
-    gl_FragColor = vec4(vec3(1.0, 0.995, 0.97), a);
+    float a = smoothstep(0.5, 0.12, d) * vAlpha * (0.32 + 0.55 * vGlow);
+    vec3 col = mix(vec3(1.0, 0.995, 0.97), vec3(1.0, 0.975, 0.87), vGlow * 0.6);
+    gl_FragColor = vec4(col, a);
   }
 `;
 

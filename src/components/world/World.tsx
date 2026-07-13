@@ -185,18 +185,30 @@ export function World() {
     shadow.position.z = -0.5;
     glassScene.add(shadow);
 
-    const PART_N = 170;
+    /* comet swarm state: home positions, live positions, velocities,
+       glow (proximity to the glass) and per-mote swirl direction */
+    const PART_N = 240;
     const partGeo = new THREE.BufferGeometry();
-    const pPos = new Float32Array(PART_N * 3);
+    const pBase = new Float32Array(PART_N * 3);
+    const pVel = new Float32Array(PART_N * 3);
     const pSeed = new Float32Array(PART_N);
+    const pGlow = new Float32Array(PART_N);
+    const pSwirl = new Float32Array(PART_N);
     for (let i = 0; i < PART_N; i++) {
-      pPos[i * 3] = (Math.random() * 2 - 1) * 5.2;
-      pPos[i * 3 + 1] = (Math.random() * 2 - 1) * 2.8;
-      pPos[i * 3 + 2] = -2.6 + Math.random() * 4.2;
+      pBase[i * 3] = (Math.random() * 2 - 1) * 5.2;
+      pBase[i * 3 + 1] = (Math.random() * 2 - 1) * 2.8;
+      pBase[i * 3 + 2] = -2.6 + Math.random() * 4.2;
       pSeed[i] = Math.random();
+      pSwirl[i] = Math.random() < 0.5 ? -1 : 1;
     }
-    partGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const pPos = pBase.slice();
+    const posAttr = new THREE.BufferAttribute(pPos, 3);
+    posAttr.setUsage(THREE.DynamicDrawUsage);
+    const glowAttr = new THREE.BufferAttribute(pGlow, 1);
+    glowAttr.setUsage(THREE.DynamicDrawUsage);
+    partGeo.setAttribute("position", posAttr);
     partGeo.setAttribute("aSeed", new THREE.BufferAttribute(pSeed, 1));
+    partGeo.setAttribute("aGlow", glowAttr);
     const partMat = new THREE.ShaderMaterial({
       vertexShader: PART_VERT,
       fragmentShader: PART_FRAG,
@@ -300,9 +312,12 @@ export function World() {
     }
 
     const t0 = performance.now();
+    let lastNow = t0;
     function frame(now: number) {
       if (!running) return;
       const time = reduced ? 2.0 : (now - t0) / 1000;
+      const dt = Math.min(0.033, Math.max(0.001, (now - lastNow) / 1000));
+      lastNow = now;
       const y = window.scrollY;
       const p = Math.max(0, Math.min(1, y / Math.max(1, docH - vh)));
       const hp = Math.min(1, y / vh); /* hero-local progress */
@@ -318,10 +333,16 @@ export function World() {
         0,
       );
 
-      /* the glass flies its plan; smoothing polishes, never gates */
+      /* the glass flies its plan; smoothing polishes, never gates.
+         In the hero it also leans toward the pointer: a nudge, not a grab */
       const wp = lensTarget(y);
-      const txw = wp.x;
-      const tyw = wp.y;
+      const heroPull = reduced ? 0 : Math.max(0, 1 - y / (vh * 0.9));
+      const pwx = mx * HALF_H * (vw / vh);
+      const pwy = -my * HALF_H;
+      const txw =
+        wp.x + Math.max(-1, Math.min(1, (pwx - wp.x) * 0.24 * heroPull));
+      const tyw =
+        wp.y + Math.max(-0.7, Math.min(0.7, (pwy - wp.y) * 0.2 * heroPull));
       if (!gInit) {
         gx = txw;
         gy = tyw;
@@ -355,6 +376,57 @@ export function World() {
       camera.position.x = mx * 0.1;
       camera.position.y = -my * 0.07;
       camera.lookAt(0, 0, 0);
+
+      /* comet swarm: motes inside the glass's reach fall toward it and
+         orbit; the rest drift gently around their home spots. When the
+         glass travels they lag into a tail behind it */
+      if (!reduced) {
+        const lx = lens.position.x;
+        const ly = lens.position.y;
+        for (let i = 0; i < PART_N; i++) {
+          const i3 = i * 3;
+          const sd = pSeed[i];
+          const hx = pBase[i3] + Math.sin(time * 0.14 + sd * 6.2831) * 0.28;
+          const hy = pBase[i3 + 1] + Math.cos(time * 0.1 + sd * 9.42) * 0.22;
+          const hz = pBase[i3 + 2];
+          const px = pPos[i3];
+          const py = pPos[i3 + 1];
+          const pz = pPos[i3 + 2];
+          const dx = lx - px;
+          const dy = ly - py;
+          const dz = -pz;
+          const r = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.001;
+          let ax: number;
+          let ay: number;
+          let az: number;
+          let gT = 0;
+          if (r < 2.7) {
+            const ux = dx / r;
+            const uy = dy / r;
+            const uz = dz / r;
+            let pull = 3.2 / Math.max(r * r, 0.35);
+            if (r < 0.62) pull -= (0.62 - r) * 30; /* ring, not a clump */
+            const s = (pSwirl[i] * 2.1) / Math.max(r, 0.5);
+            ax = ux * pull - uy * s;
+            ay = uy * pull + ux * s;
+            az = uz * pull * 0.6;
+            gT = Math.max(0, Math.min(1, 1.6 - r * 0.6));
+          } else {
+            ax = (hx - px) * 0.5;
+            ay = (hy - py) * 0.5;
+            az = (hz - pz) * 0.5;
+          }
+          pVel[i3] = (pVel[i3] + ax * dt) * 0.94;
+          pVel[i3 + 1] = (pVel[i3 + 1] + ay * dt) * 0.94;
+          pVel[i3 + 2] = (pVel[i3 + 2] + az * dt) * 0.94;
+          pPos[i3] += pVel[i3] * dt;
+          pPos[i3 + 1] += pVel[i3 + 1] * dt;
+          pPos[i3 + 2] += pVel[i3 + 2] * dt;
+          pGlow[i] += (gT - pGlow[i]) * 0.1;
+        }
+        posAttr.needsUpdate = true;
+        glowAttr.needsUpdate = true;
+      }
 
       bgUniforms.uTime.value = time;
       bgUniforms.uDrift.value = hp;
