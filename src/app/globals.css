@@ -1408,3 +1408,19 @@ a.w-slide:hover .w-slide-plus {
     backdrop-filter: blur(14px) saturate(1.5) url("#w-glass");
   }
 }
+
+/* ---------- media slots: ambient video over still fallback --------- */
+.w-slide-media,
+.w-detvis,
+.wd-media,
+.w-photo-media {
+  position: relative;
+  overflow: hidden;
+}
+.w-media-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

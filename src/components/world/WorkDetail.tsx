@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useLang } from "@/components/lang-provider";
 import { WORK, RESEARCH, type Localized } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
+import { Media } from "@/components/world/Media";
 
 /**
  * /work/[slug] — quiet detail page for one project. Same silver world
@@ -55,13 +56,7 @@ export function WorkDetail({ slug }: { slug: string }) {
           {w.tag ? <em className="w-tag">{pick(w.tag)}</em> : null}
         </h1>
         <p className="wd-lead">{pick(w.desc)}</p>
-        <div
-          className="wd-media"
-          style={{
-            backgroundImage: `url(/work/${w.slug}.png), linear-gradient(165deg, #eef1f6 0%, #dfe4ec 60%, #d6dbe4 100%)`,
-          }}
-          aria-hidden
-        />
+        <Media className="wd-media" slug={w.slug} />
         <p className="wd-body">{pick(w.detail)}</p>
         <div className="wd-next">
           <span>{en ? "Next" : "次"}</span>

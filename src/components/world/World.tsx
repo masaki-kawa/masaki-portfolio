@@ -35,6 +35,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { WORK, RESEARCH } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
+import { Media } from "@/components/world/Media";
 
 /* lens half extents in world units (geometry is 3.0 x 1.85). The flight
    plan is derived from the measured text blocks, not hand-tuned points:
@@ -721,13 +722,7 @@ export function World() {
                 href={`/work/${it.slug}`}
                 key={it.slug}
               >
-                <div
-                  className="w-slide-media"
-                  style={{
-                    backgroundImage: `url(/work/${it.slug}.png), linear-gradient(165deg, #f0f2f7 0%, #e2e6ee 55%, #d8dde7 100%)`,
-                  }}
-                  aria-hidden
-                />
+                <Media className="w-slide-media" slug={it.slug} />
                 <div className="w-slide-cap">
                   <h3 className="w-slide-name">
                     {it.name}
@@ -804,12 +799,10 @@ export function World() {
                 </div>
               ))}
             </div>
-            <div
+            <Media
+              key={researchItems[detail].slug}
               className="w-detvis"
-              style={{
-                backgroundImage: `url(/work/${researchItems[detail].slug}.png), linear-gradient(160deg, #f1f3f8 0%, #dde2ea 100%)`,
-              }}
-              aria-hidden
+              slug={researchItems[detail].slug}
             />
           </div>
         </section>
@@ -830,13 +823,7 @@ export function World() {
           <div className="w-two">
             {community.map((it) => (
               <figure className="w-photo w-reveal" key={it.slug}>
-                <div
-                  className="w-photo-media"
-                  style={{
-                    backgroundImage: `url(/work/${it.slug}.png), linear-gradient(160deg, #eff2f7 0%, #dde2eb 100%)`,
-                  }}
-                  aria-hidden
-                />
+                <Media className="w-photo-media" slug={it.slug} />
                 <figcaption className="w-photo-cap">
                   <strong>{it.name}.</strong> {it.desc}
                 </figcaption>
