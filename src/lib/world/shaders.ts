@@ -52,26 +52,50 @@ export const BG_FRAG = /* glsl */ `
     float aspect = uRes.x / uRes.y;
     vec2 p = vec2(uv.x * aspect, uv.y);
 
-    /* silver base: brighter above, cooler below */
-    vec3 top = vec3(0.972, 0.976, 0.984);
-    vec3 bottom = vec3(0.852, 0.868, 0.892);
-    vec3 col = mix(bottom, top, smoothstep(0.0, 1.0, uv.y + 0.12));
+    /* silver base with a wider range for real dimensionality */
+    vec3 top = vec3(0.975, 0.979, 0.986);
+    vec3 bottom = vec3(0.820, 0.838, 0.870);
+    vec3 col = mix(bottom, top, smoothstep(-0.1, 1.05, uv.y + 0.12));
 
-    /* slow breathing warp so the lights feel like weather, not wallpaper */
-    float t = uTime * 0.05;
-    vec2 warp = 0.22 * vec2(fbm(p * 1.4 + t), fbm(p * 1.4 - t));
+    /* mercury flow: two drifting octaves so the light morphs, not slides */
+    float t = uTime * 0.06;
+    vec2 flow = vec2(
+      fbm(p * 1.3 + vec2(t, -t * 0.7)),
+      fbm(p * 1.3 + vec2(-t * 0.8, t))
+    );
+    vec2 warp = 0.30 * (flow - 0.5);
+    vec2 q = p + warp + vec2(uDrift * 0.4, -uDrift * 0.2);
 
-    vec2 q = p + warp + vec2(uDrift * 0.35, -uDrift * 0.18);
-    col += lightAt(q, vec2(aspect * 0.24, 0.78), vec3(0.055, 0.045, 0.020), 0.85); /* warm */
-    col += lightAt(q, vec2(aspect * 0.80, 0.30), vec3(0.020, 0.030, 0.055), 0.90); /* cool */
-    col += lightAt(q, vec2(aspect * 0.58, 0.86), vec3(0.030, 0.030, 0.035), 0.70); /* neutral */
+    /* richness ramps into the upper-right, where the glass lives; the
+       name area (lower-left) stays calm so the type reads cleanly */
+    float rich = (smoothstep(0.18, 0.95, uv.x) * 0.62 + 0.38)
+               * smoothstep(0.0, 0.85, uv.y * 0.55 + 0.45);
 
-    /* faint large-grain texture keeps the field from banding */
+    /* liquid light: warm gold and cool steel, morphing with the flow */
+    col += lightAt(q, vec2(aspect * 0.80, 0.74), vec3(0.078, 0.060, 0.028), 0.95) * rich;
+    col += lightAt(q, vec2(aspect * 0.90, 0.26), vec3(0.028, 0.044, 0.086), 1.00) * rich;
+    col += lightAt(q, vec2(aspect * 0.30, 0.92), vec3(0.045, 0.046, 0.052), 0.80) * 0.6;
+
+    /* raking specular sweep: a soft bright band crossing slowly, the
+       light-on-liquid-metal that makes the field feel alive at rest */
+    float axis = p.x * 0.86 + p.y * 0.5;
+    float spec = pow(max(0.0, sin(axis * 2.1 - uTime * 0.30)), 6.0);
+    float shimmer = pow(
+      max(0.0, sin(axis * 5.0 - uTime * 0.5 + fbm(p * 2.0) * 3.0)),
+      10.0
+    );
+    col += (spec * 0.05 + shimmer * 0.028) * rich;
+
+    /* faint caustic threads flowing through the bright side */
+    float caus = pow(smoothstep(0.56, 0.86, fbm(p * 2.6 + vec2(t * 1.6, -t))), 2.0);
+    col += caus * 0.028 * rich * vec3(1.0, 0.99, 0.965);
+
+    /* grain against banding */
     col += (noise(p * 3.0 + t) - 0.5) * 0.012;
 
-    /* corners settle slightly darker */
-    float vig = smoothstep(1.25, 0.45, length(uv - 0.5));
-    col *= mix(0.94, 1.0, vig);
+    /* deeper vignette for dimensionality */
+    float vig = smoothstep(1.4, 0.35, length((uv - 0.5) * vec2(aspect, 1.0)));
+    col *= mix(0.87, 1.02, vig);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -109,7 +133,7 @@ export const LENS_FRAG = /* glsl */ `
     vec2 off = vNormal.xy * uRefr * (0.22 + 1.9 * rim);
 
     /* chromatic split grows at the rim: the Apple fringe */
-    float sp = 1.0 + uSplit * (0.6 + 6.0 * rim);
+    float sp = 1.0 + uSplit * (0.6 + 8.5 * rim);
 
     vec3 col;
     col.r = texture2D(tBg, suv + off * sp).r;
@@ -122,10 +146,14 @@ export const LENS_FRAG = /* glsl */ `
     vec3 soft = texture2D(tBg, suv + off + j).rgb + texture2D(tBg, suv + off - j).rgb;
     col = mix(col, (col + soft) / 3.0, 0.32);
 
-    /* fresnel rim light + a slow moving specular streak */
+    /* rim spectrum: a faint prism at the very edge, the jewel tell */
+    col.r += rim * uSplit * 1.4;
+    col.b += rim * uSplit * 1.1;
+
+    /* fresnel rim light + a sharp travelling glint down the face */
     float fres = pow(1.0 - face, 3.0);
-    float streak = pow(max(0.0, sin(suv.x * 6.2831 + uTime * 0.4) * 0.5 + 0.5), 24.0);
-    col += fres * 0.30 + streak * rim * 0.08;
+    float glint = pow(max(0.0, sin(suv.x * 6.2831 + suv.y * 3.0 - uTime * 0.5) * 0.5 + 0.5), 40.0);
+    col += fres * 0.42 + glint * (0.10 + rim * 0.22);
 
     /* a whisper of interior lift; keep the glass clear, not milky */
     col = mix(col, vec3(1.0), 0.02 + 0.06 * fres);
@@ -160,9 +188,12 @@ export const PART_FRAG = /* glsl */ `
 
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.12, d) * vAlpha * (0.32 + 0.55 * vGlow);
-    vec3 col = mix(vec3(1.0, 0.995, 0.97), vec3(1.0, 0.975, 0.87), vGlow * 0.6);
-    gl_FragColor = vec4(col, a);
+    /* soft core with a brighter pinpoint centre so idle motes still read */
+    float core = smoothstep(0.5, 0.12, d);
+    float spark = smoothstep(0.22, 0.0, d);
+    float a = (core * (0.42 + 0.7 * vGlow) + spark * (0.2 + 0.5 * vGlow)) * vAlpha;
+    vec3 col = mix(vec3(1.0, 0.995, 0.97), vec3(1.0, 0.965, 0.85), vGlow * 0.7);
+    gl_FragColor = vec4(col, min(1.0, a));
   }
 `;
 

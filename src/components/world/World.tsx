@@ -139,8 +139,8 @@ export function World() {
 
     const lensUniforms = {
       tBg: { value: rt.texture },
-      uRefr: { value: 0.085 },
-      uSplit: { value: 0.16 },
+      uRefr: { value: 0.1 },
+      uSplit: { value: 0.22 },
       uTime: { value: 0 },
     };
     const lensMat = new THREE.ShaderMaterial({
