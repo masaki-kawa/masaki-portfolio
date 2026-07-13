@@ -235,33 +235,44 @@ export function World() {
 
       const scrub = ((SCROLL_VH - 100) / 100) * vh;
       const p = Math.max(0, Math.min(1, window.scrollY / Math.max(1, scrub)));
-      const e = ease(p);
+      /* two acts: A = the glass passes over the name (camera frozen,
+         scrub tied 1:1 to scroll) · B = the name departs, the camera
+         pushes in, the statement arrives */
+      const pA = Math.min(1, p / 0.45);
+      const pB = Math.max(0, Math.min(1, (p - 0.45) / 0.55));
+      const eB = ease(pB);
 
       /* pointer smoothing */
       mx += (tmx - mx) * 0.06;
       my += (tmy - my) * 0.06;
 
-      /* camera: a slow push-in that drifts past the slab */
-      camera.position.z = 6 - 2.7 * e;
-      camera.position.x = mx * 0.18 + e * 0.5;
-      camera.position.y = -my * 0.12 + e * 0.35;
-      camera.lookAt(e * 1.2, e * 0.5, 0);
+      /* camera: frozen during the pass, then a slow push-in */
+      camera.position.z = 6 - 2.7 * eB;
+      camera.position.x = mx * 0.18 + eB * 0.5;
+      camera.position.y = -my * 0.12 + eB * 0.35;
+      camera.lookAt(eB * 1.2, eB * 0.5, 0);
 
-      /* anchor the slab to the measured name box (rest geometry:
-         camera z=6 looking at the origin), so its left edge always
-         cuts into the last third of the letters and the refraction
-         is guaranteed on every language and viewport */
+      /* the pass: rest position sits clear of the measured name box,
+         and scroll carries the slab right-to-left across the letters.
+         Camera stays at rest geometry during act A, so the screen
+         anchoring is exact for every language and viewport */
       const halfH = Math.tan((35 * Math.PI) / 360) * 6;
       const halfW = halfH * camera.aspect;
-      const edgeU = typeBounds.x0 + 0.64 * (typeBounds.x1 - typeBounds.x0);
+      const toWorldX = (u: number) => (u - 0.5) * 2 * halfW;
       const nameCyU = (typeBounds.y0 + typeBounds.y1) / 2;
-      const anchorX = (edgeU - 0.5) * 2 * halfW + 1.42;
       const anchorY = (0.5 - nameCyU) * 2 * halfH;
+      /* parked: left edge 5% right of the name · done: right edge 5%
+         left of the name (fully passed, letters crisp again) */
+      const startX = toWorldX(Math.min(0.99, typeBounds.x1 + 0.09)) + 1.72;
+      const endX = toWorldX(Math.max(0.02, typeBounds.x0 - 0.07)) - 1.72;
 
-      lens.position.x = anchorX + e * 1.7;
-      lens.position.y = anchorY + Math.sin(time * 0.4) * 0.07 - e * 0.15;
+      lens.position.x = startX + (endX - startX) * pA - eB * 1.3;
+      lens.position.y =
+        anchorY + Math.sin(time * 0.4) * 0.07 - eB * 0.3;
+      /* nearly flat while parked (no stray refraction at rest); tilts
+         open as it travels so the bend deepens mid-pass */
       lens.rotation.y =
-        -0.3 + Math.sin(time * 0.13) * 0.22 + mx * 0.12 + e * 0.9;
+        -0.1 + Math.sin(time * 0.13) * 0.07 + mx * 0.1 - pA * 0.38 + eB * 0.5;
       lens.rotation.x = 0.05 - my * 0.09 + Math.cos(time * 0.17) * 0.05;
 
       /* shards drift on their own layers: near moves with the pointer,
@@ -270,13 +281,14 @@ export function World() {
       shardA.position.y = 1.35 - my * 0.32 + Math.sin(time * 0.5) * 0.06;
       shardA.rotation.y = 0.42 + Math.sin(time * 0.19) * 0.3 + mx * 0.2;
       shardA.rotation.z = 0.28 + Math.cos(time * 0.16) * 0.08;
-      shardB.position.x = 2.75 + mx * 0.16 + e * 1.4;
+      shardB.position.x = 2.75 + mx * 0.16 + eB * 1.4;
       shardB.rotation.y = -0.3 + Math.cos(time * 0.15) * 0.24;
 
       bgUniforms.uTime.value = time;
-      bgUniforms.uDrift.value = e;
-      bgUniforms.uTypeFade.value = 1 - Math.min(1, p * 2.1);
-      bgUniforms.uTypeShift.value = e * 0.34;
+      bgUniforms.uDrift.value = eB;
+      /* the name stays fully present while the glass passes over it */
+      bgUniforms.uTypeFade.value = 1 - Math.min(1, pB * 1.6);
+      bgUniforms.uTypeShift.value = eB * 0.34;
       lensUniforms.uTime.value = time;
       partMat.uniforms.uTime.value = time;
 
@@ -291,11 +303,11 @@ export function World() {
 
       /* DOM layers: transforms and opacity only */
       if (hero) {
-        hero.style.opacity = String(1 - Math.min(1, p * 2.1));
-        hero.style.transform = `translate3d(0, ${-e * 0.34 * vh}px, 0)`;
+        hero.style.opacity = String(1 - Math.min(1, pB * 1.8));
+        hero.style.transform = `translate3d(0, ${-eB * 0.34 * vh}px, 0)`;
       }
       if (stmt) {
-        const sp = Math.max(0, Math.min(1, (p - 0.52) / 0.3));
+        const sp = Math.max(0, Math.min(1, (pB - 0.35) / 0.4));
         const se = ease(sp);
         stmt.style.opacity = String(se);
         stmt.style.transform = `translate3d(0, ${(1 - se) * 40}px, 0)`;
@@ -306,12 +318,17 @@ export function World() {
     }
 
     window.addEventListener("resize", resize, { passive: true });
+    /* some embedded webviews resize the viewport without firing a
+       window resize; observe the root element as a reliable backstop */
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(document.documentElement);
     window.addEventListener("pointermove", onPointer, { passive: true });
     document.addEventListener("visibilitychange", onVis);
     raf = requestAnimationFrame(frame);
 
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVis);
