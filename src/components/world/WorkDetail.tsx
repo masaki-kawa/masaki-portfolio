@@ -28,9 +28,6 @@ export function WorkDetail({ slug }: { slug: string }) {
       <div className="w-grain" aria-hidden />
 
       <nav className="w-hud" aria-label="Navigation">
-        <Link className="w-brand" href="/" aria-label="Masaki Kawakami">
-          MK
-        </Link>
         <button
           className="w-lang"
           onClick={() => setLang(en ? "ja" : "en")}
