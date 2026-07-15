@@ -164,44 +164,34 @@ export function World() {
       uSeqOn: { value: 0 },
     };
 
-    /* scrubbed travel footage per boundary (b1..b4). Drop clips at
-       public/transitions/bK.mp4 and run scripts/extract-transitions.sh
-       to produce bK/f001.jpg… + meta.json; the engine lazy-loads a
-       boundary's frames as you approach it and falls back to the
-       shader move until every frame is in memory. */
-    type Seq = {
-      frames: (THREE.Texture | null)[];
-      n: number;
+    /* scrubbed travel footage per boundary (b1..b4): the clips are
+       re-encoded all-intra (scripts/extract-transitions.sh), so every
+       frame is a keyframe and video.currentTime lands instantly on any
+       of the ~240 frames. Scroll position IS the playhead; one
+       VideoTexture per boundary keeps GPU memory flat. */
+    type Vseq = {
+      video: HTMLVideoElement;
+      tex: THREE.VideoTexture;
       ready: boolean;
     };
-    const seqs: (Seq | null)[] = [null, null, null, null, null];
+    const vseqs: (Vseq | null)[] = [null, null, null, null, null];
     const requestSeq = (k: number) => {
-      if (k < 1 || k > 4 || seqs[k]) return;
-      const s: Seq = { frames: [], n: 0, ready: false };
-      seqs[k] = s;
-      fetch(`/transitions/b${k}/meta.json`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((m: { frames?: number } | null) => {
-          if (!m || !m.frames) return;
-          s.n = m.frames;
-          let loaded = 0;
-          for (let i = 1; i <= s.n; i++) {
-            texLoader.load(
-              `/transitions/b${k}/f${String(i).padStart(3, "0")}.jpg`,
-              (t) => {
-                t.minFilter = THREE.LinearFilter;
-                t.magFilter = THREE.LinearFilter;
-                t.generateMipmaps = false;
-                s.frames[i - 1] = t;
-                loaded += 1;
-                if (loaded === s.n) s.ready = true;
-              },
-              undefined,
-              () => {},
-            );
-          }
-        })
-        .catch(() => {});
+      if (k < 1 || k > 4 || vseqs[k]) return;
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.src = `/transitions/b${k}.scrub.mp4`;
+      const tex = new THREE.VideoTexture(video);
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
+      const s: Vseq = { video, tex, ready: false };
+      video.addEventListener("loadeddata", () => {
+        s.ready = true;
+      });
+      video.load();
+      vseqs[k] = s;
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
@@ -688,18 +678,19 @@ export function World() {
       requestSeq(ci - 1);
       let seqOn = 0;
       if (trProg > 0 && trProg < 1 && aIdx >= 1 && bIdx === aIdx + 1) {
-        const s = seqs[aIdx];
-        if (s && s.ready && s.n > 0) {
-          const fi = Math.min(s.n - 1, Math.floor(trProg * (s.n - 1)));
-          const ft = s.frames[fi];
-          const im = ft?.image as
-            | { width: number; height: number }
-            | undefined;
-          if (ft && im) {
-            bgUniforms.tSeq.value = ft;
-            bgUniforms.uSeqSize.value.set(im.width, im.height);
-            seqOn = 1;
+        const s = vseqs[aIdx];
+        if (s && s.ready && s.video.videoWidth > 0) {
+          const d = s.video.duration || 10;
+          const target = Math.min(d - 0.03, trProg * d);
+          if (Math.abs(s.video.currentTime - target) > 0.02) {
+            s.video.currentTime = target;
           }
+          bgUniforms.tSeq.value = s.tex;
+          bgUniforms.uSeqSize.value.set(
+            s.video.videoWidth,
+            s.video.videoHeight,
+          );
+          seqOn = 1;
         }
       }
       bgUniforms.uSeqOn.value = seqOn;
@@ -763,7 +754,13 @@ export function World() {
       lensMat.dispose();
       nameQuad.dispose();
       sceneTex.forEach((t) => t?.dispose());
-      seqs.forEach((s) => s?.frames.forEach((t) => t?.dispose()));
+      vseqs.forEach((s) => {
+        if (s) {
+          s.tex.dispose();
+          s.video.removeAttribute("src");
+          s.video.load();
+        }
+      });
       dummyTex.dispose();
       rt.dispose();
       renderer.dispose();
@@ -1202,11 +1199,37 @@ export function World() {
         </section>
 
         <div className="w-flow c-ch" data-ch="5" data-mode="light">
+          <div className="w-carhead">
+            <span className="c-chnum w-reveal" aria-hidden>
+              05
+            </span>
+            <p className="w-label w-reveal">{en ? "Contact" : "連絡先"}</p>
+            <h2 className="w-headline w-reveal">
+              {en ? "Get in touch." : "連絡はこちらから。"}
+            </h2>
+          </div>
           <section
             className="w-block w-contact"
             aria-label={en ? "Contact" : "連絡先"}
           >
-            <p className="w-label w-reveal">{en ? "Contact" : "連絡先"}</p>
+            <div className="w-id w-reveal">
+              <span className="w-id-photo">
+                <Image
+                  src="/avatar.png"
+                  alt="Masaki Kawakami"
+                  width={144}
+                  height={144}
+                />
+              </span>
+              <span>
+                <p className="w-id-name">Masaki Kawakami</p>
+                <p className="w-id-role">
+                  {en
+                    ? "Data & AI, Sydney and Tokyo"
+                    : "データ & AI、シドニーと東京"}
+                </p>
+              </span>
+            </div>
             <div className="w-contact-row w-reveal">
               <a href="mailto:sng1006.trade@gmail.com">Email</a>
               <a

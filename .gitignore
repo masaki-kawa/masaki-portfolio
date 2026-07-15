@@ -40,4 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /Screen Recording*
-/transitions/*.mp4
+/public/transitions/b[0-9].mp4
