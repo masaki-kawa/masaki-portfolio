@@ -159,14 +159,20 @@ export const LENS_FRAG = /* glsl */ `
     float edgeCore = 1.0 - smoothstep(0.0, 0.16, face);
     col *= 1.0 - edgeCore * 0.22;
 
-    /* rim spectrum: the prism at the edge, the jewel tell */
-    col.r += rim * uSplit * 1.9;
-    col.b += rim * uSplit * 1.5;
+    /* iridescence: a true spectrum riding the rim. Hue turns with the
+       edge normal's angle and drifts in time, so the glass edge reads
+       as a moving prism rather than a faint chromatic offset */
+    float hue = atan(vNormal.y, vNormal.x) / 6.2831 + uTime * 0.05;
+    hue += (1.0 - face) * 0.5;
+    vec3 spectrum = 0.5 + 0.5 * cos(6.2831 * (hue + vec3(0.0, 0.33, 0.67)));
+    float sparkle = 0.55 + 0.45 * sin(suv.x * 42.0 + suv.y * 30.0 - uTime * 0.7);
+    float band = pow(rim, 1.4) * sparkle;
+    col += spectrum * band * 0.9;
 
     /* fresnel rim light + a sharp travelling glint down the face */
     float fres = pow(1.0 - face, 3.0);
     float glint = pow(max(0.0, sin(suv.x * 6.2831 + suv.y * 3.0 - uTime * 0.5) * 0.5 + 0.5), 40.0);
-    col += fres * 0.52 + glint * (0.10 + rim * 0.26);
+    col += fres * 0.42 + glint * (0.10 + rim * 0.26);
 
     /* a whisper of interior lift; keep the glass clear, not milky */
     col = mix(col, vec3(1.0), 0.02 + 0.06 * fres);
