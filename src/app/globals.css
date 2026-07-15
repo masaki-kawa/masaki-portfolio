@@ -1724,3 +1724,42 @@ a.w-slide:hover .w-slide-plus {
   font-size: 13.5px;
   color: var(--w-ink-2);
 }
+
+/* ---------- glassier cards: let the journey show through ---------- */
+.w-block,
+.w-slide,
+.w-photo,
+.w-acard,
+.w-det {
+  background: linear-gradient(
+    177deg,
+    rgba(250, 252, 255, 0.44),
+    rgba(240, 244, 249, 0.54)
+  );
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  backdrop-filter: blur(26px) saturate(1.35);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.c-ch[data-mode="dark"] .w-slide,
+.c-ch[data-mode="dark"] .w-photo,
+.c-ch[data-mode="dark"] .w-acard,
+.c-ch[data-mode="dark"] .w-block,
+.c-ch[data-mode="dark"] .w-det {
+  background: linear-gradient(
+    177deg,
+    rgba(32, 36, 46, 0.4),
+    rgba(20, 23, 30, 0.52)
+  );
+  border-color: rgba(255, 255, 255, 0.18);
+}
+@supports (backdrop-filter: url("#w-glass")) or
+  (-webkit-backdrop-filter: url("#w-glass")) {
+  .w-block,
+  .w-slide,
+  .w-photo,
+  .w-acard,
+  .w-det {
+    -webkit-backdrop-filter: blur(22px) saturate(1.35) url("#w-glass");
+    backdrop-filter: blur(22px) saturate(1.35) url("#w-glass");
+  }
+}

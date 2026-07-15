@@ -42,7 +42,9 @@ export function Media({
     <div
       className={className}
       style={{
-        backgroundImage: `url(/work/${slug}.png), linear-gradient(165deg, #f0f2f7 0%, #e2e6ee 55%, #d8dde7 100%)`,
+        /* real screenshot when present; until then a translucent
+           gradient so the empty slot reads as glass over the scene */
+        backgroundImage: `url(/work/${slug}.png), linear-gradient(165deg, rgba(240,242,247,0.34) 0%, rgba(224,229,238,0.44) 100%)`,
       }}
       aria-hidden
     >
