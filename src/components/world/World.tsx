@@ -979,14 +979,8 @@ export function World() {
       </div>
 
       <nav className="w-hud" aria-label="Navigation">
-        <Link className="w-avatar" href="/" aria-label="Masaki Kawakami">
-          <Image
-            src="/avatar.png"
-            alt="Masaki Kawakami"
-            width={64}
-            height={64}
-            priority
-          />
+        <Link className="w-brand" href="/" aria-label="Masaki Kawakami">
+          MK
         </Link>
         <button
           className="w-lang"
@@ -1007,7 +1001,12 @@ export function World() {
         >
           <h1 className="w-sr">Masaki Kawakami</h1>
           <p className="w-kicker">
-            {en ? "Data & AI · Sydney" : "データ & AI · シドニー"}
+            {en ? "Data & AI · Tokyo ⇄ Sydney" : "データ & AI · 東京 ⇄ シドニー"}
+          </p>
+          <p className="w-sub">
+            {en
+              ? "Japanese, based in Sydney. Building across both cities."
+              : "日本人、拠点はシドニー。二つの街をまたいで動いています。"}
           </p>
         </section>
 

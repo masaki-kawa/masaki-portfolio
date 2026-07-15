@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useLang } from "@/components/lang-provider";
 import { WORK, RESEARCH, type Localized } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
@@ -29,13 +28,8 @@ export function WorkDetail({ slug }: { slug: string }) {
       <div className="w-grain" aria-hidden />
 
       <nav className="w-hud" aria-label="Navigation">
-        <Link className="w-avatar" href="/" aria-label="Masaki Kawakami">
-          <Image
-            src="/avatar.png"
-            alt="Masaki Kawakami"
-            width={64}
-            height={64}
-          />
+        <Link className="w-brand" href="/" aria-label="Masaki Kawakami">
+          MK
         </Link>
         <button
           className="w-lang"
