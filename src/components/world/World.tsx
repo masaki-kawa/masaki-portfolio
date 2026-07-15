@@ -90,6 +90,10 @@ export function World() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    /* one WebGL world per canvas: bail if an instance is already live
+       (guards against a double-invoke mounting two render loops) */
+    if (canvas.dataset.wInit === "1") return;
+    canvas.dataset.wInit = "1";
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const renderer = new THREE.WebGLRenderer({
@@ -733,6 +737,7 @@ export function World() {
     raf = requestAnimationFrame(frame);
 
     return () => {
+      running = false;
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("resize", measure);
@@ -760,6 +765,8 @@ export function World() {
       dummyTex.dispose();
       rt.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
+      canvas.dataset.wInit = "";
     };
   }, []);
 
