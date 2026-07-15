@@ -159,6 +159,49 @@ export function World() {
       uKbB: { value: 0 },
       uProg: { value: 0 },
       uType: { value: 0 },
+      tSeq: { value: dummyTex as THREE.Texture },
+      uSeqSize: { value: new THREE.Vector2(16, 9) },
+      uSeqOn: { value: 0 },
+    };
+
+    /* scrubbed travel footage per boundary (b1..b4). Drop clips at
+       public/transitions/bK.mp4 and run scripts/extract-transitions.sh
+       to produce bK/f001.jpg… + meta.json; the engine lazy-loads a
+       boundary's frames as you approach it and falls back to the
+       shader move until every frame is in memory. */
+    type Seq = {
+      frames: (THREE.Texture | null)[];
+      n: number;
+      ready: boolean;
+    };
+    const seqs: (Seq | null)[] = [null, null, null, null, null];
+    const requestSeq = (k: number) => {
+      if (k < 1 || k > 4 || seqs[k]) return;
+      const s: Seq = { frames: [], n: 0, ready: false };
+      seqs[k] = s;
+      fetch(`/transitions/b${k}/meta.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((m: { frames?: number } | null) => {
+          if (!m || !m.frames) return;
+          s.n = m.frames;
+          let loaded = 0;
+          for (let i = 1; i <= s.n; i++) {
+            texLoader.load(
+              `/transitions/b${k}/f${String(i).padStart(3, "0")}.jpg`,
+              (t) => {
+                t.minFilter = THREE.LinearFilter;
+                t.magFilter = THREE.LinearFilter;
+                t.generateMipmaps = false;
+                s.frames[i - 1] = t;
+                loaded += 1;
+                if (loaded === s.n) s.ready = true;
+              },
+              undefined,
+              () => {},
+            );
+          }
+        })
+        .catch(() => {});
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
@@ -639,6 +682,28 @@ export function World() {
       bgUniforms.uProg.value = trProg;
       bgUniforms.uType.value = trType;
 
+      /* travel footage: prefetch the boundaries around the current
+         chapter; scrub when this boundary's frames are all in memory */
+      requestSeq(ci);
+      requestSeq(ci - 1);
+      let seqOn = 0;
+      if (trProg > 0 && trProg < 1 && aIdx >= 1 && bIdx === aIdx + 1) {
+        const s = seqs[aIdx];
+        if (s && s.ready && s.n > 0) {
+          const fi = Math.min(s.n - 1, Math.floor(trProg * (s.n - 1)));
+          const ft = s.frames[fi];
+          const im = ft?.image as
+            | { width: number; height: number }
+            | undefined;
+          if (ft && im) {
+            bgUniforms.tSeq.value = ft;
+            bgUniforms.uSeqSize.value.set(im.width, im.height);
+            seqOn = 1;
+          }
+        }
+      }
+      bgUniforms.uSeqOn.value = seqOn;
+
       /* rail progress + ring cursor: transform-only writes */
       if (railFillRef.current) {
         railFillRef.current.style.transform = `scaleY(${p})`;
@@ -698,6 +763,7 @@ export function World() {
       lensMat.dispose();
       nameQuad.dispose();
       sceneTex.forEach((t) => t?.dispose());
+      seqs.forEach((s) => s?.frames.forEach((t) => t?.dispose()));
       dummyTex.dispose();
       rt.dispose();
       renderer.dispose();

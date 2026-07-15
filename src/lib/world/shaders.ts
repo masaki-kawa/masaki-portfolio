@@ -335,6 +335,12 @@ export const SCENE_FRAG = /* glsl */ `
   uniform float uProg;
   uniform int uType;
 
+  /* scrubbed travel footage: when a boundary has real camera-motion
+     frames (public/transitions/bK), they override the shader move */
+  uniform sampler2D tSeq;
+  uniform vec2 uSeqSize;
+  uniform float uSeqOn;
+
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
   }
@@ -424,6 +430,9 @@ export const SCENE_FRAG = /* glsl */ `
       col = sceneA(uv);
     } else if (uProg >= 0.9999) {
       col = sceneB(uv);
+    } else if (uSeqOn > 0.5) {
+      /* real travel: scroll scrubs through the flight frames */
+      col = grade(texture2D(tSeq, coverUV(uv, uSeqSize, 0.0)).rgb);
     } else if (uType == 1) {
       /* T1 glass wipe: a refracting band sweeps across; the world has
          already changed behind it */
