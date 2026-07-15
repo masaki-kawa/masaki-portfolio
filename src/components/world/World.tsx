@@ -241,6 +241,8 @@ export function World() {
     }
     redrawRef.current = redraw;
     let drawnLang = "";
+    const nameMat = (nameQuad.group.children[0] as THREE.Mesh)
+      .material as THREE.MeshBasicMaterial;
 
     /* --- glass layer --- */
     const glassScene = new THREE.Scene();
@@ -466,6 +468,14 @@ export function World() {
         toWorldY(nameV),
         0,
       );
+
+      /* entrance: the name rises and settles as the page opens */
+      const enterK = reduced
+        ? 1
+        : Math.min(1, Math.max(0, (time - 0.15) / 1.0));
+      const enterE = 1 - Math.pow(1 - enterK, 3);
+      nameMat.opacity = enterE;
+      nameQuad.group.position.y -= (1 - enterE) * 0.45;
 
       /* the glass flies its plan; smoothing polishes, never gates.
          In the hero it also leans toward the pointer: a nudge, not a grab */
@@ -722,11 +732,24 @@ export function World() {
       /* RT holds the solid name for the lens to sample; the screen
          shows the same solid name, and the lens glides over it as
          clear glass, refracting rather than hiding it */
+      /* in the prologue the lens is a window into the next city: the
+         RT it refracts is rendered one scene AHEAD (Tokyo night), so
+         the glass holds the world you are about to fly into, floating
+         in the silver void. Elsewhere the RT mirrors the screen. */
+      const peek = aIdx === 0 && !through;
+      if (peek) {
+        bgUniforms.uProg.value = 1;
+        bgUniforms.uSeqOn.value = 0;
+      }
       renderer.setRenderTarget(rt);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
       renderer.render(contentScene, contentCam);
       renderer.autoClear = true;
+      if (peek) {
+        bgUniforms.uProg.value = trProg;
+        bgUniforms.uSeqOn.value = seqOn;
+      }
       renderer.setRenderTarget(null);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
