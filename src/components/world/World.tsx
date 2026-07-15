@@ -779,7 +779,6 @@ export function World() {
       dummyTex.dispose();
       rt.dispose();
       renderer.dispose();
-      renderer.forceContextLoss();
     };
   }, []);
 
