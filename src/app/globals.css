@@ -1755,3 +1755,14 @@ a.w-slide:hover .w-slide-plus {
   );
   border-color: rgba(255, 255, 255, 0.18);
 }
+
+/* ---------- refined serif display faces (section headlines) -------- */
+.w-serif {
+  font-family:
+    var(--font-serif-jp), "Hiragino Mincho ProN", serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.w-serif-en {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+}
