@@ -23,6 +23,7 @@ export const BG_FRAG = /* glsl */ `
   uniform vec2 uRes;
   uniform float uTime;
   uniform float uDrift; /* scroll-linked drift of the light field */
+  uniform float uDark;  /* 0 = silver day, 1 = deep graphite chapter */
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -52,9 +53,10 @@ export const BG_FRAG = /* glsl */ `
     float aspect = uRes.x / uRes.y;
     vec2 p = vec2(uv.x * aspect, uv.y);
 
-    /* silver base with a wider range for real dimensionality */
-    vec3 top = vec3(0.975, 0.979, 0.986);
-    vec3 bottom = vec3(0.820, 0.838, 0.870);
+    /* silver base with a wider range for real dimensionality; uDark
+       sinks the whole field into deep graphite for the dark chapters */
+    vec3 top = mix(vec3(0.975, 0.979, 0.986), vec3(0.120, 0.130, 0.155), uDark);
+    vec3 bottom = mix(vec3(0.820, 0.838, 0.870), vec3(0.042, 0.048, 0.064), uDark);
     vec3 col = mix(bottom, top, smoothstep(-0.1, 1.05, uv.y + 0.12));
 
     /* mercury flow: two drifting octaves so the light morphs, not slides */
@@ -67,9 +69,11 @@ export const BG_FRAG = /* glsl */ `
     vec2 q = p + warp + vec2(uDrift * 0.4, -uDrift * 0.2);
 
     /* richness ramps into the upper-right, where the glass lives; the
-       name area (lower-left) stays calm so the type reads cleanly */
+       name area (lower-left) stays calm so the type reads cleanly.
+       Dark chapters dim the weather to embers */
     float rich = (smoothstep(0.18, 0.95, uv.x) * 0.62 + 0.38)
-               * smoothstep(0.0, 0.85, uv.y * 0.55 + 0.45);
+               * smoothstep(0.0, 0.85, uv.y * 0.55 + 0.45)
+               * mix(1.0, 0.45, uDark);
 
     /* liquid light: warm gold and cool steel, morphing with the flow */
     col += lightAt(q, vec2(aspect * 0.80, 0.74), vec3(0.078, 0.060, 0.028), 0.95) * rich;
@@ -84,18 +88,21 @@ export const BG_FRAG = /* glsl */ `
       max(0.0, sin(axis * 5.0 - uTime * 0.5 + fbm(p * 2.0) * 3.0)),
       10.0
     );
-    col += (spec * 0.05 + shimmer * 0.028) * rich;
+    col += (spec * 0.05 + shimmer * 0.028) * rich * (1.0 - uDark * 0.5);
 
     /* faint caustic threads flowing through the bright side */
     float caus = pow(smoothstep(0.56, 0.86, fbm(p * 2.6 + vec2(t * 1.6, -t))), 2.0);
     col += caus * 0.028 * rich * vec3(1.0, 0.99, 0.965);
+
+    /* in the dark, a faint cool glow keeps the night breathing */
+    col += lightAt(q, vec2(aspect * 0.5, 0.55), vec3(0.012, 0.017, 0.034), 1.3) * uDark;
 
     /* grain against banding */
     col += (noise(p * 3.0 + t) - 0.5) * 0.012;
 
     /* deeper vignette for dimensionality */
     float vig = smoothstep(1.4, 0.35, length((uv - 0.5) * vec2(aspect, 1.0)));
-    col *= mix(0.87, 1.02, vig);
+    col *= mix(mix(0.87, 1.02, vig), mix(0.70, 1.0, vig), uDark);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -119,6 +126,7 @@ export const LENS_FRAG = /* glsl */ `
   uniform float uRefr;   /* refraction strength  */
   uniform float uSplit;  /* dispersion strength  */
   uniform float uTime;
+  uniform float uFlash;  /* fly-through burst: white wash at crossing */
 
   varying vec3 vNormal;
   varying vec4 vClip;
@@ -158,6 +166,9 @@ export const LENS_FRAG = /* glsl */ `
     /* a whisper of interior lift; keep the glass clear, not milky */
     col = mix(col, vec3(1.0), 0.02 + 0.06 * fres);
 
+    /* passing through the glass: the world goes to light for a beat */
+    col = mix(col, vec3(1.0), uFlash);
+
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -183,6 +194,7 @@ export const PART_VERT = /* glsl */ `
 
 export const PART_FRAG = /* glsl */ `
   precision mediump float;
+  uniform float uBoost; /* dark chapters: the motes become the stars */
   varying float vAlpha;
   varying float vGlow;
 
@@ -192,6 +204,7 @@ export const PART_FRAG = /* glsl */ `
     float core = smoothstep(0.5, 0.12, d);
     float spark = smoothstep(0.22, 0.0, d);
     float a = (core * (0.42 + 0.7 * vGlow) + spark * (0.2 + 0.5 * vGlow)) * vAlpha;
+    a *= 1.0 + uBoost * 1.1;
     vec3 col = mix(vec3(1.0, 0.995, 0.97), vec3(1.0, 0.965, 0.85), vGlow * 0.7);
     gl_FragColor = vec4(col, min(1.0, a));
   }

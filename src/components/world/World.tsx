@@ -45,6 +45,17 @@ import { Media } from "@/components/world/Media";
 const LENS_HW = 1.5;
 const LENS_HH = 0.925;
 
+/* the page is a chaptered journey; the rail and scene caption follow */
+const CHAPTERS = [
+  { id: "00", en: "PROLOGUE", ja: "序章" },
+  { id: "01", en: "WORK", ja: "仕事" },
+  { id: "02", en: "RESEARCH", ja: "研究" },
+  { id: "03", en: "COMMUNITY", ja: "コミュニティ" },
+  { id: "04", en: "ABOUT", ja: "自己紹介" },
+  { id: "05", en: "CONTACT", ja: "連絡先" },
+];
+const CH_MODE = ["light", "dark", "dark", "light", "light", "light"];
+
 
 export function World() {
   const { lang, setLang } = useLang();
@@ -58,6 +69,9 @@ export function World() {
   const [slide, setSlide] = useState(0);
   const [detail, setDetail] = useState(0);
   const [aboutOpen, setAboutOpen] = useState<number | null>(null);
+  const [ch, setCh] = useState(0);
+  const railFillRef = useRef<HTMLSpanElement | null>(null);
+  const cursorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     /* the emblem plays once per session; returning from a detail page
@@ -93,6 +107,7 @@ export function World() {
       uRes: { value: new THREE.Vector2(1, 1) },
       uTime: { value: 0 },
       uDrift: { value: 0 },
+      uDark: { value: 0 },
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
@@ -145,6 +160,7 @@ export function World() {
       uRefr: { value: 0.1 },
       uSplit: { value: 0.22 },
       uTime: { value: 0 },
+      uFlash: { value: 0 },
     };
     const lensMat = new THREE.ShaderMaterial({
       vertexShader: LENS_VERT,
@@ -215,7 +231,7 @@ export function World() {
     const partMat = new THREE.ShaderMaterial({
       vertexShader: PART_VERT,
       fragmentShader: PART_FRAG,
-      uniforms: { uTime: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uBoost: { value: 0 } },
       transparent: true,
       depthWrite: false,
     });
@@ -232,6 +248,12 @@ export function World() {
     let my = 0;
     let tmx = 0;
     let tmy = 0;
+    let pcx = -100;
+    let pcy = -100;
+    let pcxT = -100;
+    let pcyT = -100;
+    let uDarkV = 0;
+    let chRects: { top: number; h: number; dark: boolean }[] = [];
     let gx = 0;
     let gy = 0;
     let pgx = 0;
@@ -254,6 +276,13 @@ export function World() {
       bgUniforms.uRes.value.set(vw * dpr, vh * dpr);
       docH = document.documentElement.scrollHeight;
       heroTop = heroSecRef.current ? heroSecRef.current.offsetTop : 0;
+      chRects = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-ch]"),
+      ).map((el) => ({
+        top: el.offsetTop,
+        h: el.offsetHeight,
+        dark: el.dataset.mode === "dark",
+      }));
     }
     measure();
     redraw(langRef.current);
@@ -265,6 +294,8 @@ export function World() {
     function onPointer(e: PointerEvent) {
       tmx = (e.clientX / vw) * 2 - 1;
       tmy = (e.clientY / vh) * 2 - 1;
+      pcxT = e.clientX;
+      pcyT = e.clientY;
     }
     function onVis() {
       running = document.visibilityState === "visible";
@@ -310,10 +341,10 @@ export function World() {
       if (yy <= nB) {
         return lerp2(nameEnter, nameExit, easeIO((yy - nA) / (nB - nA)));
       }
-      /* once the name is read the lens rides the diagonal off screen,
-         a clean exit: the sections below carry their own show */
-      const t2 = easeIO(Math.min(1, (yy - nB) / (vh * 0.55)));
-      return lerp2(nameExit, { x: toWorldX(-0.3), y: toWorldY(1.35) }, t2);
+      /* after the sweep the lens glides to centre stage and waits:
+         scroll then carries the camera straight through the glass */
+      const t2 = easeIO(Math.min(1, (yy - nB) / (vh * 0.35)));
+      return lerp2(nameExit, { x: 0, y: 0 }, t2);
     }
 
     const t0 = performance.now();
@@ -341,7 +372,7 @@ export function World() {
       /* the glass flies its plan; smoothing polishes, never gates.
          In the hero it also leans toward the pointer: a nudge, not a grab */
       const wp = lensTarget(y);
-      const heroPull = reduced ? 0 : Math.max(0, 1 - y / (vh * 0.9));
+      const heroPull = reduced ? 0 : Math.max(0, 1 - y / (vh * 0.55));
       const pwx = mx * HALF_H * (vw / vh);
       const pwy = -my * HALF_H;
       const txw =
@@ -366,11 +397,33 @@ export function World() {
       const targetRoll = Math.max(-0.14, Math.min(0.14, vx * 1.5));
       roll += (targetRoll - roll) * (reduced ? 1 : 0.05);
 
-      lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05, 0);
+      /* fly-through: past the sweep the camera passes THROUGH the
+         glass. Entirely scroll-driven; nothing ever gates the page */
+      const fA = vh * 0.62;
+      const fB = vh * 1.55;
+      const flyT = reduced
+        ? y > fA
+          ? 1
+          : 0
+        : Math.max(0, Math.min(1, (y - fA) / (fB - fA)));
+      const zFly = flyT * flyT * flyT * 7.6;
+      const through = zFly > 6.35;
+      lens.visible = !through;
+      shadow.visible = flyT < 0.4;
+
+      const calm = 1 - flyT;
+      lens.position.set(gx, gy + Math.sin(time * 0.4) * 0.05 * calm, zFly);
       shadow.position.set(gx + 0.14, gy - 1.08, -0.5);
-      lens.rotation.y = -0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1;
-      lens.rotation.x = 0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04;
-      lens.rotation.z = roll;
+      lens.rotation.y =
+        (-0.16 + Math.sin(time * 0.13) * 0.07 + mx * 0.1) * calm;
+      lens.rotation.x =
+        (0.04 - my * 0.08 + Math.cos(time * 0.17) * 0.04) * calm;
+      lens.rotation.z = roll * calm;
+
+      /* white burst exactly as the face crosses the camera plane */
+      const flash = reduced ? 0 : Math.exp(-Math.pow(zFly - 5.9, 2) / 0.35);
+      lensUniforms.uFlash.value = flash * 0.9;
+      lensUniforms.uSplit.value = 0.22 + flash * 0.55;
 
       /* shards start off-screen and drift in with scroll, so the hero
          top stays clean — no clipped fragment glinting in the corner */
@@ -393,6 +446,7 @@ export function World() {
       if (!reduced) {
         const lx = lens.position.x;
         const ly = lens.position.y;
+        const lensOn = lens.visible;
         for (let i = 0; i < PART_N; i++) {
           const i3 = i * 3;
           const sd = pSeed[i];
@@ -410,7 +464,7 @@ export function World() {
           let ay: number;
           let az: number;
           let gT = 0;
-          if (r < 2.7) {
+          if (lensOn && r < 2.7) {
             const ux = dx / r;
             const uy = dy / r;
             const uz = dz / r;
@@ -442,6 +496,31 @@ export function World() {
       bgUniforms.uDrift.value = hp;
       lensUniforms.uTime.value = time;
       partMat.uniforms.uTime.value = time;
+
+      /* field state: dark chapters sink the world into graphite; the
+         fly-through itself hands you into the first dark chapter */
+      const midY = y + vh * 0.5;
+      let darkT = 0;
+      for (const r of chRects) {
+        if (midY >= r.top && midY < r.top + r.h) {
+          darkT = r.dark ? 1 : 0;
+          break;
+        }
+      }
+      darkT = Math.max(darkT, flyT * 0.9);
+      uDarkV += (darkT - uDarkV) * (reduced ? 1 : 0.06);
+      bgUniforms.uDark.value = uDarkV;
+      partMat.uniforms.uBoost.value = uDarkV;
+
+      /* rail progress + ring cursor: transform-only writes */
+      if (railFillRef.current) {
+        railFillRef.current.style.transform = `scaleY(${p})`;
+      }
+      if (cursorRef.current) {
+        pcx += (pcxT - pcx) * 0.3;
+        pcy += (pcyT - pcy) * 0.3;
+        cursorRef.current.style.transform = `translate3d(${pcx}px, ${pcy}px, 0)`;
+      }
 
       /* the content sheet is translucent frost, so the world and the
          gliding glass stay visible behind it — draw every frame */
@@ -494,6 +573,34 @@ export function World() {
       rt.dispose();
       renderer.dispose();
     };
+  }, []);
+
+  /* chapter rail + scene caption follow whichever chapter crosses the
+     middle of the viewport */
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            const n = Number((e.target as HTMLElement).dataset.ch);
+            if (!Number.isNaN(n)) setCh(n);
+          }
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    document.querySelectorAll("[data-ch]").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  /* the ring cursor grows over anything interactive */
+  useEffect(() => {
+    const onOver = (e: MouseEvent) => {
+      const hit = (e.target as HTMLElement | null)?.closest?.("a, button");
+      cursorRef.current?.classList.toggle("big", !!hit);
+    };
+    document.addEventListener("mouseover", onOver, { passive: true });
+    return () => document.removeEventListener("mouseover", onOver);
   }, []);
 
   /* about modal: Esc closes, page scroll locks while open */
@@ -700,7 +807,12 @@ export function World() {
       </nav>
 
       <main>
-        <section className="w-sec w-sec-hero" ref={heroSecRef}>
+        <section
+          className="w-sec w-sec-hero c-ch"
+          data-ch="0"
+          data-mode="light"
+          ref={heroSecRef}
+        >
           <h1 className="w-sr">Masaki Kawakami</h1>
           <p className="w-kicker">
             {en ? "Data & AI · Sydney" : "データ & AI · シドニー"}
@@ -708,20 +820,32 @@ export function World() {
         </section>
 
         {/* Work: full-width highlights carousel, one slide per project */}
-        <section id="work" className="w-carsec" aria-label={en ? "Work" : "仕事"}>
+        <section
+          id="work"
+          className="w-carsec c-ch"
+          data-ch="1"
+          data-mode="dark"
+          aria-label={en ? "Work" : "仕事"}
+        >
           <div className="w-carhead">
+            <span className="c-chnum w-reveal" aria-hidden>
+              01
+            </span>
             <p className="w-label w-reveal">{en ? "Work" : "仕事"}</p>
             <h2 className="w-headline w-reveal">
               {en ? "Start with the work." : "まずは、仕事から。"}
             </h2>
           </div>
           <div className="w-cartrack" ref={trackRef} onScroll={onTrackScroll}>
-            {workItems.map((it) => (
+            {workItems.map((it, i) => (
               <Link
                 className="w-slide"
                 href={`/work/${it.slug}`}
                 key={it.slug}
               >
+                <span className="w-slide-num" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 <Media className="w-slide-media" slug={it.slug} />
                 <div className="w-slide-cap">
                   <h3 className="w-slide-name">
@@ -761,15 +885,24 @@ export function World() {
             >
               ›
             </button>
+            <span className="w-count" aria-hidden>
+              {String(slide + 1).padStart(2, "0")} /{" "}
+              {String(workItems.length).padStart(2, "0")}
+            </span>
           </div>
         </section>
 
         {/* Research & University: pick one, the visual and copy follow */}
         <section
-          className="w-detsec"
+          className="w-detsec c-ch"
+          data-ch="2"
+          data-mode="dark"
           aria-label={en ? "Research and university" : "研究・大学"}
         >
           <div className="w-carhead">
+            <span className="c-chnum w-reveal" aria-hidden>
+              02
+            </span>
             <p className="w-label w-reveal">
               {en ? "Research & University" : "研究・大学"}
             </p>
@@ -788,6 +921,9 @@ export function World() {
                   >
                     <span className="w-det-plus" aria-hidden>
                       +
+                    </span>
+                    <span className="w-det-num" aria-hidden>
+                      {String(i + 1).padStart(2, "0")}
                     </span>
                     {it.name}
                   </button>
@@ -809,10 +945,15 @@ export function World() {
 
         {/* Community: two large photo cards */}
         <section
-          className="w-comsec"
+          className="w-comsec c-ch"
+          data-ch="3"
+          data-mode="light"
           aria-label={en ? "Community and speaking" : "コミュニティ・登壇"}
         >
           <div className="w-carhead">
+            <span className="c-chnum w-reveal" aria-hidden>
+              03
+            </span>
             <p className="w-label w-reveal">
               {en ? "Community & Speaking" : "コミュニティ・登壇"}
             </p>
@@ -833,8 +974,16 @@ export function World() {
         </section>
 
         {/* About: three cards, plus to expand */}
-        <section className="w-aboutsec" aria-label={en ? "About" : "自己紹介"}>
+        <section
+          className="w-aboutsec c-ch"
+          data-ch="4"
+          data-mode="light"
+          aria-label={en ? "About" : "自己紹介"}
+        >
           <div className="w-carhead">
+            <span className="c-chnum w-reveal" aria-hidden>
+              04
+            </span>
             <p className="w-label w-reveal">{en ? "About" : "自己紹介"}</p>
             <h2 className="w-headline w-reveal">
               {en ? "Who's building this." : "つくっている人。"}
@@ -857,7 +1006,7 @@ export function World() {
           </div>
         </section>
 
-        <div className="w-flow">
+        <div className="w-flow c-ch" data-ch="5" data-mode="light">
           <section
             className="w-block w-contact"
             aria-label={en ? "Contact" : "連絡先"}
@@ -887,7 +1036,29 @@ export function World() {
       </main>
 
       <div className="w-cue" ref={cueRef}>
-        {en ? "Scroll" : "スクロール"}
+        {en ? "Scroll to begin" : "スクロールで始まる"}
+      </div>
+
+      <div
+        className={CH_MODE[ch] === "dark" ? "c-rail on-dark" : "c-rail"}
+        aria-hidden
+      >
+        <span className="c-rail-ch">CH.{CHAPTERS[ch].id}</span>
+        <span className="c-rail-line">
+          <span className="c-rail-fill" ref={railFillRef} />
+        </span>
+        <span className="c-rail-label">
+          {en ? CHAPTERS[ch].en : CHAPTERS[ch].ja}
+        </span>
+      </div>
+      <div
+        className={CH_MODE[ch] === "dark" ? "c-scene on-dark" : "c-scene"}
+        aria-hidden
+      >
+        SCENE {CHAPTERS[ch].id} / {en ? CHAPTERS[ch].en : CHAPTERS[ch].ja}
+      </div>
+      <div className="c-cursor" ref={cursorRef} aria-hidden>
+        <span className="c-cursor-ring" />
       </div>
 
       {aboutOpen !== null && (

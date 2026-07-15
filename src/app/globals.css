@@ -1469,3 +1469,217 @@ a.w-slide:hover .w-slide-plus {
   transform: translateY(-2px);
   box-shadow: 0 10px 22px rgba(28, 32, 40, 0.13);
 }
+
+/* =============================================================
+ * Chaptered journey (PrismPlane grammar, silver world, no anime)
+ * ============================================================= */
+
+/* the hero is a long prologue: name sweep, then the fly-through */
+.w-sec-hero {
+  height: 225vh;
+}
+.w-cue {
+  left: 28px;
+  transform: none;
+}
+
+/* chapter number: huge outline figure above each section label */
+.c-chnum {
+  display: block;
+  margin: 0 0 6px;
+  font-size: clamp(56px, 8.5vw, 118px);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--w-ink-3);
+  opacity: 0.55;
+}
+
+/* dark chapters: ink flips light, cards become graphite glass */
+.c-ch[data-mode="dark"] {
+  --w-ink: #eef0f4;
+  --w-ink-2: #aeb5c2;
+  --w-ink-3: #79808f;
+}
+.c-ch[data-mode="dark"] .w-slide,
+.c-ch[data-mode="dark"] .w-photo,
+.c-ch[data-mode="dark"] .w-acard,
+.c-ch[data-mode="dark"] .w-block,
+.c-ch[data-mode="dark"] .w-det,
+.c-ch[data-mode="dark"] .w-detvis {
+  background: linear-gradient(
+    177deg,
+    rgba(36, 40, 50, 0.66),
+    rgba(23, 26, 33, 0.74)
+  );
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.c-ch[data-mode="dark"] .w-arrow {
+  background: rgba(42, 46, 57, 0.72);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.c-ch[data-mode="dark"] .w-dots {
+  background: rgba(255, 255, 255, 0.08);
+}
+.c-ch[data-mode="dark"] .w-dot {
+  background: rgba(255, 255, 255, 0.3);
+}
+.c-ch[data-mode="dark"] .w-dot.on {
+  background: #fff;
+}
+.c-ch[data-mode="dark"] .w-item {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.c-ch[data-mode="dark"] .w-tag {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.c-ch[data-mode="dark"] .w-det-plus {
+  background: rgba(255, 255, 255, 0.1);
+}
+.c-ch[data-mode="dark"] .w-det.on .w-det-plus {
+  background: #fff;
+  color: #14161b;
+}
+.c-ch[data-mode="dark"] .w-slide-plus {
+  background: rgba(255, 255, 255, 0.1);
+}
+.c-ch[data-mode="dark"] a.w-slide:hover .w-slide-plus {
+  background: #fff;
+  color: #14161b;
+}
+
+/* numbers on the work slides + gallery counter */
+.w-slide-num {
+  position: absolute;
+  top: 16px;
+  left: 24px;
+  z-index: 2;
+  font-size: clamp(48px, 6vw, 84px);
+  font-weight: 700;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(23, 25, 31, 0.5);
+  pointer-events: none;
+}
+.w-count {
+  margin-left: 14px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--w-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.w-det-num {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--w-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* chapter rail: CH.XX, progress line, vertical label */
+.c-rail {
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #868c9c;
+  transition: color 600ms;
+  pointer-events: none;
+}
+.c-rail.on-dark,
+.c-scene.on-dark {
+  color: #b9c0cd;
+}
+.c-rail-ch {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  font-variant-numeric: tabular-nums;
+}
+.c-rail-line {
+  position: relative;
+  width: 1px;
+  height: clamp(90px, 18vh, 180px);
+  background: rgba(138, 144, 160, 0.28);
+  overflow: hidden;
+}
+.c-rail-fill {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: top;
+  transform: scaleY(0);
+  will-change: transform;
+}
+.c-rail-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
+}
+
+/* scene caption, bottom centre */
+.c-scene {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #868c9c;
+  transition: color 600ms;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ring cursor: difference blend works on silver and graphite alike */
+.c-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+.c-cursor-ring {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 1.2px solid #fff;
+  border-radius: 999px;
+  transition: transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.c-cursor.big .c-cursor-ring {
+  transform: scale(1.65);
+}
+
+@media (max-width: 900px) {
+  .c-rail,
+  .c-scene {
+    display: none;
+  }
+}
+@media (hover: none) {
+  .c-cursor {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-cursor {
+    display: none;
+  }
+  .w-sec-hero {
+    height: 130vh;
+  }
+}
