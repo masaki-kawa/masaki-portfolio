@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { WORK, RESEARCH } from "@/lib/content/work";
+import { WORK, RESEARCH, COMMUNITY } from "@/lib/content/work";
 import { WorkDetail } from "@/components/world/WorkDetail";
 
 /**
@@ -8,7 +8,7 @@ import { WorkDetail } from "@/components/world/WorkDetail";
  * lib/content/work.ts; case-study bodies will extend it per project.
  */
 
-const ALL = [...WORK, ...RESEARCH];
+const ALL = [...WORK, ...RESEARCH, ...COMMUNITY];
 
 export function generateStaticParams() {
   return ALL.map((w) => ({ slug: w.slug }));

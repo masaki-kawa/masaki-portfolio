@@ -1,22 +1,35 @@
 import type { Section } from "@/lib/content/sections";
 
 /**
- * The chapter header: a small numbered eyebrow (number, rule, EN label,
- * muted JA label) over a large serif display headline. The refined
- * mincho headline is the section's anchor; no photo needed.
+ * The chapter header: a small numbered eyebrow (number, rule, label in
+ * the active language only) over a large serif display headline. One
+ * language at a time, never both at once.
  */
-export function SectionHead({ s, en }: { s: Section; en: boolean }) {
+export function SectionHead({
+  s,
+  en,
+  compact = false,
+}: {
+  s: Section;
+  en: boolean;
+  /* compact drops the large display headline: used for sub-sections
+     (e.g. Approach inside About) that only need the numbered eyebrow */
+  compact?: boolean;
+}) {
   return (
-    <div className="c-shead-wrap">
+    <div className={compact ? "c-shead-wrap c-shead-compact" : "c-shead-wrap"}>
       <p className="c-shead w-reveal" aria-hidden>
         <span className="c-shead-n">{s.n}</span>
         <span className="c-shead-rule" />
-        <span className="c-shead-en">{s.labelEn}</span>
-        <span className="c-shead-ja">{s.labelJa}</span>
+        <span className="c-shead-en">{en ? s.labelEn : s.labelJa}</span>
       </p>
-      <h2 className={en ? "w-headline w-reveal" : "w-headline w-serif w-reveal"}>
-        {en ? s.headline.en : s.headline.ja}
-      </h2>
+      {!compact && (
+        <h2
+          className={en ? "w-headline w-reveal" : "w-headline w-serif w-reveal"}
+        >
+          {en ? s.headline.en : s.headline.ja}
+        </h2>
+      )}
     </div>
   );
 }

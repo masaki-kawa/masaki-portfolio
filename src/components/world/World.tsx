@@ -30,12 +30,12 @@ import {
   PART_VERT,
   PART_FRAG,
 } from "@/lib/world/shaders";
-import { makeTextBlock, EN_FONT, JA_FONT } from "@/lib/world/text-block";
+import { makeTextBlock, EN_FONT } from "@/lib/world/text-block";
+import { Logo } from "@/components/world/Logo";
 import Link from "next/link";
 import Image from "next/image";
-import { WORK, RESEARCH } from "@/lib/content/work";
+import { WORK, RESEARCH, COMMUNITY } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
-import { Media } from "@/components/world/Media";
 import { SectionHead } from "@/components/world/SectionHead";
 import { SECTION } from "@/lib/content/sections";
 
@@ -234,11 +234,11 @@ export function World() {
 
     function redraw(l: Lang) {
       const en = l === "en";
-      nameQuad.draw(
-        en ? ["Masaki", "Kawakami"] : ["川上", "勝基"],
-        en ? EN_FONT : JA_FONT,
-        en ? -0.035 : 0.03,
-      );
+      /* keep the name in Latin in both languages: the kanji rendering
+         reads worse than the wordmark, so the hero name is always
+         "Masaki Kawakami" regardless of the UI language */
+      void en;
+      nameQuad.draw(["Masaki", "Kawakami"], EN_FONT, -0.035);
     }
     redrawRef.current = redraw;
     let drawnLang = "";
@@ -879,31 +879,12 @@ export function World() {
     );
   }
 
-  const community = en
-    ? [
-        {
-          slug: "ai-salon",
-          name: "AI Salon Sydney",
-          desc: "Co-organiser of AI community events in Sydney.",
-        },
-        {
-          slug: "workshops",
-          name: "Workshops",
-          desc: "Speaker at Sydney community workshops: LinkedIn, Notion, and Claude Code next.",
-        },
-      ]
-    : [
-        {
-          slug: "ai-salon",
-          name: "AI Salon Sydney",
-          desc: "シドニーのAIコミュニティイベントを共同運営。",
-        },
-        {
-          slug: "workshops",
-          name: "Workshops",
-          desc: "シドニーのコミュニティワークショップに登壇。LinkedIn、Notion、次は Claude Code。",
-        },
-      ];
+  const community = COMMUNITY.map((c) => ({
+    slug: c.slug,
+    name: c.name,
+    logo: c.logo!,
+    desc: pick(c.desc),
+  }));
 
   return (
     <div className="w-root" data-intro={intro ? "on" : "off"}>
@@ -987,17 +968,27 @@ export function World() {
                 <span className="w-slide-num" aria-hidden>
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <Media className="w-slide-media" slug={it.slug} />
+                <Logo
+                  slug={it.slug}
+                  dir="work/logos"
+                  alt={it.name}
+                  className="w-slide-logo"
+                  plain={it.slug === "vacanti-ai" || it.slug === "kodoku"}
+                />
                 <div className="w-slide-cap">
                   <h3 className="w-slide-name">
                     {it.name}
                     {it.tag ? <em className="w-tag">{it.tag}</em> : null}
                   </h3>
                   <p className="w-slide-desc">{it.desc}</p>
-                  <span className="w-slide-plus" aria-hidden>
-                    +
+                  <span className="w-slide-open" aria-hidden>
+                    {en ? "View case study" : "詳細を見る"}
+                    <i>→</i>
                   </span>
                 </div>
+                <span className="w-slide-plus" aria-hidden>
+                  +
+                </span>
               </Link>
             ))}
           </div>
@@ -1063,16 +1054,15 @@ export function World() {
                   <div className="w-det-body">
                     <div className="w-det-inner">
                       <p>{it.detail}</p>
+                      <Link className="w-det-link" href={`/work/${it.slug}`}>
+                        {en ? "View project" : "詳細を見る"}
+                        <i>→</i>
+                      </Link>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <Media
-              key={researchItems[detail].slug}
-              className="w-detvis"
-              slug={researchItems[detail].slug}
-            />
           </div>
         </section>
 
@@ -1087,13 +1077,33 @@ export function World() {
             <SectionHead s={SECTION.community} en={en} />
           </div>
           <div className="w-two">
-            {community.map((it) => (
-              <figure className="w-photo w-reveal" key={it.slug}>
-                <Media className="w-photo-media" slug={it.slug} />
-                <figcaption className="w-photo-cap">
-                  <strong>{it.name}.</strong> {it.desc}
-                </figcaption>
-              </figure>
+            {community.map((it, i) => (
+              <Link
+                className="w-comcard w-reveal"
+                href={`/work/${it.slug}`}
+                key={it.slug}
+              >
+                <span className="w-comcard-n" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <Logo
+                  slug={it.logo}
+                  dir="community"
+                  alt={it.name}
+                  className="w-comcard-logo"
+                />
+                <div className="w-comcard-cap">
+                  <strong>{it.name}</strong>
+                  <span>{it.desc}</span>
+                  <span className="w-slide-open" aria-hidden>
+                    {en ? "View" : "詳細を見る"}
+                    <i>→</i>
+                  </span>
+                </div>
+                <span className="w-slide-plus" aria-hidden>
+                  +
+                </span>
+              </Link>
             ))}
           </div>
         </section>
@@ -1140,8 +1150,11 @@ export function World() {
 
               {/* Approach diagram, same chapter/scene as About */}
               <div className="w-appsec" aria-label={en ? "Approach" : "仕事の流れ"}>
-                <div className="w-carhead">
-                  <SectionHead s={SECTION.approach} en={en} />
+                <div className="w-apphead">
+                  <SectionHead s={SECTION.approach} en={en} compact />
+                  <p className="w-appline w-reveal">
+                    {en ? SECTION.approach.headline.en : SECTION.approach.headline.ja}
+                  </p>
                 </div>
                 <ol className="w-steps">
                   {SECTION.approach.steps!.map((st) => (

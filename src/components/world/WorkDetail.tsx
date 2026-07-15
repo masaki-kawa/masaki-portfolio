@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLang } from "@/components/lang-provider";
-import { WORK, RESEARCH, type Localized } from "@/lib/content/work";
+import { WORK, RESEARCH, COMMUNITY, type Localized } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
 import { Media } from "@/components/world/Media";
 
@@ -16,7 +16,7 @@ export function WorkDetail({ slug }: { slug: string }) {
   const en = lang === "en";
   const pick = (l: Localized) => (en ? l.en : l.ja);
 
-  const all = [...WORK, ...RESEARCH];
+  const all = [...WORK, ...RESEARCH, ...COMMUNITY];
   const i = all.findIndex((w) => w.slug === slug);
   const w = all[i];
   if (!w) return null;
@@ -47,7 +47,7 @@ export function WorkDetail({ slug }: { slug: string }) {
           {w.tag ? <em className="w-tag">{pick(w.tag)}</em> : null}
         </h1>
         <p className="wd-lead">{pick(w.desc)}</p>
-        <Media className="wd-media" slug={w.slug} />
+        {!w.gallery && <Media className="wd-media" slug={w.slug} />}
         <p className="wd-body">{pick(w.detail)}</p>
         {w.body?.map((s) => (
           <section className="wd-sec" key={s.h.en}>
@@ -55,6 +55,20 @@ export function WorkDetail({ slug }: { slug: string }) {
             <p className="wd-p">{pick(s.p)}</p>
           </section>
         ))}
+        {w.gallery && w.gallery.length > 0 ? (
+          <div className="wd-gallery">
+            {w.gallery.map((g) => (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={g}
+                className="wd-shot"
+                src={`/work/gallery/${g}.png`}
+                alt=""
+                loading="lazy"
+              />
+            ))}
+          </div>
+        ) : null}
         {w.links && w.links.length > 0 ? (
           <div className="wd-links">
             {w.links.map((l) => (
