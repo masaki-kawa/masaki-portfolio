@@ -24,7 +24,7 @@ import { useLang } from "@/components/lang-provider";
 import type { Lang } from "@/types/lang";
 import {
   BG_VERT,
-  BG_FRAG,
+  SCENE_FRAG,
   LENS_VERT,
   LENS_FRAG,
   PART_VERT,
@@ -100,18 +100,69 @@ export function World() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(dpr);
 
-    /* --- the light field --- */
+    /* --- the light field / journey scenes --- */
     const fieldScene = new THREE.Scene();
     const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    /* photo backdrops per chapter: drop images at
+       public/scenes/ch01.jpg … ch05.jpg (png also works) and they
+       replace the tinted procedural placeholders automatically */
+    const dummyTex = new THREE.DataTexture(
+      new Uint8Array([255, 255, 255, 255]),
+      1,
+      1,
+    );
+    dummyTex.needsUpdate = true;
+    const SCENE_TINTS = [
+      new THREE.Vector3(1, 1, 1) /* prologue: pure silver world */,
+      new THREE.Vector3(0.52, 0.56, 0.72) /* tokyo night placeholder */,
+      new THREE.Vector3(0.47, 0.5, 0.6) /* skytree fog placeholder */,
+      new THREE.Vector3(1.06, 0.99, 0.9) /* sydney dawn placeholder */,
+      new THREE.Vector3(1.0, 1.0, 1.02) /* harbour day placeholder */,
+      new THREE.Vector3(0.92, 0.99, 1.1) /* above clouds placeholder */,
+    ];
+    const sceneTex: (THREE.Texture | null)[] = [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ];
+    const texLoader = new THREE.TextureLoader();
+    for (let s = 1; s <= 5; s++) {
+      const apply = (t: THREE.Texture) => {
+        t.minFilter = THREE.LinearFilter;
+        t.magFilter = THREE.LinearFilter;
+        t.generateMipmaps = false;
+        sceneTex[s] = t;
+      };
+      texLoader.load(`/scenes/ch0${s}.jpg`, apply, undefined, () => {
+        texLoader.load(`/scenes/ch0${s}.png`, apply, undefined, () => {});
+      });
+    }
+
     const bgUniforms = {
       uRes: { value: new THREE.Vector2(1, 1) },
       uTime: { value: 0 },
       uDrift: { value: 0 },
       uDark: { value: 0 },
+      tA: { value: dummyTex as THREE.Texture },
+      tB: { value: dummyTex as THREE.Texture },
+      uASize: { value: new THREE.Vector2(16, 9) },
+      uBSize: { value: new THREE.Vector2(16, 9) },
+      uAProc: { value: 1 },
+      uBProc: { value: 1 },
+      uATint: { value: new THREE.Vector3(1, 1, 1) },
+      uBTint: { value: new THREE.Vector3(1, 1, 1) },
+      uKbA: { value: 0 },
+      uKbB: { value: 0 },
+      uProg: { value: 0 },
+      uType: { value: 0 },
     };
     const bgMat = new THREE.ShaderMaterial({
       vertexShader: BG_VERT,
-      fragmentShader: BG_FRAG,
+      fragmentShader: SCENE_FRAG,
       uniforms: bgUniforms,
       depthTest: false,
       depthWrite: false,
@@ -501,16 +552,92 @@ export function World() {
          fly-through itself hands you into the first dark chapter */
       const midY = y + vh * 0.5;
       let darkT = 0;
-      for (const r of chRects) {
+      let ci = 0;
+      for (let i = 0; i < chRects.length; i++) {
+        const r = chRects[i];
         if (midY >= r.top && midY < r.top + r.h) {
           darkT = r.dark ? 1 : 0;
+          ci = i;
           break;
         }
+        if (midY >= r.top) ci = i;
       }
       darkT = Math.max(darkT, flyT * 0.9);
       uDarkV += (darkT - uDarkV) * (reduced ? 1 : 0.06);
       bgUniforms.uDark.value = uDarkV;
       partMat.uniforms.uBoost.value = uDarkV;
+
+      /* which scene pair is on stage, and which transition plays.
+         Boundary types: 0 fade under the fly-through flash,
+         1 glass wipe, 4 vertical travel, 2 blinds, 3 exposure burst */
+      const TR_TYPES = [0, 1, 4, 2, 3];
+      let aIdx = ci;
+      let bIdx = Math.min(ci + 1, 5);
+      let trProg = 0;
+      let trType = 0;
+      if (chRects.length >= 6) {
+        if (ci === 0 || (ci === 1 && flyT < 1)) {
+          aIdx = 0;
+          bIdx = 1;
+          trProg = flyT;
+          trType = 0;
+        } else {
+          const zone = vh * 0.5;
+          for (let k = 1; k < 5; k++) {
+            const bTop = chRects[k + 1].top;
+            if (Math.abs(midY - bTop) < zone) {
+              const tt = (midY - (bTop - zone)) / (2 * zone);
+              trProg = tt * tt * (3 - 2 * tt);
+              aIdx = k;
+              bIdx = k + 1;
+              trType = TR_TYPES[k];
+              break;
+            }
+          }
+        }
+      }
+      const kbOf = (idx: number) => {
+        const r = chRects[idx];
+        if (!r) return 0;
+        return Math.max(0, Math.min(1, (midY - r.top) / Math.max(1, r.h)));
+      };
+      const setSlot = (
+        texU: { value: THREE.Texture },
+        sizeU: { value: THREE.Vector2 },
+        procU: { value: number },
+        tintU: { value: THREE.Vector3 },
+        idx: number,
+      ) => {
+        const t = sceneTex[idx];
+        const img = t?.image as { width: number; height: number } | undefined;
+        if (t && img) {
+          texU.value = t;
+          sizeU.value.set(img.width, img.height);
+          procU.value = 0;
+        } else {
+          texU.value = dummyTex;
+          procU.value = 1;
+          tintU.value.copy(SCENE_TINTS[idx]);
+        }
+      };
+      setSlot(
+        bgUniforms.tA,
+        bgUniforms.uASize,
+        bgUniforms.uAProc,
+        bgUniforms.uATint,
+        aIdx,
+      );
+      setSlot(
+        bgUniforms.tB,
+        bgUniforms.uBSize,
+        bgUniforms.uBProc,
+        bgUniforms.uBTint,
+        bIdx,
+      );
+      bgUniforms.uKbA.value = kbOf(aIdx);
+      bgUniforms.uKbB.value = kbOf(bIdx);
+      bgUniforms.uProg.value = trProg;
+      bgUniforms.uType.value = trType;
 
       /* rail progress + ring cursor: transform-only writes */
       if (railFillRef.current) {
@@ -570,6 +697,8 @@ export function World() {
       bgMat.dispose();
       lensMat.dispose();
       nameQuad.dispose();
+      sceneTex.forEach((t) => t?.dispose());
+      dummyTex.dispose();
       rt.dispose();
       renderer.dispose();
     };

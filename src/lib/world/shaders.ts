@@ -304,3 +304,200 @@ export const SDF_LENS_FRAG = /* glsl */ `
     gl_FragColor = vec4(col, alpha);
   }
 `;
+
+/*
+ * Journey scene compositor. The field triangle renders this instead of
+ * BG_FRAG on the home world: two scene slots (photo texture or the
+ * procedural silver world with a tint) and a scroll-driven transition
+ * between them. uType picks the move: 0 crossfade (used under the
+ * fly-through flash), 1 glass wipe, 2 blinds, 3 exposure burst,
+ * 4 vertical travel. A shared grade + grain + vignette keeps five
+ * generated photos feeling like one continuous world.
+ */
+export const SCENE_FRAG = /* glsl */ `
+  precision highp float;
+
+  uniform vec2 uRes;
+  uniform float uTime;
+  uniform float uDrift;
+  uniform float uDark;
+
+  uniform sampler2D tA;
+  uniform sampler2D tB;
+  uniform vec2 uASize;
+  uniform vec2 uBSize;
+  uniform float uAProc;
+  uniform float uBProc;
+  uniform vec3 uATint;
+  uniform vec3 uBTint;
+  uniform float uKbA;
+  uniform float uKbB;
+  uniform float uProg;
+  uniform int uType;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+      f.y
+    );
+  }
+  float fbm(vec2 p) {
+    return 0.6 * noise(p) + 0.3 * noise(p * 2.17) + 0.12 * noise(p * 4.3);
+  }
+  vec3 lightAt(vec2 uv, vec2 c, vec3 tint, float r) {
+    float d = length(uv - c);
+    return tint * pow(max(0.0, 1.0 - d / r), 2.2);
+  }
+
+  /* the procedural silver world, used for the prologue and as the
+     tinted placeholder until a chapter's photo lands */
+  vec3 silver(vec2 uv, vec3 tint) {
+    float aspect = uRes.x / uRes.y;
+    vec2 p = vec2(uv.x * aspect, uv.y);
+    vec3 top = mix(vec3(0.975, 0.979, 0.986), vec3(0.120, 0.130, 0.155), uDark);
+    vec3 bottom = mix(vec3(0.820, 0.838, 0.870), vec3(0.042, 0.048, 0.064), uDark);
+    vec3 col = mix(bottom, top, smoothstep(-0.1, 1.05, uv.y + 0.12));
+    float t = uTime * 0.06;
+    vec2 flow = vec2(
+      fbm(p * 1.3 + vec2(t, -t * 0.7)),
+      fbm(p * 1.3 + vec2(-t * 0.8, t))
+    );
+    vec2 warp = 0.30 * (flow - 0.5);
+    vec2 q = p + warp + vec2(uDrift * 0.4, -uDrift * 0.2);
+    float rich = (smoothstep(0.18, 0.95, uv.x) * 0.62 + 0.38)
+               * smoothstep(0.0, 0.85, uv.y * 0.55 + 0.45)
+               * mix(1.0, 0.45, uDark);
+    col += lightAt(q, vec2(aspect * 0.80, 0.74), vec3(0.078, 0.060, 0.028), 0.95) * rich;
+    col += lightAt(q, vec2(aspect * 0.90, 0.26), vec3(0.028, 0.044, 0.086), 1.00) * rich;
+    col += lightAt(q, vec2(aspect * 0.30, 0.92), vec3(0.045, 0.046, 0.052), 0.80) * 0.6;
+    float axis = p.x * 0.86 + p.y * 0.5;
+    float spec = pow(max(0.0, sin(axis * 2.1 - uTime * 0.30)), 6.0);
+    col += spec * 0.05 * rich * (1.0 - uDark * 0.5);
+    col += lightAt(q, vec2(aspect * 0.5, 0.55), vec3(0.012, 0.017, 0.034), 1.3) * uDark;
+    return col * tint;
+  }
+
+  /* cover-fit with a slow push-in (the scene breathes as you read) */
+  vec2 coverUV(vec2 uv, vec2 ts, float kb) {
+    float sa = uRes.x / uRes.y;
+    float ta = ts.x / max(ts.y, 1.0);
+    vec2 st = uv - 0.5;
+    if (ta > sa) st.x *= sa / ta;
+    else st.y *= ta / sa;
+    float z = 1.0 - 0.07 * kb;
+    st = st * z + vec2(0.02, 0.012) * kb;
+    return clamp(st + 0.5, 0.003, 0.997);
+  }
+
+  /* one grade across every photo: silvered, slightly cool, dark
+     chapters sit deeper so the light ink reads */
+  vec3 grade(vec3 c) {
+    float g = dot(c, vec3(0.299, 0.587, 0.114));
+    c = mix(vec3(g), c, 0.84);
+    c *= vec3(0.985, 1.0, 1.03);
+    c *= mix(1.0, 0.72, uDark * 0.55);
+    return c;
+  }
+
+  vec3 sceneA(vec2 uv) {
+    if (uAProc > 0.5) return silver(uv, uATint);
+    return grade(texture2D(tA, coverUV(uv, uASize, uKbA)).rgb);
+  }
+  vec3 sceneB(vec2 uv) {
+    if (uBProc > 0.5) return silver(uv, uBTint);
+    return grade(texture2D(tB, coverUV(uv, uBSize, uKbB)).rgb);
+  }
+
+  void main() {
+    vec2 uv = gl_FragCoord.xy / uRes;
+    float aspect = uRes.x / uRes.y;
+    vec3 col = vec3(0.0);
+
+    if (uProg <= 0.0001) {
+      col = sceneA(uv);
+    } else if (uProg >= 0.9999) {
+      col = sceneB(uv);
+    } else if (uType == 1) {
+      /* T1 glass wipe: a refracting band sweeps across; the world has
+         already changed behind it */
+      float edge = mix(-0.25, 1.25, uProg);
+      float w = 0.16;
+      float e = (uv.x - edge) / w;
+      if (e >= 0.5) {
+        col = sceneA(uv);
+      } else if (e <= -0.5) {
+        col = sceneB(uv);
+      } else {
+        float refr = (0.5 - abs(e)) * 0.16;
+        vec2 offR = vec2(refr * 1.5, 0.0);
+        vec2 offG = vec2(refr, 0.0);
+        vec2 offB = vec2(refr * 0.55, 0.0);
+        if (e > 0.0) {
+          col.r = sceneA(uv + offR).r;
+          col.g = sceneA(uv + offG).g;
+          col.b = sceneA(uv + offB).b;
+        } else {
+          col.r = sceneB(uv - offR).r;
+          col.g = sceneB(uv - offG).g;
+          col.b = sceneB(uv - offB).b;
+        }
+        col += (0.5 - abs(e)) * 0.55;
+      }
+    } else if (uType == 2) {
+      /* T2 blinds: staggered slats swing open onto the next scene */
+      float N = 9.0;
+      float idx = floor(uv.x * N);
+      float lx = fract(uv.x * N);
+      float pp = clamp(uProg * 1.35 - (idx / N) * 0.35, 0.0, 1.0);
+      pp = pp * pp * (3.0 - 2.0 * pp);
+      if (lx < pp) {
+        col = sceneB(uv);
+        col *= 0.8 + 0.2 * smoothstep(0.0, 0.2, pp - lx);
+      } else {
+        col = sceneA(uv);
+        col *= 1.0 - 0.4 * smoothstep(0.14, 0.0, lx - pp) * step(0.001, pp);
+      }
+    } else if (uType == 3) {
+      /* T3 exposure burst: the scene floods to light, the next emerges */
+      if (uProg < 0.5) {
+        float k = uProg * 2.0;
+        col = mix(sceneA(uv), vec3(1.0), k * k);
+      } else {
+        float k = (uProg - 0.5) * 2.0;
+        k = k * k * (3.0 - 2.0 * k);
+        col = mix(vec3(1.0), sceneB(uv), k);
+      }
+    } else if (uType == 4) {
+      /* T4 vertical travel: one city slides away below, the other
+         rises to meet you, with streaks at peak speed */
+      float e = uProg * uProg * (3.0 - 2.0 * uProg);
+      float blur = uProg * (1.0 - uProg);
+      vec3 acc = vec3(0.0);
+      for (int i = 0; i < 4; i++) {
+        float o = (float(i) / 3.0 - 0.5) * blur * 0.12;
+        float ya = uv.y + e * 1.15 + o;
+        if (ya <= 1.0) acc += sceneA(vec2(uv.x, ya));
+        else acc += sceneB(vec2(uv.x, ya - 1.15));
+      }
+      col = acc / 4.0;
+      float streak = pow(noise(vec2(uv.x * 60.0, uv.y * 1.5 - uTime * 3.0)), 3.0);
+      col += streak * blur * 0.9;
+    } else {
+      col = mix(sceneA(uv), sceneB(uv), uProg);
+    }
+
+    vec2 gp = vec2(uv.x * aspect, uv.y);
+    col += (noise(gp * 3.0 + uTime * 0.06) - 0.5) * 0.016;
+    float vig = smoothstep(1.4, 0.35, length((uv - 0.5) * vec2(aspect, 1.0)));
+    col *= mix(mix(0.88, 1.02, vig), mix(0.72, 1.0, vig), uDark);
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
