@@ -73,6 +73,10 @@ export function makeTextBlock(align: "left" | "center"): TextBlock {
       const x = align === "left" ? padX : (W - w) / 2;
       ctx.fillText(l, x, ascent + i * lineH);
     });
+    /* the canvas was resized, so force a full re-upload: a plain
+       needsUpdate can leave the old, larger texture's pixels around the
+       new smaller text (the other language bleeding through) */
+    tex.dispose();
     tex.needsUpdate = true;
     state.aspect = W / H;
     state.lines = lines.length;
