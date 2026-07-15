@@ -705,21 +705,17 @@ export function World() {
         cursorRef.current.style.transform = `translate3d(${pcx}px, ${pcy}px, 0)`;
       }
 
-      /* the content sheet is translucent frost, so the world and the
-         gliding glass stay visible behind it — draw every frame */
-      /* RT holds the resolved world (solid ink); only the lens reads it */
+      /* RT holds the solid name for the lens to sample; the screen
+         shows the same solid name, and the lens glides over it as
+         clear glass, refracting rather than hiding it */
       renderer.setRenderTarget(rt);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      contentCam.layers.set(1);
       renderer.render(contentScene, contentCam);
       renderer.autoClear = true;
-      /* the name is solid and readable on screen; the lens glides over
-         it as clear glass, refracting rather than hiding it */
       renderer.setRenderTarget(null);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      contentCam.layers.set(1);
       renderer.render(contentScene, contentCam);
       renderer.render(glassScene, camera);
       renderer.autoClear = true;
@@ -1002,8 +998,8 @@ export function World() {
           </p>
           <p className="w-sub">
             {en
-              ? "Japanese, based in Sydney. Building across both cities."
-              : "日本人、拠点はシドニー。二つの街をまたいで動いています。"}
+              ? "Based in Sydney and Tokyo."
+              : "拠点はシドニーと東京。"}
           </p>
         </section>
 

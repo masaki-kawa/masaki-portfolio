@@ -1,14 +1,11 @@
 import * as THREE from "three";
 
 /**
- * Dual-layer display type for the liquid glass world.
- *
- * The story of the lens: outside it the world is raw — display type
- * renders as a ghost outline. Inside it the same type is resolved —
- * full ink, plus the dispersion the lens adds. Two rasterizations of
- * the same block on separate layers:
- *   layer 1 (solid ink)     → rendered only into the RT the lens reads
- *   layer 2 (ghost outline) → rendered only to the screen
+ * Display type as a single canvas-textured quad for the liquid glass
+ * world. Rasterised once per draw() and sampled both into the lens RT
+ * and to the screen, so the glass refracts the same solid ink the page
+ * shows. (The earlier dual-canvas ghost/resolve variant is gone; both
+ * passes render this one mesh.)
  */
 
 export const EN_FONT =
@@ -26,86 +23,57 @@ export type TextBlock = {
 };
 
 export function makeTextBlock(align: "left" | "center"): TextBlock {
-  const solidCv = document.createElement("canvas");
-  const ghostCv = document.createElement("canvas");
-  const sCtx = solidCv.getContext("2d");
-  const gCtx = ghostCv.getContext("2d");
-  const sTex = new THREE.CanvasTexture(solidCv);
-  const gTex = new THREE.CanvasTexture(ghostCv);
-  for (const t of [sTex, gTex]) {
-    t.minFilter = THREE.LinearFilter;
-    t.magFilter = THREE.LinearFilter;
-    t.generateMipmaps = false;
-  }
+  const cv = document.createElement("canvas");
+  const ctx = cv.getContext("2d");
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
   const geo = new THREE.PlaneGeometry(1, 1);
-  const sMat = new THREE.MeshBasicMaterial({
-    map: sTex,
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
     transparent: true,
     depthWrite: false,
   });
-  const gMat = new THREE.MeshBasicMaterial({
-    map: gTex,
-    transparent: true,
-    depthWrite: false,
-  });
-  const sMesh = new THREE.Mesh(geo, sMat);
-  const gMesh = new THREE.Mesh(geo, gMat);
-  sMesh.layers.set(1); /* resolved world: lens/RT pass only */
-  gMesh.layers.set(2); /* raw world: screen pass only       */
+  const mesh = new THREE.Mesh(geo, mat);
   const group = new THREE.Group();
-  group.add(sMesh, gMesh);
+  group.add(mesh);
   const state = { aspect: 1, lines: 1, lineWorld: 0.5 };
 
   function applyScale() {
-    /* the canvas holds all lines, so its aspect already covers the full
-       block: width = fullHeight * (canvasW / canvasH) */
     const h = state.lines * state.lineWorld;
-    sMesh.scale.set(h * state.aspect, h, 1);
-    gMesh.scale.set(h * state.aspect, h, 1);
+    mesh.scale.set(h * state.aspect, h, 1);
   }
   function draw(lines: string[], font: string, spacingEm: number) {
-    if (!sCtx || !gCtx) return;
+    if (!ctx) return;
     const px = 220;
-    const prep = (ctx: CanvasRenderingContext2D) => {
+    const prep = () => {
       ctx.font = `700 ${px}px ${font}`;
       try {
-        (
-          ctx as CanvasRenderingContext2D & { letterSpacing: string }
-        ).letterSpacing = `${spacingEm * px}px`;
+        (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${spacingEm * px}px`;
       } catch {
         /* cosmetic */
       }
     };
-    prep(sCtx);
-    const widths = lines.map((l) => sCtx.measureText(l).width);
+    prep();
+    const widths = lines.map((l) => ctx.measureText(l).width);
     const maxW = Math.ceil(Math.max(...widths, 1));
     const lineH = px * 1.14;
-    const padX = px * 0.1;
+    const padX = px * 0.14;
     const ascent = px * 0.78;
     const W = maxW + padX * 2;
     const H = Math.ceil(ascent + lineH * (lines.length - 1) + px * 0.34);
-    solidCv.width = W;
-    solidCv.height = H;
-    ghostCv.width = W;
-    ghostCv.height = H;
-    prep(sCtx); /* canvas resize resets ctx state */
-    prep(gCtx);
-    sCtx.clearRect(0, 0, W, H);
-    gCtx.clearRect(0, 0, W, H);
-    sCtx.fillStyle = "#141519";
-    gCtx.strokeStyle = "rgba(22, 23, 26, 0.36)";
-    gCtx.lineWidth = px * 0.028;
-    gCtx.fillStyle = "rgba(22, 23, 26, 0.05)";
+    cv.width = W;
+    cv.height = H;
+    prep(); /* canvas resize resets ctx state */
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#141519";
     lines.forEach((l, i) => {
-      const w = sCtx.measureText(l).width;
+      const w = ctx.measureText(l).width;
       const x = align === "left" ? padX : (W - w) / 2;
-      const yy = ascent + i * lineH;
-      sCtx.fillText(l, x, yy);
-      gCtx.fillText(l, x, yy);
-      gCtx.strokeText(l, x, yy);
+      ctx.fillText(l, x, ascent + i * lineH);
     });
-    sTex.needsUpdate = true;
-    gTex.needsUpdate = true;
+    tex.needsUpdate = true;
     state.aspect = W / H;
     state.lines = lines.length;
     applyScale();
@@ -122,10 +90,8 @@ export function makeTextBlock(align: "left" | "center"): TextBlock {
     setLineWorld,
     dispose: () => {
       geo.dispose();
-      sMat.dispose();
-      gMat.dispose();
-      sTex.dispose();
-      gTex.dispose();
+      mat.dispose();
+      tex.dispose();
     },
   };
 }

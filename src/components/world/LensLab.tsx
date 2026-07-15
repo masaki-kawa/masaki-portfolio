@@ -152,13 +152,11 @@ export function LensLab() {
       renderer.setRenderTarget(rt);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      contentCam.layers.set(1); /* resolved ink into the RT */
       renderer.render(contentScene, contentCam);
       renderer.autoClear = true;
       renderer.setRenderTarget(null);
       renderer.render(fieldScene, bgCam);
       renderer.autoClear = false;
-      contentCam.layers.set(2); /* ghost outline to the screen */
       renderer.render(contentScene, contentCam);
       renderer.render(lensScene, bgCam);
       renderer.autoClear = true;
