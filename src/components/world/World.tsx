@@ -90,10 +90,11 @@ export function World() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    /* one WebGL world per canvas: bail if an instance is already live
-       (guards against a double-invoke mounting two render loops) */
-    if (canvas.dataset.wInit === "1") return;
-    canvas.dataset.wInit = "1";
+    /* stop any render loop a hot reload / remount left running before
+       starting, so exactly one loop ever drives this canvas (two would
+       render the name in both languages at once) */
+    const g = window as unknown as { __worldStop?: () => void };
+    g.__worldStop?.();
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const renderer = new THREE.WebGLRenderer({
@@ -237,6 +238,7 @@ export function World() {
       );
     }
     redrawRef.current = redraw;
+    let drawnLang = "";
 
     /* --- glass layer --- */
     const glassScene = new THREE.Scene();
@@ -439,6 +441,12 @@ export function World() {
     let lastNow = t0;
     function frame(now: number) {
       if (!running) return;
+      /* the live loop owns the name: redraw whenever the language
+         changed, so it can never be left showing the wrong one */
+      if (langRef.current !== drawnLang) {
+        redraw(langRef.current);
+        drawnLang = langRef.current;
+      }
       const time = reduced ? 2.0 : (now - t0) / 1000;
       const dt = Math.min(0.033, Math.max(0.001, (now - lastNow) / 1000));
       lastNow = now;
@@ -736,9 +744,15 @@ export function World() {
     document.addEventListener("visibilitychange", onVis);
     raf = requestAnimationFrame(frame);
 
-    return () => {
+    const stopThis = () => {
       running = false;
       cancelAnimationFrame(raf);
+    };
+    g.__worldStop = stopThis;
+
+    return () => {
+      stopThis();
+      if (g.__worldStop === stopThis) g.__worldStop = undefined;
       ro.disconnect();
       window.removeEventListener("resize", measure);
       window.removeEventListener("pointermove", onPointer);
@@ -766,7 +780,6 @@ export function World() {
       rt.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
-      canvas.dataset.wInit = "";
     };
   }, []);
 
