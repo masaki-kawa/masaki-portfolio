@@ -1274,18 +1274,33 @@ export function World() {
         {en ? "Scroll to begin" : "スクロールで始まる"}
       </div>
 
-      <div
+      <nav
         className={CH_MODE[ch] === "dark" ? "c-rail on-dark" : "c-rail"}
-        aria-hidden
+        aria-label={en ? "Chapters" : "章"}
       >
-        <span className="c-rail-ch">CH.{CHAPTERS[ch].id}</span>
-        <span className="c-rail-line">
-          <span className="c-rail-fill" ref={railFillRef} />
+        <span className="c-rail-count" aria-hidden>
+          {CHAPTERS[ch].id}
+          <i>/ {CHAPTERS[CHAPTERS.length - 1].id}</i>
         </span>
-        <span className="c-rail-label">
+        <span className="c-rail-dots">
+          {CHAPTERS.map((c, i) => (
+            <button
+              key={c.id}
+              className={i === ch ? "c-dot on" : i < ch ? "c-dot done" : "c-dot"}
+              aria-label={en ? c.en : c.ja}
+              aria-current={i === ch ? "step" : undefined}
+              onClick={() =>
+                document
+                  .querySelector(`[data-ch="${i}"]`)
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+            />
+          ))}
+        </span>
+        <span className="c-rail-name" aria-hidden>
           {en ? CHAPTERS[ch].en : CHAPTERS[ch].ja}
         </span>
-      </div>
+      </nav>
       <div
         className={CH_MODE[ch] === "dark" ? "c-scene on-dark" : "c-scene"}
         aria-hidden
