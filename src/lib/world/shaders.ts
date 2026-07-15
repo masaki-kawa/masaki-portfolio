@@ -431,8 +431,15 @@ export const SCENE_FRAG = /* glsl */ `
     } else if (uProg >= 0.9999) {
       col = sceneB(uv);
     } else if (uSeqOn > 0.5) {
-      /* real travel: scroll scrubs through the flight frames */
-      col = grade(texture2D(tSeq, coverUV(uv, uSeqSize, 0.0)).rgb);
+      /* real travel: scroll scrubs through the flight frames. Blend the
+         clip's ends into the adjoining chapter stills so any mismatch
+         at the first/last frame never pops */
+      vec3 s = grade(texture2D(tSeq, coverUV(uv, uSeqSize, 0.0)).rgb);
+      float head = smoothstep(0.14, 0.0, uProg);
+      float tail = smoothstep(0.86, 1.0, uProg);
+      s = mix(s, sceneA(uv), head);
+      s = mix(s, sceneB(uv), tail);
+      col = s;
     } else if (uType == 1) {
       /* T1 glass wipe: a refracting band sweeps across; the world has
          already changed behind it */
