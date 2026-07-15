@@ -90,11 +90,13 @@ export function World() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    /* stop any render loop a hot reload / remount left running before
-       starting, so exactly one loop ever drives this canvas (two would
-       render the name in both languages at once) */
-    const g = window as unknown as { __worldStop?: () => void };
-    g.__worldStop?.();
+    /* destroy any previous world on this canvas (loop + renderer) before
+       building a new one, so a hot reload never leaves two render loops
+       alive or a second renderer stuck with a null GL context */
+    const canvasEl = canvas as HTMLCanvasElement & {
+      __worldDestroy?: () => void;
+    };
+    canvasEl.__worldDestroy?.();
 
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const renderer = new THREE.WebGLRenderer({
@@ -744,15 +746,13 @@ export function World() {
     document.addEventListener("visibilitychange", onVis);
     raf = requestAnimationFrame(frame);
 
-    const stopThis = () => {
+    /* full teardown, stored on the canvas so a hot reload / remount can
+       destroy the previous world (loop + renderer) before building a new
+       one on the same canvas — two live renderers on one canvas leave
+       the second with a null GL context */
+    const teardown = () => {
       running = false;
       cancelAnimationFrame(raf);
-    };
-    g.__worldStop = stopThis;
-
-    return () => {
-      stopThis();
-      if (g.__worldStop === stopThis) g.__worldStop = undefined;
       ro.disconnect();
       window.removeEventListener("resize", measure);
       window.removeEventListener("pointermove", onPointer);
@@ -779,6 +779,12 @@ export function World() {
       dummyTex.dispose();
       rt.dispose();
       renderer.dispose();
+    };
+    canvasEl.__worldDestroy = teardown;
+
+    return () => {
+      teardown();
+      if (canvasEl.__worldDestroy === teardown) canvasEl.__worldDestroy = undefined;
     };
   }, []);
 
