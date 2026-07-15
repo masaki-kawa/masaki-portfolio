@@ -17,7 +17,7 @@
  * DPR capped, pauses when hidden, reduced-motion = no smoothing.
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { useLang } from "@/components/lang-provider";
@@ -36,6 +36,8 @@ import Image from "next/image";
 import { WORK, RESEARCH } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
 import { Media } from "@/components/world/Media";
+import { SectionHead } from "@/components/world/SectionHead";
+import { SECTION } from "@/lib/content/sections";
 
 /* lens half extents in world units (geometry is 3.0 x 1.85). The flight
    plan is derived from the measured text blocks, not hand-tuned points:
@@ -68,7 +70,6 @@ export function World() {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [slide, setSlide] = useState(0);
   const [detail, setDetail] = useState(0);
-  const [aboutOpen, setAboutOpen] = useState<number | null>(null);
   const [ch, setCh] = useState(0);
   const railFillRef = useRef<HTMLSpanElement | null>(null);
   const cursorRef = useRef<HTMLDivElement | null>(null);
@@ -816,21 +817,6 @@ export function World() {
     return () => document.removeEventListener("mouseover", onOver);
   }, []);
 
-  /* about modal: Esc closes, page scroll locks while open */
-  useEffect(() => {
-    if (aboutOpen === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAboutOpen(null);
-    };
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [aboutOpen]);
-
   /* reveal content rows as they enter view (transform/opacity only) */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -919,57 +905,6 @@ export function World() {
         },
       ];
 
-  /* About: three cards; the plus opens an Apple-style modal */
-  const aboutCards: { lead: string; body: ReactNode }[] = [
-    {
-      lead: en
-        ? "AI systems that stay in production."
-        : "本番で動き続けるAIをつくる。",
-      body: en
-        ? "An AI job matching SaaS, LLM reporting that paying clients rely on, and the workflows behind them. I build them and keep them running."
-        : "AIジョブマッチングSaaS、課金クライアントが使うLLMレポーティング、それらを支えるワークフロー。つくって、動かし続ける。",
-    },
-    {
-      lead: en
-        ? "Business and build, both sides."
-        : "事業と実装、その両方。",
-      body: en ? (
-        <>
-          As COO of{" "}
-          <a
-            href="https://cubic-innov8-group.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Cubic Innov8
-          </a>
-          , an IT and innovation group across Kyoto and Sydney, I bring in
-          clients and run operations, then build the systems that serve them. I
-          also built and shipped Vacanti AI as an independent venture.
-        </>
-      ) : (
-        <>
-          京都とシドニーのIT企業{" "}
-          <a
-            href="https://cubic-innov8-group.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Cubic Innov8
-          </a>{" "}
-          のCOOとして、クライアント開拓や運営という事業側と、それを支える実装側の両方。独立ベンチャーとして
-          Vacanti AI もつくり、本番公開。
-        </>
-      ),
-    },
-    {
-      lead: en ? "From HR to data science." : "人事からデータサイエンスへ。",
-      body: en
-        ? "Five years in HR at Canon Marketing Japan, then a Master of Data Science at the University of Technology Sydney. Native Japanese speaker based in Sydney, working in English."
-        : "キヤノンマーケティングジャパンの人事に5年。その後シドニーへ渡り、シドニー工科大学でデータサイエンス修士を修了。日本語ネイティブ、仕事は英語。",
-    },
-  ];
-
   return (
     <div className="w-root" data-intro={intro ? "on" : "off"}>
       <GlassFilter />
@@ -1037,13 +972,10 @@ export function World() {
           aria-label={en ? "Work" : "仕事"}
         >
           <div className="w-carhead">
-            <span className="c-chnum w-reveal" aria-hidden>
-              01
-            </span>
-            <p className="w-label w-reveal">{en ? "Work" : "仕事"}</p>
-            <h2 className="w-headline w-reveal">
-              {en ? "Start with the work." : "まずは、仕事から。"}
-            </h2>
+            <SectionHead s={SECTION.work} en={en} />
+            <p className="w-carhint w-reveal">
+              {en ? SECTION.work.hint!.en : SECTION.work.hint!.ja}
+            </p>
           </div>
           <div className="w-cartrack" ref={trackRef} onScroll={onTrackScroll}>
             {workItems.map((it, i) => (
@@ -1109,15 +1041,7 @@ export function World() {
           aria-label={en ? "Research and university" : "研究・大学"}
         >
           <div className="w-carhead">
-            <span className="c-chnum w-reveal" aria-hidden>
-              02
-            </span>
-            <p className="w-label w-reveal">
-              {en ? "Research & University" : "研究・大学"}
-            </p>
-            <h2 className="w-headline w-reveal">
-              {en ? "Take a closer look." : "近づいて見る。"}
-            </h2>
+            <SectionHead s={SECTION.research} en={en} />
           </div>
           <div className="w-detgrid">
             <div className="w-detlist">
@@ -1160,15 +1084,7 @@ export function World() {
           aria-label={en ? "Community and speaking" : "コミュニティ・登壇"}
         >
           <div className="w-carhead">
-            <span className="c-chnum w-reveal" aria-hidden>
-              03
-            </span>
-            <p className="w-label w-reveal">
-              {en ? "Community & Speaking" : "コミュニティ・登壇"}
-            </p>
-            <h2 className="w-headline w-reveal">
-              {en ? "Out in the community." : "コミュニティでも。"}
-            </h2>
+            <SectionHead s={SECTION.community} en={en} />
           </div>
           <div className="w-two">
             {community.map((it) => (
@@ -1182,53 +1098,94 @@ export function World() {
           </div>
         </section>
 
-        {/* About: three cards, plus to expand */}
+        {/* About: editorial headline, lead, three pillars, metrics */}
         <section
           className="w-aboutsec c-ch"
           data-ch="4"
           data-mode="light"
           aria-label={en ? "About" : "自己紹介"}
         >
-          <div className="w-carhead">
-            <span className="c-chnum w-reveal" aria-hidden>
-              04
-            </span>
-            <p className="w-label w-reveal">{en ? "About" : "自己紹介"}</p>
-            <h2 className="w-headline w-reveal">
-              {en ? "Who's building this." : "つくっている人。"}
-            </h2>
-          </div>
-          <div className="w-three">
-            {aboutCards.map((c, i) => (
-              <div className="w-acard w-reveal" key={c.lead}>
-                <p className="w-acard-lead">{c.lead}</p>
-                <button
-                  className="w-acard-plus"
-                  aria-haspopup="dialog"
-                  aria-label={en ? "More" : "詳しく"}
-                  onClick={() => setAboutOpen(i)}
-                >
-                  +
-                </button>
+          <div className="w-panel">
+            <div className="w-abgrid">
+              <div className="w-abhead">
+                <SectionHead s={SECTION.about} en={en} />
               </div>
-            ))}
+              <p className="w-ablead w-reveal">
+                {en ? SECTION.about.lead!.en : SECTION.about.lead!.ja}
+              </p>
+              <ul className="w-pillars">
+                {SECTION.about.pillars!.map((p) => (
+                  <li className="w-pillar w-reveal" key={p.labelEn}>
+                    <span className="w-pillar-dot" aria-hidden />
+                    <span className="w-pillar-label">{p.labelEn}</span>
+                    <span className="w-pillar-title">
+                      {en ? p.title.en : p.title.ja}
+                    </span>
+                    <span className="w-pillar-body">
+                      {en ? p.body.en : p.body.ja}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="w-metrics">
+                {SECTION.about.metrics!.map((m) => (
+                  <div className="w-metric w-reveal" key={m.cap.en}>
+                    <span className="w-metric-v">{m.value}</span>
+                    <span className="w-metric-c">
+                      {en ? m.cap.en : m.cap.ja}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Approach diagram, same chapter/scene as About */}
+              <div className="w-appsec" aria-label={en ? "Approach" : "仕事の流れ"}>
+                <div className="w-carhead">
+                  <SectionHead s={SECTION.approach} en={en} />
+                </div>
+                <ol className="w-steps">
+                  {SECTION.approach.steps!.map((st) => (
+                    <li className="w-step w-reveal" key={st.num}>
+                      <span className="w-step-n" aria-hidden>
+                        {st.num}
+                      </span>
+                      <span className="w-step-label">{st.labelEn}</span>
+                      <span className="w-step-title">
+                        {en ? st.title.en : st.title.ja}
+                      </span>
+                      <span className="w-step-body">
+                        {en ? st.body.en : st.body.ja}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
           </div>
         </section>
 
         <div className="w-flow c-ch" data-ch="5" data-mode="light">
           <div className="w-carhead">
-            <span className="c-chnum w-reveal" aria-hidden>
-              05
-            </span>
-            <p className="w-label w-reveal">{en ? "Contact" : "連絡先"}</p>
-            <h2 className="w-headline w-reveal">
-              {en ? "Get in touch." : "連絡はこちらから。"}
-            </h2>
+            <SectionHead s={SECTION.contact} en={en} />
+            <p className="w-cotag w-serif-en w-reveal">
+              {en ? SECTION.contact.tagline!.en : SECTION.contact.tagline!.ja}
+            </p>
           </div>
           <section
             className="w-block w-contact"
             aria-label={en ? "Contact" : "連絡先"}
           >
+            <p className="w-colead w-reveal">
+              {en ? SECTION.contact.lead!.en : SECTION.contact.lead!.ja}
+            </p>
+            <dl className="w-cometa w-reveal">
+              {SECTION.contact.meta!.map((m) => (
+                <div className="w-cometa-row" key={m.labelEn}>
+                  <dt>{m.labelEn}</dt>
+                  <dd>{en ? m.body.en : m.body.ja}</dd>
+                </div>
+              ))}
+            </dl>
             <div className="w-id w-reveal">
               <span className="w-id-photo">
                 <Image
@@ -1310,28 +1267,6 @@ export function World() {
       <div className="c-cursor" ref={cursorRef} aria-hidden>
         <span className="c-cursor-ring" />
       </div>
-
-      {aboutOpen !== null && (
-        <div
-          className="w-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label={aboutCards[aboutOpen].lead}
-          onClick={() => setAboutOpen(null)}
-        >
-          <div className="w-modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="w-modal-x"
-              aria-label={en ? "Close" : "閉じる"}
-              onClick={() => setAboutOpen(null)}
-            >
-              ×
-            </button>
-            <h3 className="w-modal-title">{aboutCards[aboutOpen].lead}</h3>
-            <p className="w-modal-text">{aboutCards[aboutOpen].body}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
