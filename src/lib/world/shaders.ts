@@ -135,7 +135,7 @@ export const LENS_FRAG = /* glsl */ `
     vec2 suv = (vClip.xy / vClip.w) * 0.5 + 0.5;
 
     float face = clamp(abs(vNormal.z), 0.0, 1.0); /* 1 = flat face, 0 = rim */
-    float rim = 1.0 - smoothstep(0.05, 0.85, face);
+    float rim = 1.0 - smoothstep(0.05, 0.72, face);
 
     /* bend harder near the rim, gently across the face */
     vec2 off = vNormal.xy * uRefr * (0.22 + 1.9 * rim);
@@ -154,14 +154,19 @@ export const LENS_FRAG = /* glsl */ `
     vec3 soft = texture2D(tBg, suv + off + j).rgb + texture2D(tBg, suv + off - j).rgb;
     col = mix(col, (col + soft) / 3.0, 0.32);
 
-    /* rim spectrum: a faint prism at the very edge, the jewel tell */
-    col.r += rim * uSplit * 1.4;
-    col.b += rim * uSplit * 1.1;
+    /* a whisper of shade at the outermost edge seats the bright rim,
+       so the outline still reads against a near-white field */
+    float edgeCore = 1.0 - smoothstep(0.0, 0.16, face);
+    col *= 1.0 - edgeCore * 0.22;
+
+    /* rim spectrum: the prism at the edge, the jewel tell */
+    col.r += rim * uSplit * 1.9;
+    col.b += rim * uSplit * 1.5;
 
     /* fresnel rim light + a sharp travelling glint down the face */
     float fres = pow(1.0 - face, 3.0);
     float glint = pow(max(0.0, sin(suv.x * 6.2831 + suv.y * 3.0 - uTime * 0.5) * 0.5 + 0.5), 40.0);
-    col += fres * 0.42 + glint * (0.10 + rim * 0.22);
+    col += fres * 0.52 + glint * (0.10 + rim * 0.26);
 
     /* a whisper of interior lift; keep the glass clear, not milky */
     col = mix(col, vec3(1.0), 0.02 + 0.06 * fres);
