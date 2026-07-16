@@ -95,8 +95,8 @@ export const WORK: WorkEntry[] = [
       ja: "日豪で動くAI動画・Web制作スタジオ。1つのエンジン、3つのレベル、実クライアント案件が本番稼働中。",
     },
     detail: {
-      en: "V plus AI. Motion ships AI assisted promo videos off the shelf, Flow builds AI workflows to order, and Build writes custom AI software from scratch. The reel playing above and the work wall below are the studio's own output.",
-      ja: "V + AI = VAI。Motion は AI プロモ動画を定型で、Flow は AI ワークフローを受注で、Build はカスタム AI ソフトウェアをゼロから。上で流れているリールも下の作品一覧も、スタジオ自身のアウトプット。",
+      en: "V plus AI. Motion ships AI assisted promo videos off the shelf, Flow builds AI workflows to order, and Build writes custom AI software from scratch. The Vacanti promo playing above and the work wall below are the studio's own output.",
+      ja: "V + AI = VAI。Motion は AI プロモ動画を定型で、Flow は AI ワークフローを受注で、Build はカスタム AI ソフトウェアをゼロから。上で流れている Vacanti のプロモも下の作品一覧も、スタジオ自身のアウトプット。",
     },
     body: [
       {

@@ -1360,7 +1360,8 @@ a.w-comcard:hover .w-slide-open i {
   max-width: 60ch;
 }
 .wd-media {
-  height: clamp(280px, 48vh, 520px);
+  aspect-ratio: 16 / 9;
+  max-height: 560px;
   border-radius: 30px;
   background-size: cover;
   background-position: center;
