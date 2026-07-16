@@ -60,11 +60,13 @@ export const metadata: Metadata = {
     title: site.title,
     description: site.description,
     siteName: site.name,
+    images: [{ url: site.ogImage, width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: site.title,
     description: site.description,
+    images: [site.ogImage],
   },
   robots: { index: true, follow: true },
 };

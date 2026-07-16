@@ -5,9 +5,9 @@
 
 export const site = {
   name: "Masaki Kawakami",
-  title: "Masaki Kawakami · AI-native full-stack builder",
+  title: "Masaki Kawakami · Data & AI, Tokyo to Sydney",
   description:
-    "AI-native full-stack builder based in Sydney. Building production AI products across recruiting, local SEO, and data, with a background in HR and startup operations.",
+    "I use AI to change how businesses run, and build the systems behind it myself. COO at Cubic Innov8, builder of Vacanti AI, operator of Review365. Tokyo and Sydney.",
   url: "https://masaki-kawakami.vercel.app",
   locale: "en",
   author: "Masaki Kawakami",
