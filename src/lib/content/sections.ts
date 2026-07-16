@@ -14,8 +14,8 @@ export const SECTION = {
     labelEn: "Work",
     labelJa: "仕事",
     headline: {
-      en: "The work that is actually live, in Tokyo and Sydney.",
-      ja: "東京とシドニーで、実際に動いている仕事。",
+      en: "The work that is actually live, in Japan and Australia.",
+      ja: "日本とオーストラリアで、実際に動いている仕事。",
     },
     hint: { en: "Scroll or drag", ja: "スクロール、またはドラッグ" },
   } as Section,
@@ -43,8 +43,8 @@ export const SECTION = {
       ja: "事業をつくる側と、システムをつくる側。両方に立つ。",
     },
     lead: {
-      en: "I use AI to change how businesses run, and build the workflows behind it myself. As COO of Cubic Innov8, a cross-border innovation hub connecting Japan and Australia, I bring in the clients and run operations on the business side, then build the systems that serve them. I designed, built and shipped Vacanti AI, an AI job matching SaaS, solo and into production, as an independent venture. Before this I spent five years in HR at Canon Marketing Japan, then completed a Master of Data Science at the University of Technology Sydney, and I work between Tokyo and Sydney.",
-      ja: "AIで業務の回り方を変え、それを支えるワークフローまで自分でつくります。日本とオーストラリアをつなぐクロスボーダー・イノベーションハブ Cubic Innov8 のCOOとして、クライアントを開拓し運営を回す事業側と、それを動かすシステムをつくる実装側の両方に立ちます。独立ベンチャーとしては、AIジョブマッチングSaaS「Vacanti AI」を一人で設計・実装し、本番まで出しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニー工科大学でデータサイエンス修士を修了し、いまは東京とシドニーを行き来しています。",
+      en: "I use AI to change how businesses run, and build the workflows behind it myself. As COO of Cubic Innov8, a cross-border innovation hub connecting Japan and Australia, I bring in the clients and run operations on the business side, then build the systems that serve them. I designed, built and shipped Vacanti AI, an AI job matching SaaS, solo and into production, as an independent venture. Before this I spent five years in HR at Canon Marketing Japan, then completed a Master of Data Science at the University of Technology Sydney, and I am based in Sydney, working across Japan and Australia.",
+      ja: "AIで業務の回り方を変え、それを支えるワークフローまで自分でつくります。日本とオーストラリアをつなぐクロスボーダー・イノベーションハブ Cubic Innov8 のCOOとして、クライアントを開拓し運営を回す事業側と、それを動かすシステムをつくる実装側の両方に立ちます。独立ベンチャーとしては、AIジョブマッチングSaaS「Vacanti AI」を一人で設計・実装し、本番まで出しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニー工科大学でデータサイエンス修士を修了し、いまはシドニーを拠点に、日本とオーストラリアの両市場で働いています。",
     },
     pillars: [
       {
@@ -65,15 +65,15 @@ export const SECTION = {
       },
       {
         labelEn: "The bridge",
-        title: { en: "HR, data, two cities", ja: "人事とデータ、二つの拠点" },
+        title: { en: "HR, data, two markets", ja: "人事とデータ、二つの市場" },
         body: {
-          en: "Five years of HR domain knowledge, a data science degree, and two bases: Tokyo and Sydney.",
-          ja: "人事5年のドメイン理解、データサイエンス、そして東京とシドニーの二拠点をつなぎます。",
+          en: "Five years of HR domain knowledge, a data science degree, and two markets: Japan and Australia.",
+          ja: "人事5年のドメイン理解、データサイエンス、そして日本とオーストラリアの二つの市場をつなぎます。",
         },
       },
     ],
     metrics: [
-      { value: "2", cap: { en: "Cities, Tokyo and Sydney", ja: "拠点、東京とシドニー" } },
+      { value: "2", cap: { en: "Markets, Japan and Australia", ja: "市場、日本とオーストラリア" } },
       { value: "10", cap: { en: "Clients sourced, Review365", ja: "社を開拓、Review365" } },
       { value: "4", cap: { en: "Ongoing engagements", ja: "社を継続中" } },
       { value: "5", cap: { en: "Years in HR at Canon", ja: "年、キヤノンの人事" } },
@@ -131,19 +131,19 @@ export const SECTION = {
     labelEn: "Contact",
     labelJa: "連絡先",
     headline: {
-      en: "Let's talk. From Tokyo, or from Sydney.",
-      ja: "話しましょう。東京からでも、シドニーからでも。",
+      en: "Let's talk. On Sydney time, or Tokyo time.",
+      ja: "話しましょう。シドニー時間でも、東京時間でも。",
     },
     tagline: {
-      en: "I work across data and AI, from Tokyo to Sydney. Say hello.",
-      ja: "データとAIを、東京からシドニーまで。気軽にどうぞ。",
+      en: "I work across data and AI, between Japan and Australia. Say hello.",
+      ja: "データとAIを、日本とオーストラリアのあいだで。気軽にどうぞ。",
     },
     lead: {
       en: "Whether it is the business or the build. If you want to move a workflow forward with data and AI, get in touch.",
       ja: "事業の話でも、実装の話でも。データとAIで業務を前に進めたい方、お気軽にご連絡ください。",
     },
     meta: [
-      { labelEn: "Based", body: { en: "Tokyo and Sydney.", ja: "東京とシドニー、二つの拠点から。" } },
+      { labelEn: "Based", body: { en: "Sydney, working across Japan and Australia.", ja: "シドニー。日本とオーストラリアの両市場で。" } },
       { labelEn: "Languages", body: { en: "English and Japanese.", ja: "英語と日本語で。" } },
       {
         labelEn: "Focus",

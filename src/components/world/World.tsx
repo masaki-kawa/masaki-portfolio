@@ -974,8 +974,8 @@ export function World() {
           </p>
           <p className="w-sub">
             {en
-              ? "Based in Sydney and Tokyo."
-              : "拠点はシドニーと東京。"}
+              ? "Based in Sydney, working across Japan and Australia."
+              : "拠点はシドニー。日本とオーストラリアの両市場で。"}
           </p>
         </section>
 
@@ -1247,8 +1247,8 @@ export function World() {
                 <p className="w-id-name">Masaki Kawakami</p>
                 <p className="w-id-role">
                   {en
-                    ? "Data & AI, Sydney and Tokyo"
-                    : "データ & AI、シドニーと東京"}
+                    ? "Data & AI, based in Sydney"
+                    : "データ & AI、拠点はシドニー"}
                 </p>
               </span>
             </div>

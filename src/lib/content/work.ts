@@ -698,21 +698,21 @@ export const COMMUNITY: WorkEntry[] = [
     name: "AI Salon Sydney",
     logo: "ai-salon",
     desc: {
-      en: "Co-organiser of a Sydney AI community, running regular meetups and hands-on sessions.",
-      ja: "シドニーのAIコミュニティを共同運営。定期的なミートアップとハンズオンを開催。",
+      en: "A Sydney community night for people building with AI: talks, live startup demos, open networking.",
+      ja: "シドニーでAIをつくる人たちのコミュニティナイト。トーク、ライブデモ、ネットワーキング。",
     },
     detail: {
-      en: "Co-organiser of an AI community in Sydney, bringing people together for regular meetups and hands-on sessions.",
-      ja: "シドニーのAIコミュニティを共同運営。定期的なミートアップとハンズオンで人をつなぐ。",
+      en: "AI Salon Sydney brings the city's AI scene into one room: guest speakers, live startup demos, and open networking, with organisers and partners from across the ecosystem.",
+      ja: "AI Salon Sydney は、シドニーの AI シーンを一つの部屋に集める場。ゲストスピーカー、スタートアップのライブデモ、オープンなネットワーキング。運営とパートナーもエコシステム横断。",
     },
     body: [
       {
-        h: { en: "A community, not an audience", ja: "観客ではなく、コミュニティ" },
+        h: { en: "What it is", ja: "どんな場か" },
         p: {
-          en: "Beyond speaking on stage, I help organise an AI community in Sydney: regular meetups and hands-on sessions where people who are curious about AI can actually try things together, rather than just watch a talk.",
-          ja: "壇上で話すだけでなく、シドニーのAIコミュニティの運営にも関わっている。定期的なミートアップとハンズオンで、AIに興味がある人たちが講演を見るだけでなく、実際に一緒に手を動かせる場をつくっている。",
+          en: "AI Salon Sydney is a recurring community evening for people building with AI: builders, founders, investors and the AI-curious in one room. A typical night runs from arrivals and pizza through a guest speaker and live startup demos to open networking, with organisers and partners drawn from across the ecosystem.",
+          ja: "AI Salon Sydney は、AI をつくる人たちのための定期コミュニティイベント。ビルダー、創業者、投資家、AI に興味のある人たちが一つの部屋に集まる。ピザと歓談で始まり、ゲストスピーカーの登壇とスタートアップのライブデモを経て、オープンなネットワーキングで締まる夜。運営もパートナーも、エコシステムを横断して集まっている。",
         },
-        img: ["ai-salon-1"],
+        img: ["ai-salon-2", "ai-salon-1"],
       },
     ],
   },
