@@ -945,7 +945,7 @@ export function World() {
             MK
           </text>
           <text x="100" y="116" textAnchor="middle" className="w-mono-sub">
-            19 — 94
+            19 · 94
           </text>
         </svg>
       </div>

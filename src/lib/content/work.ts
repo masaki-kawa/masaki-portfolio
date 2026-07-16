@@ -34,6 +34,10 @@ export type WorkEntry = {
   gallery?: string[];
   /* a real code excerpt shown in a panel on the detail page */
   code?: { caption: Localized; src: string };
+  /* hero media on the detail page: "video" plays /work/<slug>.mp4 over
+     the /work/<slug>.png poster, "image" shows the poster only. Entries
+     without hero render no media slot and request nothing. */
+  hero?: "video" | "image";
 };
 
 export const WORK: WorkEntry[] = [
@@ -41,6 +45,7 @@ export const WORK: WorkEntry[] = [
     slug: "cubic-innov8",
     name: "Cubic Innov8",
     tag: { en: "COO", ja: "COO" },
+    hero: "video",
     desc: {
       en: "COO of a cross-border innovation hub connecting Japan and Australia: I run operations and grow the ventures that live under it.",
       ja: "日本とオーストラリアをつなぐクロスボーダー・イノベーションハブのCOO。運営を回し、その中の事業を育てる。",
@@ -53,7 +58,7 @@ export const WORK: WorkEntry[] = [
       {
         h: { en: "A cross-border innovation hub", ja: "クロスボーダー・イノベーションハブ" },
         p: {
-          en: "Cubic Innov8 is not an agency or a consulting shop. It is a cross-border innovation hub, established in 2024, spanning Kyoto, Tokyo, Nagano and Sydney, built on the idea that people, technology and purpose meet across borders: from Japan, to Australia, to the world. New ventures, services and communities get started and grown under this roof. The brand film above is in-house work, produced by VAI Motion, which also lives on this portfolio.",
+          en: "Cubic Innov8 is not an agency or a consulting shop. It is a cross-border innovation hub, established in 2024, spanning Kyoto, Tokyo, Nagano and Sydney, built on the idea that people, technology and purpose meet across borders: from Japan, to Australia, to the world. New ventures, services and communities get their start and grow under this roof. The brand film above is in-house work, produced by VAI Motion, which also lives on this portfolio.",
           ja: "Cubic Innov8 は、受託会社でもコンサル会社でもない。2024年設立、京都・東京・長野・シドニーにまたがるクロスボーダー・イノベーションハブで、「人・テクノロジー・目的が国境を越えて出会う」という思想でつくられている。日本からオーストラリアへ、そして世界へ。新しい事業やサービス、コミュニティがこの傘の下で生まれ、育っていく。ページ上部のブランドフィルムは、このポートフォリオにも登場する VAI Motion による自社制作。",
         },
         img: ["cubic-innov8-1"],
@@ -68,8 +73,8 @@ export const WORK: WorkEntry[] = [
       {
         h: { en: "The ventures under this roof", ja: "この傘の下の事業" },
         p: {
-          en: "The other case studies on this site are what the role looks like in practice: the monthly marketing report service for hospitality clients was sourced and is operated here, and the Sydney workshops and event appearances happen under the same hat. Cubic is the hub those threads run through.",
-          ja: "このサイトの他のケーススタディが、この役割の実際の中身になっている。飲食クライアント向けの月次マーケティングレポート事業はここで開拓・運用しているし、シドニーでのワークショップ登壇も同じ肩書きで行っている。Cubic は、それらの糸が束ねられるハブそのものだ。",
+          en: "The other case studies on this site are what the role looks like in practice: the monthly marketing report service for hospitality clients was sourced and is operated here, and the Sydney workshops and event appearances, run with the Zepi community, happen under the same hat. Cubic is the hub those threads run through.",
+          ja: "このサイトの他のケーススタディが、この役割の実際の中身になっている。飲食クライアント向けの月次マーケティングレポート事業はここで開拓・運用しているし、コミュニティ Zepi と開催するシドニーでのワークショップ登壇も同じ肩書きで行っている。Cubic は、それらの糸が束ねられるハブそのものだ。",
         },
       },
       {
@@ -90,13 +95,14 @@ export const WORK: WorkEntry[] = [
   {
     slug: "vai-studio",
     name: "VAI Studio",
+    hero: "video",
     desc: {
-      en: "AI video and web studio serving Japan and Australia: one engine, three levels, client work live in production.",
-      ja: "日豪で動くAI動画・Web制作スタジオ。1つのエンジン、3つのレベル、実クライアント案件が本番稼働中。",
+      en: "AI video and software studio serving Japan and Australia: one engine, three levels, client work live in production.",
+      ja: "日豪で動くAI動画・ソフトウェア制作スタジオ。1つのエンジン、3つのレベル、実クライアント案件が本番稼働中。",
     },
     detail: {
-      en: "V plus AI. Motion ships AI assisted promo videos off the shelf, Flow builds AI workflows to order, and Build writes custom AI software from scratch. The Vacanti promo playing above and the work wall below are the studio's own output.",
-      ja: "V + AI = VAI。Motion は AI プロモ動画を定型で、Flow は AI ワークフローを受注で、Build はカスタム AI ソフトウェアをゼロから。上で流れている Vacanti のプロモも下の作品一覧も、スタジオ自身のアウトプット。",
+      en: "V plus AI. Motion ships AI-assisted promo videos off the shelf, Build writes custom AI software from scratch, and Flow, launching next, will build AI workflows to order. The Vacanti promo playing above and the work wall below are the studio's own output.",
+      ja: "V + AI = VAI。Motion は AI プロモ動画を定型で、Build はカスタム AI ソフトウェアをゼロから、そして準備中の Flow は AI ワークフローを受注で。上で流れている Vacanti のプロモも下の作品一覧も、スタジオ自身のアウトプット。",
     },
     body: [
       {
@@ -105,8 +111,8 @@ export const WORK: WorkEntry[] = [
           ja: "1つのエンジン、3つのレベル",
         },
         p: {
-          en: "VAI Studio (V plus AI) is my AI content and software studio for Japan and Australia, structured as three levels of the same engine. VAI Motion, live today, produces AI assisted promo videos and social posts from a client's photos. VAI Flow turns a team's repetitive work into AI workflows, made to order. VAI Build writes custom AI software from scratch. I run the whole loop myself: finding the client, scoping, producing, delivering, and operating after launch.",
-          ja: "VAI Studio(V + AI)は、日豪向けの AI コンテンツ・ソフトウェアスタジオ。同じエンジンを3つのレベルで提供する。稼働中の VAI Motion は、クライアントの写真から AI プロモ動画とソーシャル投稿を制作。VAI Flow は、チームの繰り返し作業を受注型の AI ワークフローに変える。VAI Build は、カスタム AI ソフトウェアをゼロから書く。クライアント開拓、要件定義、制作、納品、公開後の運用まで、一連のループを一人で回している。",
+          en: "VAI Studio (V plus AI) is my AI video and software studio for Japan and Australia, structured as three levels of the same engine. VAI Motion, live today, produces AI-assisted promo videos and social posts from a client's photos. VAI Build writes custom AI software from scratch. VAI Flow, launching next, will turn a team's repetitive work into AI workflows, made to order. I run the whole loop myself: finding the client, scoping, producing, delivering, and operating after launch.",
+          ja: "VAI Studio(V + AI)は、日豪向けの AI 動画・ソフトウェア制作スタジオ。同じエンジンを3つのレベルで提供する。稼働中の VAI Motion は、クライアントの写真から AI プロモ動画とソーシャル投稿を制作。VAI Build は、カスタム AI ソフトウェアをゼロから書く。準備中の VAI Flow は、チームの繰り返し作業を受注型の AI ワークフローに変える。クライアント開拓、要件定義、制作、納品、公開後の運用まで、一連のループを一人で回している。",
         },
         img: ["vai-studio-1", "vai-studio-3"],
       },
@@ -138,7 +144,7 @@ export const WORK: WorkEntry[] = [
         },
         p: {
           en: "The studio's own sites run English and Japanese as separate market entries with separate dictionaries, down to the legal disclosure pages Japanese consumer law expects. Next.js and React, shipped and maintained by one person, and everything on this page, the brand video, the reels, the sites, was produced with the same AI-assisted pipeline the studio sells.",
-          ja: "スタジオ自身のサイトは、英語と日本語を別々の市場エントリとして実装し、辞書も分離している。日本の消費者向け法定表記(特商法ページ)まで対応。Next.js と React で、公開も運用も一人。そしてこのページにあるもの、ブランド動画もリールもサイトも、すべてスタジオが売っているのと同じ AI 支援パイプラインで制作している。",
+          ja: "スタジオ自身のサイトは、英語と日本語を別々の市場向けサイトとして実装し、辞書も分離している。日本の消費者向け法定表記(特商法ページ)まで対応。Next.js と React で、公開も運用も一人。そしてこのページにあるもの、ブランド動画もリールもサイトも、すべてスタジオが売っているのと同じ AI 支援パイプラインで制作している。",
         },
         img: ["vai-motion-1"],
       },
@@ -154,6 +160,7 @@ export const WORK: WorkEntry[] = [
   {
     slug: "review365",
     name: "Review365",
+    hero: "image",
     desc: {
       en: "LLM reporting for paying local clients, run on Japanese SOPs. Rankings tracked monthly.",
       ja: "日本語SOPで回すLLMレポーティング。課金クライアントの順位を毎月計測。",
@@ -181,7 +188,7 @@ export const WORK: WorkEntry[] = [
         },
         p: {
           en: "The client list did not come from ads or referrals. I walked into restaurants in Sydney, pitched the owners face to face, and ran every sales meeting myself. Ten businesses signed up, and four became ongoing monthly engagements that I still operate end to end, from that first conversation to each month's report. Selling door to door and then delivering month after month is the business side of this portfolio at its most literal.",
-          ja: "クライアントは広告や紹介で集めたのではない。シドニーの飲食店に飛び込みで入り、オーナーに直接売り込み、商談もすべて自分で回した。10社が契約し、うち4社は月次の継続契約として、初回の商談からその月のレポートまで今もエンドツーエンドで運用している。飛び込みで売り、毎月納品し続ける。このポートフォリオの「事業側」の、いちばん文字通りの形。",
+          ja: "クライアントは広告や紹介で集めたのではない。シドニーの飲食店に飛び込みで入り、オーナーに直接売り込み、商談もすべて自分で回した。10社が契約し、うち4社は月次の継続契約として、初回の商談から毎月のレポートまで今もエンドツーエンドで運用している。飛び込みで売り、毎月納品し続ける。このポートフォリオの「事業側」の、いちばん文字通りの形。",
         },
       },
       {
@@ -201,14 +208,14 @@ export const WORK: WorkEntry[] = [
           ja: "LLM の本番運用、最終判断は人間",
         },
         p: {
-          en: "Generation runs on Japanese SOPs executed by Claude: a thirteen step procedure with preflight checks and schema validation drafts each report, and I make the final call before anything reaches a paying client. Operating LLM output at client quality, month after month, is the discipline this service taught me.",
+          en: "Generation runs on Japanese SOPs executed by Claude: a thirteen-step procedure with preflight checks and schema validation drafts each report, and I make the final call before anything reaches a paying client. Operating LLM output at client quality, month after month, is the discipline this service taught me.",
           ja: "生成は Claude が実行する日本語 SOP で回る。preflight チェックとスキーマ検証を含む13ステップの手順が各レポートの初稿を作り、課金クライアントに届く前に必ず人間が最終判断する。LLM の出力をクライアント品質で毎月運用し続けること、それがこのサービスで身についた規律になっている。",
         },
       },
       {
         h: { en: "A real report, as delivered", ja: "実際に納品しているレポート" },
         p: {
-          en: "The pages on this case study are from an actual monthly report as delivered to a paying client (identifying details masked). The KPI header the owner reads first, the month's summary in plain language, keyword movement against local competitors, and a prioritised list of moves. When the numbers dip, the report says so plainly; an honest bad month is what keeps the good months credible.",
+          en: "The pages in this case study are from an actual monthly report as delivered to a paying client (identifying details masked). The KPI header the owner reads first, the month's summary in plain language, keyword movement against local competitors, and a prioritised list of moves. When the numbers dip, the report says so plainly; an honest bad month is what keeps the good months credible.",
           ja: "このページに載せているのは、課金クライアントに実際に納品している月次レポートそのもの(固有情報はマスク済み)。オーナーが最初に見る KPI ヘッダー、平易な言葉での今月の要点、ローカル競合に対するキーワードの動き、優先順位つきの打ち手。数字が落ちた月は落ちたと正直に書く。悪い月を正直に報告するから、良い月の報告が信用される。",
         },
         img: ["review365-2", "review365-3"],
@@ -218,12 +225,13 @@ export const WORK: WorkEntry[] = [
   {
     slug: "vacanti-ai",
     name: "Vacanti AI",
+    hero: "video",
     desc: {
       en: "AI job matching SaaS, designed, built and shipped solo. Live in production.",
       ja: "一人で設計から本番投入まで。稼働中のAIジョブマッチングSaaS。",
     },
     detail: {
-      en: "A matching engine with four axis scoring, embeddings on pgvector, and a vision based evaluation pipeline that catches false positives before users see them. Next.js, Supabase, Drizzle and Stripe, taken to production by one person.",
+      en: "A matching engine with four-axis scoring, embeddings on pgvector, and a vision-based evaluation pipeline that catches false positives before users see them. Next.js, Supabase, Drizzle and Stripe, taken to production by one person.",
       ja: "4軸スコアリングのマッチングエンジン、pgvector の埋め込み、偽陽性を配信前に検知する Vision 評価パイプライン。Next.js、Supabase、Drizzle、Stripe を一人で本番まで。",
     },
     body: [
@@ -244,7 +252,7 @@ export const WORK: WorkEntry[] = [
           ja: "マッチングエンジン",
         },
         p: {
-          en: "Scoring is a four axis weighted model, title, seniority, years and embedding similarity, with guardrails on top. The one that mattered most is a hard ceiling for title matches without domain experience, because the worst failure of a matcher is a confident false positive. Embeddings run on pgvector inside Supabase; job extraction uses an LLM with structured output.",
+          en: "Scoring is a four-axis weighted model (title, seniority, years and embedding similarity) with guardrails on top. The one that mattered most is a hard ceiling for title matches without domain experience, because the worst failure of a matcher is a confident false positive. Embeddings run on pgvector inside Supabase; job extraction uses an LLM with structured output.",
           ja: "スコアリングは、職種タイトル、レベル、経験年数、埋め込み類似度の4軸加重モデルに、ガードレールを重ねたもの。いちばん効いたのは「タイトルは一致するがドメイン経験がゼロ」の求人にスコア上限を掛けるハードシーリングで、マッチングの最悪の失敗である自信満々の偽陽性を抑えている。埋め込みは Supabase 上の pgvector、求人情報の抽出は構造化出力の LLM。",
         },
         img: { en: ["vacanti-en-2"], ja: ["vacanti-ja-2"] },
@@ -255,7 +263,7 @@ export const WORK: WorkEntry[] = [
           ja: "ユーザーに届く前に品質を測る",
         },
         p: {
-          en: "I built an evaluation pipeline that renders real resumes and scores them with a vision model across twenty one cases, so scoring changes get checked against ground truth before deploy. It caught real failures: high scores that looked right and were wrong.",
+          en: "I built an evaluation pipeline that renders real resumes and scores them with a vision model across twenty-one cases, so scoring changes get checked against ground truth before deploy. It caught real failures: high scores that looked right and were wrong.",
           ja: "実際のレジュメをレンダリングして Vision モデルで採点する21ケースの評価パイプラインを実装し、スコアリングの変更はデプロイ前に正解データと突き合わせて検証する体制にした。見た目は正しく中身は間違っている高スコアという、実害のある失敗を実際に検出している。",
         },
       },
@@ -273,8 +281,8 @@ export const WORK: WorkEntry[] = [
       {
         h: { en: "Taking it to market", ja: "市場に持っていく" },
         p: {
-          en: "Building it was half the job; the other half was selling it. I produced the brand and promo video above, run the product's Instagram, and took Vacanti into language schools in Sydney, running job-hunting workshops where students got their market value scored live and walked through their first matches in person. The workshops doubled as user acquisition: teach the room, and the room signs up.",
-          ja: "つくることは仕事の半分で、残りの半分は売ることだった。上のブランド・プロモ動画を制作し、プロダクトの Instagram を運用し、シドニーの語学学校に Vacanti を持ち込んで仕事探しワークショップを開催。参加者の市場価値をその場でスコアリングし、最初のマッチングを目の前で一緒に見る。ワークショップはそのままユーザー獲得を兼ねる。教室に教えれば、教室が登録してくれる。",
+          en: "Building it was half the job; the other half was selling it. I produced the brand and promo video above and took Vacanti into language schools in Sydney, running job-hunting workshops where students got their market value scored live and walked through their first matches in person. I still run the product's Instagram, and the workshops doubled as user acquisition: teach the room, and the room signs up.",
+          ja: "つくることは仕事の半分で、残りの半分は売ることだった。上のブランド・プロモ動画を制作し、シドニーの語学学校に Vacanti を持ち込んで仕事探しワークショップを開催。参加者の市場価値をその場でスコアリングし、最初のマッチングを目の前で一緒に見る。プロダクトの Instagram はいまも自分で運用していて、ワークショップはそのままユーザー獲得を兼ねる。教室で教えれば、その教室が登録してくれる。",
         },
         img: ["vacanti-flyer", "vacanti-ai-1"],
       },
@@ -309,12 +317,13 @@ export const WORK: WorkEntry[] = [
     slug: "kodoku",
     name: "Kodoku",
     tag: { en: "In development", ja: "開発中" },
+    hero: "image",
     desc: {
       en: "Solo founders running a company with AI agents as staff.",
       ja: "AIエージェントのチームで1人の会社を回す。",
     },
     detail: {
-      en: "An operating layer where AI agents hold real roles in a one person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
+      en: "An operating layer where AI agents hold real roles in a one-person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
       ja: "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡し。開発中、いま一番つくりたいもの。",
     },
     body: [
@@ -322,7 +331,7 @@ export const WORK: WorkEntry[] = [
         h: { en: "The idea", ja: "アイデア" },
         p: {
           en: "Kodoku is a company memory OS for solo founders: you hire AI staff, arrange them on an org chart, and delegate work, while the company itself accumulates the decisions, minutes and context that normally evaporate between chat sessions. The org chart above is the actual product: a constellation of roles around a single commander, with you as CEO.",
-          ja: "Kodoku は、1人で会社をやる人のための会社の記憶OS。AI社員を雇い、組織図に並べ、仕事を任せる。その間に、普段はチャットセッションの狭間で蒸発していく意思決定・議事録・文脈を、会社そのものが蓄積していく。上の組織図は実際のプロダクト画面で、司令塔を中心とした役割の星座の下に、CEO としてのあなたが立つ。",
+          ja: "Kodoku は、1人で会社をやる人のための会社の記憶OS。AI社員を雇い、組織図に並べ、仕事を任せる。その間に、普段はチャットセッションの狭間で蒸発していく意思決定・議事録・文脈を、会社そのものが蓄積していく。上の組織図は実際のプロダクト画面で、司令塔を中心とした役割の星座を、CEO としてのあなたが率いる。",
         },
       },
       {
@@ -342,11 +351,11 @@ export const RESEARCH: WorkEntry[] = [
     slug: "warden",
     name: "Warden",
     desc: {
-      en: "Prompt injection detection research: CoT monitoring, LLM as judge. Submitted at the University of Technology Sydney.",
+      en: "Prompt injection detection research: CoT monitoring, LLM as judge. Capstone research at the University of Technology Sydney, submitted.",
       ja: "プロンプトインジェクション検出の研究。CoT監視、LLM-as-judge。シドニー工科大学に提出済み。",
     },
     detail: {
-      en: "Detecting prompt injection by watching the model think: rule based checks over chain of thought traces plus an LLM as judge, evaluated on attack success and detection rates against a purpose built dataset. Capstone research, submitted.",
+      en: "Detecting prompt injection by watching the model think: rule-based checks over chain-of-thought traces plus an LLM as judge, evaluated on attack success and detection rates against a purpose-built dataset. Capstone research, submitted.",
       ja: "モデルの思考過程を見て攻撃を検出する研究。CoTトレースへのルールベース検査と LLM-as-judge を組み合わせ、専用データセットで攻撃成功率と検出精度を評価。Capstone 研究として提出済み。",
     },
     body: [
@@ -356,7 +365,7 @@ export const RESEARCH: WorkEntry[] = [
           ja: "研究の問い",
         },
         p: {
-          en: "Warden is capstone research at the University of Technology Sydney: can you catch prompt injection by watching the model think? Instead of only screening inputs and outputs, Warden monitors the model's chain of thought and flags reasoning that starts following injected instructions. Two detector families were built: rule based checks over the reasoning trace, and an LLM as judge.",
+          en: "Warden is capstone research at the University of Technology Sydney: can you catch prompt injection by watching the model think? Instead of only screening inputs and outputs, Warden monitors the model's chain of thought and flags reasoning that starts following injected instructions. Two detector families were built: rule-based checks over the reasoning trace, and an LLM as judge.",
           ja: "Warden はシドニー工科大学の Capstone 研究で、問いは「モデルの思考過程を見れば、プロンプトインジェクションを捕まえられるか」。入力と出力だけを検査するのではなく、CoT(思考の連鎖)を監視して、注入された指示に従い始めた推論を検出する。検出器はルールベースと LLM-as-judge の2系統を実装した。",
         },
       },
@@ -367,7 +376,7 @@ export const RESEARCH: WorkEntry[] = [
         },
         p: {
           en: "In a team of six, I owned the attack dataset and the baselines. The attack set is built entirely from real, published attacks (the deepset and BIPIA corpora), classified with an LLM, wrapped in realistic carriers such as emails, HTML documents and Slack messages, and paired with clean controls for false positive measurement. Every row carries provenance back to its source, verified by exact match, so the benchmark itself can be audited.",
-          ja: "6人チームの中で、私は攻撃データセットとベースラインを担当した。攻撃データは deepset と BIPIA という公開された実在の攻撃コーパスだけから構築し、LLM で分類、メール・HTML文書・Slack メッセージといった現実的なキャリアに包み、誤検出率を測るためのクリーン対照群と対にした。全行が原典への出所情報を持ち、完全一致で検証済み。ベンチマーク自体が監査できる作りになっている。",
+          ja: "6人チームの中で、私は攻撃データセットとベースラインを担当した。攻撃データは deepset と BIPIA という公開された実在の攻撃コーパスだけから構築し、LLM で分類、メール・HTML文書・Slack メッセージといった現実的な文書形式に埋め込み、誤検出率を測るためのクリーン対照群と対にした。全行が原典への出所情報を持ち、完全一致で検証済み。ベンチマーク自体が監査できる作りになっている。",
         },
         img: ["warden-2"],
       },
@@ -377,7 +386,7 @@ export const RESEARCH: WorkEntry[] = [
           ja: "評価と結果",
         },
         p: {
-          en: "Against the benchmark, the Warden agent cut attack success rate from 12.5 percent (no defence) to 7.9 percent, where traditional defences averaged 12.6 percent, and it kept false positives at 6.7 percent versus their 20.5 percent average, detecting attacks in about 8 seconds. The full report is written and submitted as the capstone deliverable.",
+          en: "Against the benchmark, the Warden agent cut the attack success rate from 12.5 percent (no defence) to 7.9 percent, while traditional defences averaged 12.6 percent, and it kept false positives at 6.7 percent versus their 20.5 percent average, detecting attacks in about 8 seconds. The full report is written and submitted as the capstone deliverable.",
           ja: "ベンチマーク上で、Warden エージェントは攻撃成功率を12.5%(防御なし)から7.9%まで下げた。従来型防御の平均は12.6%。誤検出率も従来平均20.5%に対し6.7%に抑え、検出まで約8秒。レポートは執筆を完了し、Capstone の成果物として提出済み。",
         },
         img: ["warden-1"],
@@ -407,12 +416,12 @@ with PROV_PATH.open() as f:
     slug: "draft-prediction",
     name: "Draft Prediction",
     desc: {
-      en: "Predicting the college basketball draft on a Kaggle competition, on data where fewer than 1 percent get picked.",
+      en: "Predicting which college basketball players get drafted, in a Kaggle competition where fewer than 1 percent are picked.",
       ja: "Kaggleコンペで大学バスケのドラフト指名を予測。指名される選手は1%未満という不均衡データ。",
     },
     detail: {
-      en: "A classification problem with severe class imbalance and a public leaderboard to beat. Test AUROC reached 0.997 to 0.998, and I packaged the reusable pieces as my own pip library.",
-      ja: "強い不均衡と、公開リーダーボードのあるクラス分類問題。テストAUROCは0.997〜0.998に到達し、再利用部品は自作のpipライブラリとして公開した。",
+      en: "A classification problem with severe class imbalance and a public leaderboard to beat. Test AUROC reached 0.997 to 0.998, and I packaged the reusable pieces as my own pip package.",
+      ja: "強い不均衡と、公開リーダーボードのあるクラス分類問題。テストAUROCは0.997〜0.998に到達し、再利用部品は自作のpipパッケージとして公開した。",
     },
     body: [
       {
@@ -434,7 +443,7 @@ with PROV_PATH.open() as f:
       {
         h: { en: "Packaged, not just notebooked", ja: "ノートブックで終わらせない" },
         p: {
-          en: "The reusable utilities became my own pip package, my_krml_14658203, built from a cookiecutter template with source layout, tests and docs and pushed to TestPyPI. The project ships as a full CRISP-DM report, four experiment notebooks and saved model artifacts, not a single throwaway notebook.",
+          en: "The reusable utilities became my own pip package, my_krml_14658203, built from a cookiecutter template with source layout, tests and docs and pushed to TestPyPI. The project ships as a full CRISP-DM report, four experiment notebooks and saved model artefacts, not a single throwaway notebook.",
           ja: "再利用可能なユーティリティは、自作のpipパッケージ my_krml_14658203 にまとめた。cookiecutterテンプレートでソース構成・テスト・ドキュメントを備え、TestPyPIに公開。成果物は、CRISP-DMに沿ったレポート、4本の実験ノートブック、保存済みモデル一式で、使い捨ての1ノートブックではない。",
         },
       },
@@ -462,7 +471,7 @@ blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
     name: "Weather Prediction API",
     desc: {
       en: "Two Sydney weather models, trained then containerised and deployed as a live, callable API.",
-      ja: "シドニーの天気モデル2つを学習し、コンテナ化して稼働中の呼び出せるAPIとしてデプロイ。",
+      ja: "シドニーの天気モデル2つを学習し、コンテナ化して、実際に呼び出せる稼働中のAPIとしてデプロイ。",
     },
     detail: {
       en: "Will it rain seven days out, and how much rain over the next three: a classifier and a regressor served behind FastAPI in Docker, deployed with a live public endpoint. The value here is the deployment path, not the accuracy.",
@@ -472,8 +481,8 @@ blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
       {
         h: { en: "Two services", ja: "2つのサービス" },
         p: {
-          en: "Built for Sydney's tourism sector on Open-Meteo history from 2010 to 2024, with time-series-aware cross-validation. The rain classifier (random forest) reached F1 around 0.66 at recall 0.61 and precision 0.72; the three-day precipitation regressor (linear regression, which beat an overfitting forest) landed at RMSE about 9.55 mm and R-squared around 0.67. Modest numbers, honestly reported.",
-          ja: "Open-Meteoの2010〜2024年の履歴データで、シドニーの観光需要向けに構築。時系列を考慮した交差検証を使用。降雨分類(ランダムフォレスト)はF1約0.66、再現率0.61・適合率0.72。3日間の降水量回帰(過学習した森を上回った線形回帰)はRMSE約9.55mm、決定係数約0.67。控えめな数字を正直に報告している。",
+          en: "Built around a Sydney tourism use case on Open-Meteo history from 2010 to 2024, with time-series-aware cross-validation. The rain classifier (random forest) reached F1 around 0.66 at recall 0.61 and precision 0.72; the three-day precipitation regressor (linear regression, which beat an overfitting forest) landed at RMSE about 9.55 mm and R-squared around 0.67. Modest numbers, honestly reported.",
+          ja: "Open-Meteoの2010〜2024年の履歴データで、シドニーの観光需要を想定したユースケースとして構築。時系列を考慮した交差検証を使用。降雨分類(ランダムフォレスト)はF1約0.66、再現率0.61・適合率0.72。3日間の降水量回帰(過学習したランダムフォレストを上回った線形回帰)はRMSE約9.55mm、決定係数約0.67。控えめな数字を正直に報告している。",
         },
         img: ["weather-api-1", "weather-api-3", "weather-api-2"],
       },
@@ -566,21 +575,21 @@ def _download_from_gcs(gcs_path: str, **_):
       ja: "視覚障害のあるユーザーが撮った写真(VizWiz)にキャプションを生成。CNN+GRUからTransformerデコーダへ。",
     },
     detail: {
-      en: "An encoder and decoder captioning model on the VizWiz-Captions dataset, evaluated with BLEU. My contribution went from an EfficientNet and GRU baseline to an EfficientNet and Transformer decoder with beam search.",
+      en: "An encoder and decoder captioning model on the VizWiz-Captions dataset, evaluated with BLEU. I built both models: an EfficientNet and GRU baseline, then an EfficientNet and Transformer decoder with beam search.",
       ja: "VizWiz-Captions データセットでの、エンコーダ・デコーダ型キャプション生成。BLEUで評価。私の担当は、EfficientNet+GRUのベースラインから、ビームサーチ付きの EfficientNet+Transformer デコーダへ。",
     },
     body: [
       {
         h: { en: "The dataset and the task", ja: "データセットと課題" },
         p: {
-          en: "VizWiz-Captions is built from photos taken by blind users, so images are often blurred, off-centre or poorly lit, which makes captioning genuinely hard. In a group of six, I built and owned two models end to end and evaluated them on BLEU-1 through BLEU-4 over a 1,131 image test split.",
+          en: "VizWiz-Captions is built from photos taken by blind users, so images are often blurred, off-centre or poorly lit, which makes captioning genuinely hard. In a group of six, I built and owned two models end to end and evaluated them on BLEU-1 through BLEU-4 over a 1,131-image test split.",
           ja: "VizWiz-Captions は視覚障害のあるユーザーが撮った写真からなり、ブレ・見切れ・暗所が多く、キャプション生成は本当に難しい。6人チームの中で、私は2つのモデルを端から端まで自分で構築し、1,131枚のテスト分割で BLEU-1〜BLEU-4 により評価した。",
         },
       },
       {
         h: { en: "Baseline to Transformer", ja: "ベースラインからTransformerへ" },
         p: {
-          en: "The baseline paired a frozen EfficientNet-B0 encoder with a GRU decoder and greedy decoding, reaching BLEU-1 0.5278. The refined model swapped in a Transformer decoder with beam search (beam 5), lifting BLEU-1 to 0.5644 and BLEU-4 to 0.1416. The delivered notebook is individually attributed.",
+          en: "The baseline paired a frozen EfficientNet-B0 encoder with a GRU decoder and greedy decoding, reaching BLEU-1 0.5278. The refined model swapped in a Transformer decoder with beam search (beam 5), lifting BLEU-1 to 0.5644 and BLEU-4 to 0.1416. My models are individually attributed in the delivered notebook.",
           ja: "ベースラインは、凍結した EfficientNet-B0 エンコーダに GRU デコーダとグリーディ復号を組み合わせ、BLEU-1 0.5278。改良版は Transformer デコーダとビームサーチ(ビーム幅5)に置き換え、BLEU-1 を 0.5644、BLEU-4 を 0.1416 に引き上げた。提出ノートブックは個人名義で記録されている。",
         },
         img: ["image-captioning-3"],
@@ -589,7 +598,7 @@ def _download_from_gcs(gcs_path: str, **_):
         h: { en: "Looking inside the model", ja: "モデルの中を見る" },
         p: {
           en: "The gallery below is straight from the delivered notebook: both models' captions against the human references on twelve test photos, and the Transformer's cross-attention heatmaps, where the word \"barcode\" visibly attends to the barcode in the image. Seeing where the model looks is how you debug a captioner.",
-          ja: "下のギャラリーは提出ノートブックの出力そのまま。テスト12枚に対する両モデルのキャプションと人間の正解の比較、そして Transformer のクロスアテンション。「barcode」という単語の生成時に、モデルが実際に画像内のバーコードを見ているのが分かる。モデルがどこを見ているかを可視化することが、キャプショナーのデバッグになる。",
+          ja: "下のギャラリーは提出ノートブックの出力そのまま。テスト12枚に対する両モデルのキャプションと人間の正解の比較、そして Transformer のクロスアテンション。「barcode」という単語の生成時に、モデルが実際に画像内のバーコードを見ているのが分かる。モデルがどこを見ているかを可視化することが、キャプション生成モデルのデバッグになる。",
         },
         img: ["image-captioning-2", "image-captioning-1"],
       },
@@ -617,7 +626,7 @@ m2_eval = evaluate_beam(model2, test_loader, beam_width=5)`,
     slug: "rental-regression",
     name: "Rental Price Regression",
     desc: {
-      en: "Predicting fair rent across six Australian cities, motivated by finding housing as an international student myself.",
+      en: "Predicting fair rent across six Australian cities, motivated by my own housing hunt as an international student.",
       ja: "豪州6都市の適正家賃を予測。留学生として自分が住まい探しに苦労した経験が動機。",
     },
     detail: {
@@ -666,19 +675,19 @@ export const COMMUNITY: WorkEntry[] = [
     name: "Workshops",
     logo: "zepi",
     desc: {
-      en: "Recurring workshops run through Zepi: LinkedIn, then Notion, Claude Code next.",
-      ja: "Zepi で継続開催しているワークショップ。LinkedIn、次に Notion、次は Claude Code。",
+      en: "Recurring workshops with the Zepi community in Sydney: LinkedIn, then Notion, Claude Code next.",
+      ja: "シドニーのコミュニティ Zepi で継続開催しているワークショップ。LinkedIn、Notion と続き、次は Claude Code。",
     },
     detail: {
-      en: "I don't just build with these tools, I teach them. Through Zepi in Sydney I speak at events and run hands-on workshops, as COO of Cubic Innov8.",
-      ja: "ツールはつくるだけでなく、教える側にも立つ。シドニーの Zepi を通じてイベントに登壇し、ハンズオンのワークショップを開いている。肩書きは Cubic Innov8 COO。",
+      en: "I don't just build with these tools, I teach them. Through Zepi, a Sydney events community, I speak at events and run hands-on workshops, as COO of Cubic Innov8.",
+      ja: "ツールは使うだけでなく、教える側にも立つ。シドニーのイベントコミュニティ Zepi を通じて登壇し、ハンズオンのワークショップを開いている。肩書きは Cubic Innov8 COO。",
     },
     body: [
       {
         h: { en: "Teaching, not just building", ja: "つくるだけでなく、教える" },
         p: {
-          en: "Through Zepi in Sydney I co-run an events series and speak at it as COO of Cubic Innov8. The audience is mostly international students and new arrivals trying to break into work here, which is exactly who these skills help most.",
-          ja: "シドニーの Zepi を通じてイベントシリーズを共同運営し、Cubic Innov8 の COO として登壇している。参加者の多くは、こちらで仕事を得ようとしている留学生や来豪して間もない人たちで、これらのスキルが一番効く層そのものだ。",
+          en: "The audience is mostly international students and new arrivals trying to break into work here, which is exactly who these skills help most. The sessions are hands-on: laptops open, everyone leaves with something built.",
+          ja: "参加者の多くは、こちらで仕事を得ようとしている留学生や来豪して間もない人たちで、これらのスキルが一番効く層そのものだ。セッションはハンズオン形式。全員がラップトップを開き、何かをつくって帰る。",
         },
         img: ["ws-zepi-1", "ws-zepi-3"],
       },
@@ -699,7 +708,7 @@ export const COMMUNITY: WorkEntry[] = [
     logo: "ai-salon",
     desc: {
       en: "A Sydney community night for people building with AI: talks, live startup demos, open networking.",
-      ja: "シドニーでAIをつくる人たちのコミュニティナイト。トーク、ライブデモ、ネットワーキング。",
+      ja: "シドニーでAIでものをつくる人たちのコミュニティナイト。トーク、ライブデモ、ネットワーキング。",
     },
     detail: {
       en: "AI Salon Sydney brings the city's AI scene into one room: guest speakers, live startup demos, and open networking, with organisers and partners from across the ecosystem.",
@@ -710,7 +719,7 @@ export const COMMUNITY: WorkEntry[] = [
         h: { en: "What it is", ja: "どんな場か" },
         p: {
           en: "AI Salon Sydney is a recurring community evening for people building with AI: builders, founders, investors and the AI-curious in one room. A typical night runs from arrivals and pizza through a guest speaker and live startup demos to open networking, with organisers and partners drawn from across the ecosystem.",
-          ja: "AI Salon Sydney は、AI をつくる人たちのための定期コミュニティイベント。ビルダー、創業者、投資家、AI に興味のある人たちが一つの部屋に集まる。ピザと歓談で始まり、ゲストスピーカーの登壇とスタートアップのライブデモを経て、オープンなネットワーキングで締まる夜。運営もパートナーも、エコシステムを横断して集まっている。",
+          ja: "AI Salon Sydney は、AI でものをつくる人たちのための定期コミュニティイベント。ビルダー、創業者、投資家、AI に興味のある人たちが一つの部屋に集まる。ピザと歓談で始まり、ゲストスピーカーの登壇とスタートアップのライブデモを経て、オープンなネットワーキングで締まる夜。運営もパートナーも、エコシステムを横断して集まっている。",
         },
         img: ["ai-salon-2", "ai-salon-1"],
       },
