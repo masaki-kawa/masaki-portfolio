@@ -43,8 +43,8 @@ export const SECTION = {
       ja: "事業をつくる側と、システムをつくる側。両方に立つ。",
     },
     lead: {
-      en: "I use AI to change how businesses run, and build the workflows behind it myself. As COO of Cubic Innov8, an IT and innovation group across Kyoto and Sydney, I bring in the clients and run operations on the business side, then build the systems that serve them. I designed, built and shipped Vacanti AI, an AI job matching SaaS, solo and into production, as an independent venture. Before this I spent five years in HR at Canon Marketing Japan, then completed a Master of Data Science at the University of Technology Sydney, and I work between Tokyo and Sydney.",
-      ja: "AIで業務の回り方を変え、それを支えるワークフローまで自分でつくります。京都とシドニーのIT企業 Cubic Innov8 のCOOとして、クライアントを開拓し運営を回す事業側と、それを動かすシステムをつくる実装側の両方に立ちます。独立ベンチャーとしては、AIジョブマッチングSaaS「Vacanti AI」を一人で設計・実装し、本番まで出しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニー工科大学でデータサイエンス修士を修了し、いまは東京とシドニーを行き来しています。",
+      en: "I use AI to change how businesses run, and build the workflows behind it myself. As COO of Cubic Innov8, a cross-border innovation hub connecting Japan and Australia, I bring in the clients and run operations on the business side, then build the systems that serve them. I designed, built and shipped Vacanti AI, an AI job matching SaaS, solo and into production, as an independent venture. Before this I spent five years in HR at Canon Marketing Japan, then completed a Master of Data Science at the University of Technology Sydney, and I work between Tokyo and Sydney.",
+      ja: "AIで業務の回り方を変え、それを支えるワークフローまで自分でつくります。日本とオーストラリアをつなぐクロスボーダー・イノベーションハブ Cubic Innov8 のCOOとして、クライアントを開拓し運営を回す事業側と、それを動かすシステムをつくる実装側の両方に立ちます。独立ベンチャーとしては、AIジョブマッチングSaaS「Vacanti AI」を一人で設計・実装し、本番まで出しました。その前はキヤノンマーケティングジャパンの人事に5年、その後シドニー工科大学でデータサイエンス修士を修了し、いまは東京とシドニーを行き来しています。",
     },
     pillars: [
       {

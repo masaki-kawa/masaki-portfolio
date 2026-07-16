@@ -345,6 +345,12 @@ export const SCENE_FRAG = /* glsl */ `
   uniform float uKbB;
   uniform float uProg;
   uniform int uType;
+  /* per-scene horizontal focus for portrait crops: 0 centres the frame,
+     1 slides the crop window fully to the right (set from JS per chapter
+     / per flight, so e.g. the between-buildings flight stays centred) */
+  uniform float uFocusA;
+  uniform float uFocusB;
+  uniform float uFocusSeq;
 
   /* scrubbed travel footage: when a boundary has real camera-motion
      frames (public/transitions/bK), they override the shader move */
@@ -401,16 +407,25 @@ export const SCENE_FRAG = /* glsl */ `
     return col * tint;
   }
 
-  /* cover-fit with a slow push-in (the scene breathes as you read) */
-  vec2 coverUV(vec2 uv, vec2 ts, float kb) {
+  /* cover-fit with a slow push-in (the scene breathes as you read).
+     When a portrait viewport crops a wide frame's sides, the window
+     slides right, because these scenes keep their landmarks (Tokyo
+     Tower, the Opera House, the sun) on the right. The slack term is
+     ~0 on desktop, so wide viewports are untouched. */
+  vec2 coverUV(vec2 uv, vec2 ts, float kb, float bias) {
     float sa = uRes.x / uRes.y;
     float ta = ts.x / max(ts.y, 1.0);
     vec2 st = uv - 0.5;
-    if (ta > sa) st.x *= sa / ta;
-    else st.y *= ta / sa;
+    float focusX = 0.0;
+    if (ta > sa) {
+      st.x *= sa / ta;
+      focusX = bias * (0.5 - 0.5 * sa / ta);
+    } else {
+      st.y *= ta / sa;
+    }
     float z = 1.0 - 0.07 * kb;
     st = st * z + vec2(0.02, 0.012) * kb;
-    return clamp(st + 0.5, 0.003, 0.997);
+    return clamp(st + vec2(0.5 + focusX, 0.5), 0.003, 0.997);
   }
 
   /* one grade across every photo: silvered, slightly cool, dark
@@ -425,11 +440,11 @@ export const SCENE_FRAG = /* glsl */ `
 
   vec3 sceneA(vec2 uv) {
     if (uAProc > 0.5) return silver(uv, uATint);
-    return grade(texture2D(tA, coverUV(uv, uASize, uKbA)).rgb);
+    return grade(texture2D(tA, coverUV(uv, uASize, uKbA, uFocusA)).rgb);
   }
   vec3 sceneB(vec2 uv) {
     if (uBProc > 0.5) return silver(uv, uBTint);
-    return grade(texture2D(tB, coverUV(uv, uBSize, uKbB)).rgb);
+    return grade(texture2D(tB, coverUV(uv, uBSize, uKbB, uFocusB)).rgb);
   }
 
   void main() {
@@ -445,7 +460,7 @@ export const SCENE_FRAG = /* glsl */ `
       /* real travel: scroll scrubs through the flight frames. Blend the
          clip's ends into the adjoining chapter stills so any mismatch
          at the first/last frame never pops */
-      vec3 s = grade(texture2D(tSeq, coverUV(uv, uSeqSize, 0.0)).rgb);
+      vec3 s = grade(texture2D(tSeq, coverUV(uv, uSeqSize, 0.0, uFocusSeq)).rgb);
       float head = smoothstep(0.14, 0.0, uProg);
       float tail = smoothstep(0.86, 1.0, uProg);
       s = mix(s, sceneA(uv), head);

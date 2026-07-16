@@ -49,12 +49,37 @@ export function WorkDetail({ slug }: { slug: string }) {
         <p className="wd-lead">{pick(w.desc)}</p>
         {!w.gallery && <Media className="wd-media" slug={w.slug} />}
         <p className="wd-body">{pick(w.detail)}</p>
-        {w.body?.map((s) => (
-          <section className="wd-sec" key={s.h.en}>
-            <h2 className="wd-h2">{pick(s.h)}</h2>
-            <p className="wd-p">{pick(s.p)}</p>
-          </section>
-        ))}
+        {w.body?.map((s) => {
+          const figs = Array.isArray(s.img)
+            ? s.img
+            : s.img
+              ? en
+                ? s.img.en
+                : s.img.ja
+              : [];
+          return (
+            <section className="wd-sec" key={s.h.en}>
+              <h2 className="wd-h2">{pick(s.h)}</h2>
+              <p className="wd-p">{pick(s.p)}</p>
+              {figs.length > 0 ? (
+                <div
+                  className={figs.length > 1 ? "wd-figs wd-figs--2" : "wd-figs"}
+                >
+                  {figs.map((g) => (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={g}
+                      className="wd-shot"
+                      src={`/work/gallery/${g}.png`}
+                      alt=""
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          );
+        })}
         {w.gallery && w.gallery.length > 0 ? (
           <div className="wd-gallery">
             {w.gallery.map((g) => (
@@ -68,6 +93,14 @@ export function WorkDetail({ slug }: { slug: string }) {
               />
             ))}
           </div>
+        ) : null}
+        {w.code ? (
+          <figure className="wd-code">
+            <pre>
+              <code>{w.code.src}</code>
+            </pre>
+            <figcaption>{pick(w.code.caption)}</figcaption>
+          </figure>
         ) : null}
         {w.links && w.links.length > 0 ? (
           <div className="wd-links">

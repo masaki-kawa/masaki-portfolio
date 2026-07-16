@@ -80,8 +80,8 @@ export function World() {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const seen = sessionStorage.getItem("w-intro") === "1";
     if (reduced || seen) {
-      setIntro(false);
-      return;
+      const t = setTimeout(() => setIntro(false), 0);
+      return () => clearTimeout(t);
     }
     sessionStorage.setItem("w-intro", "1");
     const t = setTimeout(() => setIntro(false), 1700);
@@ -170,7 +170,23 @@ export function World() {
       tSeq: { value: dummyTex as THREE.Texture },
       uSeqSize: { value: new THREE.Vector2(16, 9) },
       uSeqOn: { value: 0 },
+      uFocusA: { value: 0 },
+      uFocusB: { value: 0 },
+      uFocusSeq: { value: 0 },
     };
+
+    /* portrait crop focus: how far right to slide the cover-fit window
+       when a wide scene is cropped by a tall viewport (0 centres, 1 hard
+       right). The landmarks sit right, so scenes lean right; the b1
+       flight (chapter 1 -> 2) threads between buildings, so it centres.
+       Indexed by chapter for stills, by boundary for the flights. */
+    const DEF_FOCUS = 0.4;
+    const SCENE_FOCUS = [
+      DEF_FOCUS, DEF_FOCUS, DEF_FOCUS, DEF_FOCUS, DEF_FOCUS, DEF_FOCUS,
+    ];
+    /* b1 flight threads between buildings; slightly right of centre reads
+       best on a phone (fully centred lands too far left) */
+    const SEQ_FOCUS = [DEF_FOCUS, 0.22, DEF_FOCUS, DEF_FOCUS, DEF_FOCUS];
 
     /* scrubbed travel footage per boundary (b1..b4): the clips are
        re-encoded all-intra (scripts/extract-transitions.sh), so every
@@ -229,8 +245,23 @@ export function World() {
     contentCam.lookAt(0, 0, 0);
 
     const nameQuad = makeTextBlock("left");
-    nameQuad.setLineWorld(0.52);
     contentScene.add(nameQuad.group);
+
+    /* world half-height at the content camera (FOV 35, z 6): the world
+       is this tall and (times aspect) wide, so we can size the name to
+       the viewport rather than let it overflow on a narrow phone */
+    const HALF_H = Math.tan((35 * Math.PI) / 360) * 6;
+    const NAME_BASE = 0.52;
+    /* shrink the name's line height until it fits the viewport width
+       (leaving a margin); on desktop the base size already fits. width()
+       scales with lineWorld, so positioning and the lens sweep follow. */
+    function fitName() {
+      nameQuad.setLineWorld(NAME_BASE);
+      const worldW = 2 * HALF_H * (vw / vh);
+      const maxW = worldW * 0.84;
+      const w = nameQuad.width();
+      if (w > maxW) nameQuad.setLineWorld((NAME_BASE * maxW) / w);
+    }
 
     function redraw(l: Lang) {
       const en = l === "en";
@@ -239,6 +270,7 @@ export function World() {
          "Masaki Kawakami" regardless of the UI language */
       void en;
       nameQuad.draw(["Masaki", "Kawakami"], EN_FONT, -0.035);
+      fitName();
     }
     redrawRef.current = redraw;
     let drawnLang = "";
@@ -376,11 +408,11 @@ export function World() {
         h: el.offsetHeight,
         dark: el.dataset.mode === "dark",
       }));
+      fitName();
     }
     measure();
     redraw(langRef.current);
 
-    const HALF_H = Math.tan((35 * Math.PI) / 360) * 6;
     const toWorldX = (u: number) => (u - 0.5) * 2 * HALF_H * (vw / vh);
     const toWorldY = (v: number) => (0.5 - v) * 2 * HALF_H;
 
@@ -684,6 +716,8 @@ export function World() {
       );
       bgUniforms.uKbA.value = kbOf(aIdx);
       bgUniforms.uKbB.value = kbOf(bIdx);
+      bgUniforms.uFocusA.value = SCENE_FOCUS[aIdx] ?? DEF_FOCUS;
+      bgUniforms.uFocusB.value = SCENE_FOCUS[bIdx] ?? DEF_FOCUS;
       bgUniforms.uProg.value = trProg;
       bgUniforms.uType.value = trType;
 
@@ -705,6 +739,7 @@ export function World() {
             s.video.videoWidth,
             s.video.videoHeight,
           );
+          bgUniforms.uFocusSeq.value = SEQ_FOCUS[aIdx] ?? DEF_FOCUS;
           seqOn = 1;
         }
       }

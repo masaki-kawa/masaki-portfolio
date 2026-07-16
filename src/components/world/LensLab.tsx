@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import * as THREE from "three";
 import { BG_VERT, BG_FRAG, SDF_LENS_FRAG } from "@/lib/world/shaders";
 import { makeTextBlock, EN_FONT } from "@/lib/world/text-block";
@@ -192,7 +193,7 @@ export function LensLab() {
       <canvas ref={canvasRef} className="wl-canvas" />
       <div className="wl-hud">
         <span>Lens Lab</span>
-        <a href="/">← Home</a>
+        <Link href="/">← Home</Link>
       </div>
       <p className="wl-note">形を選んで、マウスで文字の上をなぞる</p>
       <div className="wl-shapes">

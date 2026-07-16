@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Media slot for project visuals. Tries /work/<slug>.mp4 as an ambient
- * loop (muted, plays only while on screen); missing video falls
- * silently back to /work/<slug>.png, and a missing image to the
- * gradient beneath. Reduced motion renders stills only.
+ * Hero media slot for project detail pages. Tries /work/<slug>.mp4 as
+ * an ambient loop (muted, autoplays, pauses off screen) over a
+ * /work/<slug>.png poster. When neither asset exists the slot renders
+ * nothing at all, so pages without a hero never show an empty frame.
+ * Reduced motion renders the still only.
  */
 export function Media({
   slug,
@@ -16,12 +17,24 @@ export function Media({
   className: string;
 }) {
   const [video, setVideo] = useState(false);
+  const [still, setStill] = useState<"probing" | "yes" | "no">("probing");
   const vidRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setVideo(true);
-  }, []);
+    /* deferred a tick (not rAF: rAF never fires in hidden tabs) */
+    const t = setTimeout(() => {
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setVideo(true);
+      }
+    }, 0);
+    /* probe the poster: CSS backgrounds cannot report a 404, so load it
+       through an Image first and only keep the slot when it exists */
+    const probe = new Image();
+    probe.onload = () => setStill("yes");
+    probe.onerror = () => setStill("no");
+    probe.src = `/work/${slug}.png`;
+    return () => clearTimeout(t);
+  }, [slug]);
 
   useEffect(() => {
     if (!video) return;
@@ -36,15 +49,18 @@ export function Media({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [video]);
+  }, [video, still]);
+
+  /* no poster and no video: the page simply has no hero */
+  if (still === "no" && !video) return null;
+  if (still === "probing") return null;
 
   return (
     <div
       className={className}
       style={{
-        /* real screenshot when present; until then a translucent
-           gradient so the empty slot reads as glass over the scene */
-        backgroundImage: `url(/work/${slug}.png), linear-gradient(165deg, rgba(240,242,247,0.34) 0%, rgba(224,229,238,0.44) 100%)`,
+        backgroundImage:
+          still === "yes" ? `url(/work/${slug}.png)` : undefined,
       }}
       aria-hidden
     >
@@ -56,6 +72,7 @@ export function Media({
           muted
           loop
           playsInline
+          autoPlay
           preload="metadata"
           onError={() => setVideo(false)}
         />
