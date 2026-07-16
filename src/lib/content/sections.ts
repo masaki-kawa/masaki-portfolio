@@ -80,7 +80,7 @@ export const SECTION = {
     ],
   } as Section,
   approach: {
-    n: "05",
+    n: "",
     labelEn: "Approach",
     labelJa: "仕事の流れ",
     headline: {
@@ -127,7 +127,7 @@ export const SECTION = {
     ],
   } as Section,
   contact: {
-    n: "06",
+    n: "05",
     labelEn: "Contact",
     labelJa: "連絡先",
     headline: {

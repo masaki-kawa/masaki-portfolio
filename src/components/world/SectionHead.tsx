@@ -19,8 +19,12 @@ export function SectionHead({
   return (
     <div className={compact ? "c-shead-wrap c-shead-compact" : "c-shead-wrap"}>
       <p className="c-shead w-reveal" aria-hidden>
-        <span className="c-shead-n">{s.n}</span>
-        <span className="c-shead-rule" />
+        {s.n ? (
+          <>
+            <span className="c-shead-n">{s.n}</span>
+            <span className="c-shead-rule" />
+          </>
+        ) : null}
         <span className="c-shead-en">{en ? s.labelEn : s.labelJa}</span>
       </p>
       {!compact && (
