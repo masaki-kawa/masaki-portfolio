@@ -17,10 +17,8 @@ export function WorkDetail({ slug }: { slug: string }) {
   const pick = (l: Localized) => (en ? l.en : l.ja);
 
   const all = [...WORK, ...RESEARCH, ...COMMUNITY];
-  const i = all.findIndex((w) => w.slug === slug);
-  const w = all[i];
+  const w = all.find((x) => x.slug === slug);
   if (!w) return null;
-  const next = all[(i + 1) % all.length];
 
   return (
     <div className="w-root wd-root">
@@ -112,8 +110,9 @@ export function WorkDetail({ slug }: { slug: string }) {
           </div>
         ) : null}
         <div className="wd-next">
-          <span>{en ? "Next" : "次"}</span>
-          <Link href={`/work/${next.slug}`}>{next.name} →</Link>
+          <Link href="/#work">
+            {en ? "← Back to all work" : "← 一覧に戻る"}
+          </Link>
         </div>
       </main>
     </div>
