@@ -1257,7 +1257,7 @@ export function World() {
               </span>
             </div>
             <div className="w-contact-row w-reveal">
-              <a href="mailto:sng1006.trade@gmail.com">Email</a>
+              <a href="mailto:masaki.kawakami@cubic-innov8.com">Email</a>
               <a
                 href="https://www.linkedin.com/in/masaki-kawakami-563643354/"
                 target="_blank"

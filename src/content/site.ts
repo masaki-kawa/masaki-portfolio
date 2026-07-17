@@ -17,5 +17,5 @@ export const site = {
 export const social = {
   linkedin: "https://www.linkedin.com/in/masaki-kawakami-563643354/",
   github: "https://github.com/masaki-kawa",
-  email: "sng1006.trade@gmail.com",
+  email: "masaki.kawakami@cubic-innov8.com",
 } as const;
