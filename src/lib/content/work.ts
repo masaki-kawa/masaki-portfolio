@@ -162,12 +162,12 @@ export const WORK: WorkEntry[] = [
     name: "Review365",
     hero: "image",
     desc: {
-      en: "LLM reporting for paying local clients, run on Japanese SOPs. Rankings tracked monthly.",
-      ja: "日本語SOPで回すLLMレポーティング。課金クライアントの順位を毎月計測。",
+      en: "A monthly marketing report service for restaurants in Sydney: sold face to face, drafted by AI, finished by a human.",
+      ja: "シドニーの飲食店向け月次マーケティングレポート事業。自分の足で売り、AIが下書きし、人が仕上げる。",
     },
     detail: {
-      en: "Review growth and local search for hospitality clients, run as a monthly measurement loop: rankings, profile insights and AI visibility, written up so owners can act. Generation runs on Japanese SOPs executed by Claude, with a human final pass.",
-      ja: "飲食クライアントのレビュー成長とローカル検索を、月次の計測ループとして運用。順位、プロフィールインサイト、AI上の可視性を計測し、オーナーが動ける形のレポートに。生成は日本語SOP × Claude、最終判断は人間。",
+      en: "Every month I measure how each restaurant shows up where customers actually look: Google reviews, local search rankings, profile views and AI answers, and write it up so the owner knows exactly what to do next. Claude drafts each report following my written procedures, and I make the final call before it ships.",
+      ja: "お客さんが実際に見る場所、Googleのレビュー、地図検索の順位、プロフィールの表示回数、AIの回答での見え方を毎月計測し、オーナーが次に何をすべきか分かるレポートに書き上げる。下書きは私が書いた手順書に沿って Claude が生成し、納品前の最終判断は必ず人間が行う。",
     },
     body: [
       {
@@ -350,13 +350,14 @@ export const RESEARCH: WorkEntry[] = [
   {
     slug: "warden",
     name: "Warden",
+    tag: { en: "Capstone", ja: "卒業研究" },
     desc: {
-      en: "Prompt injection detection research: CoT monitoring, LLM as judge. Capstone research at the University of Technology Sydney, submitted.",
-      ja: "プロンプトインジェクション検出の研究。CoT監視、LLM-as-judge。シドニー工科大学に提出済み。",
+      en: "Can you catch an attack on an AI by watching the AI think? Capstone research at the University of Technology Sydney, submitted.",
+      ja: "AIの思考過程を監視すれば、AIへの攻撃は検出できるか。シドニー工科大学の卒業研究として提出済み。",
     },
     detail: {
-      en: "Detecting prompt injection by watching the model think: rule-based checks over chain-of-thought traces plus an LLM as judge, evaluated on attack success and detection rates against a purpose-built dataset. Capstone research, submitted.",
-      ja: "モデルの思考過程を見て攻撃を検出する研究。CoTトレースへのルールベース検査と LLM-as-judge を組み合わせ、専用データセットで攻撃成功率と検出精度を評価。Capstone 研究として提出済み。",
+      en: "AI agents can be hijacked by malicious instructions hidden inside the content they read, an attack called prompt injection. Warden watches the model's reasoning while it works and flags the moment it starts obeying an attacker instead of its user. In our evaluation it caught attacks that traditional defences missed, with a third of their false alarms.",
+      ja: "AIエージェントは、読み込んだ文書やメールに仕込まれた悪意ある指示に乗っ取られることがある。プロンプトインジェクションと呼ばれる攻撃だ。Warden は作業中のモデルの思考過程を監視し、ユーザーではなく攻撃者に従い始めた瞬間を検出する。評価では従来型の防御が見逃した攻撃を捕まえ、誤検出は従来の3分の1に抑えた。",
     },
     body: [
       {
@@ -411,17 +412,24 @@ with PROV_PATH.open() as f:
     prov = [json.loads(l) for l in f]
 # reports MATCH / MISMATCH per row + summary`,
     },
+    links: [
+      {
+        label: "github.com/masaki-kawa/capstone-warden",
+        href: "https://github.com/masaki-kawa/capstone-warden",
+      },
+    ],
   },
   {
     slug: "draft-prediction",
     name: "Draft Prediction",
+    tag: { en: "Advanced ML", ja: "Advanced ML" },
     desc: {
-      en: "Predicting which college basketball players get drafted, in a Kaggle competition where fewer than 1 percent are picked.",
-      ja: "Kaggleコンペで大学バスケのドラフト指名を予測。指名される選手は1%未満という不均衡データ。",
+      en: "Predicting which college basketball players get drafted, in a Kaggle competition where fewer than 1 in 100 are picked.",
+      ja: "大学バスケ選手の中からドラフト指名される選手を当てるKaggleコンペ。指名されるのは100人に1人未満。",
     },
     detail: {
-      en: "A classification problem with severe class imbalance and a public leaderboard to beat. Test AUROC reached 0.997 to 0.998, and I packaged the reusable pieces as my own pip package.",
-      ja: "強い不均衡と、公開リーダーボードのあるクラス分類問題。テストAUROCは0.997〜0.998に到達し、再利用部品は自作のpipパッケージとして公開した。",
+      en: "Out of 14,774 player seasons, fewer than 1 percent get drafted, so the real job is ranking every player by how likely they are to be picked and finding the needles. My final model ranked them near-perfectly (0.9990 on the Kaggle public leaderboard), and the reusable pieces became my own pip package.",
+      ja: "14,774人分の選手データのうち、指名されるのは1%未満。全選手を「指名される確率」で正しく並べ、針の山から本命を見つけ出すのが本当の課題になる。最終モデルはほぼ完璧な順位付けに到達し(Kaggle 公開リーダーボードで 0.9990)、再利用できる部品は自作の pip パッケージにまとめた。",
     },
     body: [
       {
@@ -435,8 +443,8 @@ with PROV_PATH.open() as f:
       {
         h: { en: "Model and result", ja: "モデルと結果" },
         p: {
-          en: "After ANOVA, chi-square and mutual-information feature selection, I compared logistic regression, random forest, XGBoost and LightGBM, then a stacked ensemble. The chosen model was a 70/30 logistic-regression and XGBoost blend, picked by sweeping the blend weight against validation AUROC: test AUROC around 0.997, Kaggle 0.9985. In business terms, a shortlist of 100 flagged players holds roughly 78 true prospects.",
-          ja: "ANOVA・カイ二乗・相互情報量で特徴選択し、ロジスティック回帰・ランダムフォレスト・XGBoost・LightGBM、さらにスタッキングを比較。最終的に選んだのは、検証AUROCに対してブレンド比率を掃引して決めた、ロジスティック回帰とXGBoostの70/30ブレンド。テストAUROCは約0.997、Kaggleで0.9985。業務的に言えば、100人の候補リストに約78人の本命が含まれる。",
+          en: "After ANOVA, chi-square and mutual-information feature selection, I compared logistic regression, random forest, XGBoost and LightGBM, then stacking and blending ensembles. Stacking maximised recall; the final pick was a 20/80 blend of logistic regression and XGBoost, which traded a little recall for cleaner positives and scored 0.9990 on the Kaggle public leaderboard. In business terms, a shortlist of 100 flagged players holds roughly 78 true prospects.",
+          ja: "ANOVA・カイ二乗・相互情報量で特徴選択し、ロジスティック回帰・ランダムフォレスト・XGBoost・LightGBM、さらにスタッキングとブレンディングを比較。スタッキングは再現率を最大化するが、最終的に選んだのはロジスティック回帰とXGBoostの20/80ブレンド。再現率を少し譲る代わりに誤検知の少ない予測になり、Kaggle 公開リーダーボードで 0.9990 を記録した。業務的に言えば、100人の候補リストに約78人の本命が含まれる。",
         },
         img: ["draft-prediction-2", "draft-prediction-3"],
       },
@@ -465,17 +473,24 @@ for w in weights:
     })
 blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
     },
+    links: [
+      {
+        label: "github.com/masaki-kawa/my_krml_14658203",
+        href: "https://github.com/masaki-kawa/my_krml_14658203",
+      },
+    ],
   },
   {
     slug: "weather-api",
     name: "Weather Prediction API",
+    tag: { en: "Advanced ML", ja: "Advanced ML" },
     desc: {
-      en: "Two Sydney weather models, trained then containerised and deployed as a live, callable API.",
-      ja: "シドニーの天気モデル2つを学習し、コンテナ化して、実際に呼び出せる稼働中のAPIとしてデプロイ。",
+      en: "Two Sydney rain prediction models, deployed as a live API anyone can call.",
+      ja: "シドニーの降雨予測モデル2つを、誰でも呼び出せる稼働中のAPIとして公開。",
     },
     detail: {
-      en: "Will it rain seven days out, and how much rain over the next three: a classifier and a regressor served behind FastAPI in Docker, deployed with a live public endpoint. The value here is the deployment path, not the accuracy.",
-      ja: "7日後に雨が降るか、そして今後3日の降水量はどれだけか。分類器と回帰器を Docker 上の FastAPI で配信し、公開エンドポイントとして稼働させた。ここで見せたいのは精度ではなくデプロイまでの道筋。",
+      en: "Will it rain in Sydney seven days from now, and how much over the next three days? I trained a model for each question, then did the part most coursework skips: packaged them with Docker and put them on the internet as a working API. Modest accuracy, honestly reported; what this project shows is the road from notebook to running service.",
+      ja: "7日後のシドニーに雨は降るか、今後3日でどれだけ降るか。それぞれの問いにモデルを学習させ、多くの課題が省略する部分までやり切った。Docker でパッケージし、実際に動くAPIとしてインターネットに公開する。精度は控えめな数字を正直に報告。このプロジェクトで見せたいのは、ノートブックから稼働サービスまでの道筋。",
     },
     body: [
       {
@@ -515,17 +530,382 @@ xgb = XGBClassifier(
     tree_method="hist", random_state=RANDOM_STATE,
     eval_metric="logloss")`,
     },
+    links: [
+      {
+        label: "github.com/masaki-kawa/sydney-weather-api",
+        href: "https://github.com/masaki-kawa/sydney-weather-api",
+      },
+      {
+        label: "github.com/masaki-kawa/sydney-weather-experiments",
+        href: "https://github.com/masaki-kawa/sydney-weather-experiments",
+      },
+    ],
+  },
+  {
+    slug: "bitcoin-forecast",
+    name: "Bitcoin Price Forecast",
+    tag: { en: "Advanced ML", ja: "Advanced ML" },
+    desc: {
+      en: "Predicting tomorrow's Bitcoin high, packaged as a working prediction API.",
+      ja: "明日のビットコイン最高値を予測し、動く予測APIまでパッケージ。",
+    },
+    detail: {
+      en: "A decision-support tool, not a trading bot: it forecasts tomorrow's Bitcoin high so a trader can sanity-check a plan. The first model failed the way naive price models fail, and reframing the target (predict the change, not the price) cut test error by six times. A Dockerised FastAPI serves the model on live prices.",
+      ja: "トレードbotではなく判断支援。明日のビットコインの最高値を予測し、トレーダーが自分の判断を確かめる材料にする。最初のモデルは素朴な価格予測の典型で失敗し、「価格ではなく変化率を予測する」設計変更でテスト誤差を6分の1にした。Docker化したFastAPIが実際の価格でモデルを配信する。",
+    },
+    body: [
+      {
+        h: { en: "When the baseline broke", ja: "ベースラインが壊れたとき" },
+        p: {
+          en: "Daily price data for Bitcoin, Ethereum and Solana from 2015 to 2025, split chronologically so the model never peeks at the future. The baseline predicted the price directly, and the test set showed exactly why that fails: when Bitcoin rallied past 100,000 dollars in late 2024, the model kept predicting the 65,000 dollar world it was trained in, off by 6,752 dollars on average.",
+          ja: "2015〜2025年のビットコイン・イーサリアム・ソラナの日次価格データを、未来を覗かないよう時系列で分割。ベースラインは価格そのものを予測したが、テストで弱点がそのまま出た。2024年末にビットコインが10万ドルを超えて急騰すると、モデルは学習した「6.5万ドルの世界」を出し続け、平均6,752ドルも外した。",
+        },
+        img: ["bitcoin-forecast-2"],
+      },
+      {
+        h: {
+          en: "Predict the change, not the price",
+          ja: "価格ではなく、変化率を予測する",
+        },
+        p: {
+          en: "The fix was to change the question: predict how far tomorrow's high sits above today's close, as a ratio, with a quantile LightGBM. Momentum, volatility and volume features came from my own pip package, reused from the draft prediction project. Test error fell from 6,752 to 1,110 dollars, and the forecast tracks a rally it had never seen.",
+          ja: "解決策は問いの立て替えだった。「明日の最高値は今日の終値からどれだけ上か」を比率として、分位点LightGBMで予測する。モメンタム・ボラティリティ・出来高の特徴量は、ドラフト予測プロジェクトから再利用した自作pipパッケージ製。テスト誤差は6,752ドルから1,110ドルへ下がり、見たことのない急騰にも追従した。",
+        },
+        img: ["bitcoin-forecast-1", "bitcoin-forecast-3"],
+      },
+      {
+        h: { en: "Served, not shelved", ja: "棚に置かず、配信する" },
+        p: {
+          en: "The trained model ships inside a Dockerised FastAPI service that pulls live daily prices from the Kraken exchange API, rebuilds the features, and answers /predict/btc with tomorrow's forecast high. The repository is public.",
+          ja: "学習済みモデルは Docker 化した FastAPI サービスに載せた。Kraken 取引所のAPIから当日の価格を取得して特徴量を再構築し、/predict/btc が明日の予測最高値を返す。リポジトリは公開している。",
+        },
+      },
+    ],
+    code: {
+      caption: {
+        en: "The model that survived the rally: a quantile LightGBM (alpha 0.8) on a ratio target, converted back to a price at serving time (from the experiment notebook).",
+        ja: "急騰に耐えたモデル: 比率ターゲットへの分位点LightGBM(alpha 0.8)。配信時に価格へ逆変換(実験ノートブックより)。",
+      },
+      src: `# ===== Quantile LGBM (alpha=0.8) =====
+q_model = LGBMRegressor(
+    objective='quantile',
+    alpha=0.8,
+    n_estimators=600,
+    learning_rate=0.05,
+    num_leaves=63,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    min_child_samples=40,
+    reg_alpha=0.1,
+    reg_lambda=0.3,
+    random_state=42
+)
+# serving: y_pred_price = (1.0 + y_pred_ratio) * today_price`,
+    },
+    links: [
+      {
+        label: "github.com/masaki-kawa/bitcoin-forecast-api",
+        href: "https://github.com/masaki-kawa/bitcoin-forecast-api",
+      },
+    ],
+  },
+  {
+    slug: "rental-regression",
+    name: "Rental Price Regression",
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
+    desc: {
+      en: "Predicting fair rent across six Australian cities, motivated by my own housing hunt as an international student.",
+      ja: "豪州6都市の適正家賃を予測。留学生として自分が住まい探しに苦労した経験が動機。",
+    },
+    detail: {
+      en: "What is a fair rent for a given home? Messy listing data from six cities, cleaned carefully, engineered into features, and modelled, with the winner chosen for how well it handles homes it has never seen, not for how well it memorised the training data.",
+      ja: "その物件の家賃は妥当なのか。6都市分の汚い賃貸データを丁寧にクレンジングし、特徴量を設計してモデルを比較。訓練データをどれだけ暗記したかではなく、見たことのない物件をどれだけ正しく当てられるかでモデルを選んだ。",
+    },
+    body: [
+      {
+        h: { en: "Cleaning first", ja: "まずクレンジング" },
+        p: {
+          en: "Rentals across Sydney, Melbourne, Brisbane, Adelaide, Perth and Canberra came with the usual problems: 686 cross-split duplicates removed, unrealistic floor areas fixed, floor numbers extracted, and a target so skewed (skew 8.18) it needed a log transform down to 5.09 before any model could learn from it.",
+          ja: "シドニー・メルボルン・ブリスベン・アデレード・パース・キャンベラの賃貸データには、よくある問題があった。分割をまたぐ重複686件を除去し、非現実的な床面積を修正し、階数を抽出。目的変数は歪度8.18と偏りが激しく、モデルが学習できるよう対数変換で5.09まで落とした。",
+        },
+        img: ["rental-regression-3"],
+      },
+      {
+        h: { en: "Chosen for generalisation", ja: "汎化で選ぶ" },
+        p: {
+          en: "Across four experiment notebooks I compared linear regression (test RMSE 0.0702 on log-rent) and ElasticNet (0.0708) against a KNN model. The KNN with Manhattan distance at k equals 11 won at test RMSE 0.0649, chosen because its train and validation gap stayed small, not because it topped a single split.",
+          ja: "4本の実験ノートブックで、線形回帰(対数家賃のテストRMSE 0.0702)と ElasticNet(0.0708)を KNN と比較。マンハッタン距離・k=11 の KNN がテストRMSE 0.0649で最良となった。選定理由は、単一分割で首位だったからではなく、訓練と検証の差が小さく保たれたため。",
+        },
+        img: ["rental-regression-1", "rental-regression-2"],
+      },
+    ],
+    code: {
+      caption: {
+        en: "The final pick, with the losing option kept on record: euclidean vs manhattan at k=11, decided on the train/val/test spread (from experiment 3).",
+        ja: "最終選定。負けた案も記録に残す: k=11 でのユークリッド vs マンハッタン、train/val/test の広がりで判断(実験3より)。",
+      },
+      src: `# euclidean            # manhattan
+# n_neighbors = 11     n_neighbors = 11
+# p = 2                p = 1
+# train = 0.0452       # train = 0.0432
+# val   = 0.0472       # val   = 0.0443
+# test  = 0.0664       # test  = 0.0649  <- chosen
+
+knn_model = KNeighborsRegressor(n_neighbors=n_neighbors, p=p)
+knn_model.fit(X_train, y_train)`,
+    },
+  },
+  {
+    slug: "student-performance",
+    name: "Student Performance Prediction",
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
+    desc: {
+      en: "Finding the top 5 percent of students early, so a university can recommend them for internships.",
+      ja: "上位5%の学生を早期に見つけ、大学のインターン推薦につなげる分類モデル。",
+    },
+    detail: {
+      en: "Only 56 students in roughly 1,000 reach the top grade, and the university wants to spot them before final results are out. After forensic data cleaning and honest feature work, the tuned random forest found 10 of the 11 top students in the test set, with a single false alarm.",
+      ja: "約1,000人の学生のうち、最高評価に届くのは56人だけ。それを成績確定前に見つけたい、という課題。データの矛盾を潰すクレンジングと特徴量設計を経て、調整済みランダムフォレストはテストで該当11人中10人を発見し、誤検知は1件だった。",
+    },
+    body: [
+      {
+        h: { en: "A needle-in-a-haystack target", ja: "針の山から探すターゲット" },
+        p: {
+          en: "The scenario: recommend the students most likely to finish with an Excellent result to industry partners for internships, before final grades exist. In 1,009 student records only 5.55 percent are Excellent, so plain accuracy is meaningless, and every design choice, from the stratified 60/20/20 split to tuning for F1, follows from that imbalance.",
+          ja: "シナリオはこうだ。最終成績が出る前に、Excellent 評価に到達しそうな学生を企業インターンへ推薦したい。1,009人の記録のうち該当者は5.55%だけなので、単純な正解率は意味を失う。層化した60/20/20分割からF1を目的関数にしたチューニングまで、設計判断はすべてこの不均衡から逆算した。",
+        },
+        img: ["student-performance-1"],
+      },
+      {
+        h: {
+          en: "Cleaning with logic, not just thresholds",
+          ja: "しきい値ではなく、論理で洗う",
+        },
+        p: {
+          en: "The data forensics mattered as much as the modelling: first-semester students carrying a previous GPA (logically impossible), an admission year of 22022, a student studying 30 hours a day. One finding was counterintuitive enough to test properly: in this data, higher-performing students come from lower-income households, and a Welch t-test (p = 0.0000010756) confirmed it before the feature was kept.",
+          ja: "モデリングと同じくらい効いたのが、データの検死だった。1学期目なのに前学期のGPAを持つ学生(論理的にあり得ない)、入学年22022、1日30時間勉強する学生。直感に反する発見もあった。このデータでは成績上位の学生ほど世帯収入が低い。Welch のt検定(p = 0.0000010756)で確かめてから、この特徴量を採用した。",
+        },
+        img: ["student-performance-2", "student-performance-3"],
+      },
+      {
+        h: { en: "A winner, and an honest ablation", ja: "勝者と、正直なアブレーション" },
+        p: {
+          en: "The baseline logistic regression missed most top students (validation recall 0.36). The tuned random forest reached 0.91 precision and 0.91 recall on test, finding 10 of 11 Excellent students with one false positive. A final experiment then removed the categorical features the importance plot called useless, holding everything else fixed, and performance dropped. Hypothesis rejected, and recorded as such: weak features were contributing through interactions.",
+          ja: "ベースラインのロジスティック回帰は上位学生の大半を見逃した(検証再現率0.36)。調整済みランダムフォレストはテストで適合率0.91・再現率0.91に到達し、該当11人中10人を誤検知1件で発見した。最後の実験では、重要度プロットが「不要」と示したカテゴリ特徴量を、他の条件を固定したまま外してみた。結果は悪化。仮説は棄却され、そのまま記録した。弱い特徴量が相互作用を通じて効いていた。",
+        },
+        img: ["student-performance-4"],
+      },
+    ],
+    code: {
+      caption: {
+        en: "Imbalance-aware validation design: a two-stage stratified split keeps the 5.5 percent minority class intact across train, validation and test (from experiment 0).",
+        ja: "不均衡を前提にした検証設計: 2段階の層化分割で、5.5%の少数クラスを train/validation/test すべてに保つ(実験0より)。",
+      },
+      src: `X = df_eng.copy()
+y = df.loc[X.index, 'target']
+
+# Step 1: Train+Val vs Test (80:20)
+sss1 = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+for trainval_idx, test_idx in sss1.split(X, y):
+    X_trainval, X_test = X.iloc[trainval_idx], X.iloc[test_idx]
+    y_trainval, y_test = y.iloc[trainval_idx], y.iloc[test_idx]
+
+# Step 2: Train vs Val (75:25)
+sss2 = StratifiedShuffleSplit(n_splits=1, test_size=0.25, random_state=42)
+for train_idx, val_idx in sss2.split(X_trainval, y_trainval):
+    X_train, X_val = X_trainval.iloc[train_idx], X_trainval.iloc[val_idx]
+    y_train_raw = y_trainval.iloc[train_idx]
+    y_val_raw   = y_trainval.iloc[val_idx]`,
+    },
+  },
+  {
+    slug: "anomaly-detection",
+    name: "Customer Anomaly Detection",
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
+    desc: {
+      en: "Finding the customers whose behaviour doesn't add up, in a telco's data. My slice of a four-person team project.",
+      ja: "通信会社の顧客データから「行動のつじつまが合わない」顧客を見つける。4人チームの私の担当分。",
+    },
+    detail: {
+      en: "Each of four team members owned one model family over a telco dataset; mine was anomaly detection, plus the usage-data cleaning everyone built on. Across 7,043 customers the flagged group was not single outliers but combinations of extremes, with ten times the refunds and thirteen times the extra data charges, reading as refund abuse, referral fraud or missed upsells.",
+      ja: "4人チームで通信会社のデータセットを分担し、各自が1つのモデル領域を担当。私は異常検知と、全員の土台になった利用データのクレンジングを持った。7,043人の顧客のうち検出された群は単発の外れ値ではなく「極端値の組み合わせ」で、返金は通常の約10倍、追加データ課金は約13倍。返金制度の悪用、紹介の不正、アップセルの取りこぼしとして読める。",
+    },
+    body: [
+      {
+        h: { en: "My slice: usage data and anomalies", ja: "担当: 利用データと異常検知" },
+        p: {
+          en: "The scenario is a telecom company opening its customer data to a new data science team, one ML task per department: revenue forecasting, churn, segmentation, and mine, abnormal behaviour for the risk team. I also owned the usage dataset itself: 11,125 rows with a quarter of revenue values missing, rebuilt from the billing identity (charges plus extras minus refunds) instead of blanket imputation. The EDA surfaced a pricing gap on the way: customers cluster at the minimum plan or above 50 dollars, with almost nobody in between.",
+          ja: "シナリオは、通信会社が顧客データを新任のデータサイエンスチームに開放し、部門ごとに課題を割り当てるというもの。売上予測、解約予測、セグメンテーション、そして私の担当がリスク管理向けの異常検知。あわせて利用データそのものも担当した。11,125行のうち売上値の4分の1が欠損しており、一括補完ではなく請求の恒等式(課金+追加課金−返金)から逆算して再構築した。EDAでは料金設計の空白も見つかった。顧客は最低プランか50ドル超に集中し、中間帯がほぼ空いている。",
+        },
+        img: ["anomaly-detection-1"],
+      },
+      {
+        h: { en: "Two detectors, one honest choice", ja: "2つの検出器と、正直な選定" },
+        p: {
+          en: "On 7,043 merged customers and 12 selected features I compared Local Outlier Factor and Isolation Forest, each with and without PCA compression, under a stated business assumption that about 5 percent of records may be abnormal. Isolation Forest without PCA separated the anomalies most clearly, and that visible separation, not a leaderboard number, is the documented reason it won: the goal here was interpretability, not prediction.",
+          ja: "結合後の7,043人・選抜した12特徴量に対し、Local Outlier Factor と Isolation Forest を、PCA圧縮あり/なしの計4構成で比較した。前提に置いたのは「約5%は異常でありうる」という業務仮定。最も明確に異常を分離したのは PCA なしの Isolation Forest で、選定理由はスコアではなく分離の明瞭さだと記録している。ここでの目的は予測ではなく解釈だからだ。",
+        },
+        img: ["anomaly-detection-2"],
+      },
+      {
+        h: { en: "What the anomalies turned out to be", ja: "異常の正体" },
+        p: {
+          en: "The flagged customers average 13.55 in refunds against 1.33 for normal customers, 55.44 in extra data charges against 4.28, with markedly higher downloads, tenure and referrals. The key finding: a customer extreme on one axis alone is usually normal; the anomalies are extreme on several axes at once. For a risk team that reads as refund policy abuse, referral fraud and missed upsell opportunities, and every flagged case routes to human review.",
+          ja: "検出された顧客は、返金が平均13.55(通常群1.33)、追加データ課金が55.44(通常群4.28)、ダウンロード量・契約期間・紹介数も際立って高い。重要な発見は、1つの軸だけ極端な顧客はおおむね正常で、異常は複数の軸が同時に極端だということ。リスク管理チームの目には返金制度の悪用、紹介の不正、アップセルの機会損失として映る。検出された案件は必ず人間のレビューに回す設計にした。",
+        },
+        img: ["anomaly-detection-3", "anomaly-detection-4"],
+      },
+    ],
+    code: {
+      caption: {
+        en: "The dual-detector core: Local Outlier Factor and Isolation Forest scored side by side, with anomalies defined by a negative Isolation Forest score (from the anomaly notebook).",
+        ja: "2検出器の中核: Local Outlier Factor と Isolation Forest を並走させ、Isolation Forest のスコアが負の点を異常と定義(異常検知ノートブックより)。",
+      },
+      src: `# LOF
+lof_model = LocalOutlierFactor(**lof_params)
+lof_scores = lof_model.fit_predict(X)
+lof_score_values = lof_model.negative_outlier_factor_
+
+# Isolation Forest
+if_model = IsolationForest(**if_params)
+if_model.fit(X)
+if_score_values = if_model.decision_function(X)
+
+X_scores = X.copy()
+X_scores['lof_score'] = lof_score_values
+X_scores['if_score'] = if_score_values
+
+df_analysis['is_anomaly'] = df_analysis['if_score'] < 0`,
+    },
+  },
+  {
+    slug: "youtube-lakehouse",
+    name: "YouTube Trends Lakehouse",
+    tag: { en: "Big Data", ja: "Big Data" },
+    desc: {
+      en: "2.7 million rows of YouTube trending data across ten countries, answering one question: what should a new channel make?",
+      ja: "10カ国・267万行のYouTubeトレンドデータで、「新しいチャンネルは何をつくるべきか」に答える。",
+    },
+    detail: {
+      en: "Raw files from ten countries land in Azure cloud storage, Snowflake reads them in place, and SQL turns them into one clean table of 2.6 million rows. The analysis ends in an actual recommendation: comedy earns the highest engagement of any category, and it works across countries.",
+      ja: "10カ国分の生データを Azure のクラウドストレージに置き、Snowflake がその場で読み込み、SQLで260万行のきれいなテーブル1枚に仕上げる。分析の出口は実際の提言まで。エンゲージメント率はコメディが全カテゴリ1位で、しかも国を越えて通用する。",
+    },
+    body: [
+      {
+        h: { en: "Files in, one table out", ja: "ファイルを入れ、テーブル1枚を出す" },
+        p: {
+          en: "Trending videos arrive as one CSV per country plus nested JSON category definitions. An external stage lets Snowflake read the files where they sit in Azure Blob Storage; the country code is derived from each file name, the JSON is flattened in SQL, and everything joins into a single 2,667,041 row table with a surrogate key. No scripts outside the warehouse: ingestion is SQL end to end.",
+          ja: "トレンド動画は国ごとのCSVと、入れ子になったJSONのカテゴリ定義で届く。外部ステージを使えば Snowflake は Azure Blob Storage 上のファイルをその場で読める。国コードはファイル名から導出し、JSONはSQLで展開し、すべてを結合して2,667,041行のテーブル1枚に集約する。ウェアハウスの外にスクリプトは置かない。取り込みまで含めて、端から端までSQLで完結させた。",
+        },
+        img: ["youtube-lakehouse-1"],
+      },
+      {
+        h: { en: "Cleaning as queries", ja: "クレンジングもクエリで" },
+        p: {
+          en: "Duplicate trending records were fenced off with a window function (one row per video, country and trending date), corrupted video ids deleted, and a missing category label repaired with an update, taking the table from 2,667,041 to 2,597,494 rows with every step verified by a count. Each fix is documented next to its query, so the cleaning reads like code review material, not a mystery.",
+          ja: "重複したトレンド記録はウィンドウ関数で仕分け(動画×国×日付で1行)、破損した動画IDは削除、欠けていたカテゴリ名はUPDATEで修復。テーブルは2,667,041行から2,597,494行になり、各ステップを件数で検証した。どの修復が何のためかもクエリの隣に記録してあり、クレンジング自体がレビューできる資料になっている。",
+        },
+      },
+      {
+        h: { en: "The business answer", ja: "ビジネスへの答え" },
+        p: {
+          en: "The brief: which category should a new channel bet on, with music and entertainment excluded, and does the answer hold across countries? Comedy took the highest average like ratio of any category (6.19, ahead of education at 5.42), stayed strong across markets, and the write-up lands on a concrete strategy: comedy that leans on visuals over language travels best.",
+          ja: "問いは「音楽とエンタメを除いたとき、新しいチャンネルはどのカテゴリに賭けるべきか。その答えは国を跨いでも成立するか」。平均like率はコメディが全カテゴリ1位(6.19、2位は教育の5.42)で、市場を跨いでも強い。レポートの結論は具体的で、言語に頼らず映像で笑わせるコメディが一番遠くまで届く、という戦略に落ちた。",
+        },
+        img: ["youtube-lakehouse-2"],
+      },
+    ],
+    code: {
+      caption: {
+        en: "Top video per country and month in one query: a window function picks the winner and Snowflake's QUALIFY keeps it readable (from part 3 of the submission).",
+        ja: "国×月のトップ動画を1クエリで: ウィンドウ関数が勝者を選び、Snowflake の QUALIFY が読みやすさを保つ(提出 part 3 より)。",
+      },
+      src: `SELECT
+country,
+DATE_TRUNC(MONTH, trending_date) AS year_month,
+title,
+channeltitle,
+category_title,
+view_count,
+TRUNC((likes / view_count) * 100, 2) AS likes_ratio
+FROM table_youtube_final
+WHERE YEAR(trending_date) = 2024
+QUALIFY
+ROW_NUMBER() OVER (
+PARTITION BY country, DATE_TRUNC('MONTH', trending_date)
+ORDER BY view_count DESC
+) = 1
+ORDER BY year_month, country;`,
+    },
+  },
+  {
+    slug: "nyc-taxi",
+    name: "NYC Taxi at Scale",
+    tag: { en: "Big Data", ja: "Big Data" },
+    desc: {
+      en: "Cleaning, analysing and modelling 964 million taxi trips, end to end on Databricks.",
+      ja: "9.6億件のタクシー乗車データを、Databricks 上でクレンジングから分析・予測まで一気通貫。",
+    },
+    detail: {
+      en: "Eleven years of New York taxi trips, 964 million rows after cleaning, processed with Spark on Databricks. The analysis answers operator questions (where the money is, when tips happen, which trips pay a driver best), and a fare model closes the loop, cutting prediction error by 28 percent against the baseline.",
+      ja: "ニューヨークのタクシー11年分、クレンジング後で9億6,400万行を Databricks 上の Spark で処理。金はどこで動くか、チップはいつ発生するか、どの乗車がドライバーに一番割が良いか、という現場の問いに答え、最後は運賃予測モデルで誤差をベースライン比28%削減した。",
+    },
+    body: [
+      {
+        h: { en: "A billion-row table, cleaned by rules", ja: "10億行規模を、ルールで洗う" },
+        p: {
+          en: "Yellow and green cab records from 2014 to 2024 arrive with impossible trips: pickups after dropoffs, 120 kilometre-per-hour averages, one-minute rides, thousand-dollar fares. Nine explicit rules remove them, the two fleets are unified into one schema, and the result is a 964,078,678 row Delta table with borough names joined on. Every rule is written down, so the cleaning is an argument, not a black box.",
+          ja: "2014〜2024年のイエロー/グリーンキャブの記録には、あり得ない乗車が混ざっている。降車時刻が乗車より先、平均時速120km、1分間の乗車、1,000ドルの運賃。9つの明示的なルールでそれらを除去し、2系統のスキーマを統一して、行政区名を結合した964,078,678行の Delta テーブルに仕上げた。ルールはすべて文章化してあり、クレンジングはブラックボックスではなく論証になっている。",
+        },
+        img: ["nyc-taxi-2"],
+      },
+      {
+        h: { en: "What a billion trips say", ja: "10億件が語ること" },
+        p: {
+          en: "Spark SQL over the full table answers the operator questions: trips inside Manhattan carry 61.9 percent of 2024 revenue; 63.07 percent of trips tip at all, while only 0.83 percent of tippers give 15 dollars or more; and for a driver, trips under five minutes earn the best rate per kilometre (6.42 dollars) at an estimated 58.10 dollars per hour. The heaviest of these queries crosses roughly a billion rows in about a minute.",
+          ja: "全量に対する Spark SQL が、現場の問いに答えていく。2024年の売上の61.9%はマンハッタン内の移動が占める。チップが発生する乗車は63.07%ある一方、15ドル以上払う人はそのうち0.83%だけ。ドライバーにとっては5分未満の乗車がキロ単価最高(6.42ドル)で、推定時給は58.10ドル。一番重いクエリでも、約10億行を1分前後で走り切る。",
+        },
+        img: ["nyc-taxi-1"],
+      },
+      {
+        h: { en: "A fare model on top", ja: "仕上げに運賃モデル" },
+        p: {
+          en: "The prediction target is the total fare, split by time so the model is judged on genuinely future trips: everything to September 2024 trains, October onward tests. A group-average baseline computed in Spark over all 953 million training rows lands at RMSE 17.10; a linear model cuts it to 13.28 and a tuned gradient boosting model to 12.26. The write-up is honest about what that buys: good enough for aggregate planning, not for quoting a single trip.",
+          ja: "予測対象は運賃総額。2024年9月までを学習、10月以降をテストという時間分割にして、本当に未来の乗車で評価する。9.5億行の学習データ全量から Spark で計算したグループ平均ベースラインは RMSE 17.10。線形モデルで13.28、チューニングした勾配ブースティングで12.26まで削減した。この精度で何ができるかも正直に書いた。集計ベースの計画には十分、1回の乗車への運賃提示にはまだ足りない。",
+        },
+      },
+    ],
+    code: {
+      caption: {
+        en: "The baseline nobody should skip: a group-average fare computed with Spark over all 953 million training rows, joined back onto the test set (from the ML notebook).",
+        ja: "省略してはいけないベースライン: 9.5億行の学習全量から Spark でグループ平均運賃を計算し、テスト側に結合(MLノートブックより)。",
+      },
+      src: `# Group keys = color x PU x DO x month x day of the week x time
+KEYS = ["color","pickup_borough","dropoff_borough","month","dow","hour"]
+
+train_mean = (
+    train_df.groupBy(KEYS)
+    .agg(F.avg("total_amount").alias("avg_total_amount"))
+)
+
+# Left join to test to get mean value as predicted value
+pred_baseline = (
+    test_df.join(train_mean, on=KEYS, how="left")
+           .withColumn("pred", F.coalesce(F.col("avg_total_amount"), F.lit(None)))
+)`,
+    },
   },
   {
     slug: "cloud-elt",
     name: "Cloud ELT Pipeline",
+    tag: { en: "Big Data", ja: "Big Data" },
     desc: {
-      en: "A production-shaped ELT on GCP: dbt, Airflow, Medallion layers and SCD Type 2 over Airbnb and census data.",
-      ja: "GCP上の本番型ELT。dbt・Airflow・Medallion構成・SCD Type 2 を、Airbnbと国勢調査データに適用。",
+      en: "A cloud pipeline that turns raw Airbnb and census data into analysis-ready tables, on the tools industry data teams run.",
+      ja: "Airbnbと国勢調査の生データを、分析できる形へ自動変換するクラウド上のデータパイプライン。",
     },
     detail: {
-      en: "dbt Cloud transformations orchestrated by Airflow on Cloud Composer, Medallion layers from bronze to gold, a star schema with SCD Type 2, and idempotent monthly loads. Real analytic findings came out the other end.",
-      ja: "dbt Cloud の変換を Cloud Composer 上の Airflow で編成し、Bronze から Gold の Medallion 構成、SCD Type 2 のスタースキーマ、冪等な月次ロード。出口では実際の分析結果まで出した。",
+      en: "The same setup a company data team would run: raw files land in Google Cloud, Airflow triggers the work on schedule, and dbt transforms everything step by step into clean, query-ready tables. History is preserved so last month's numbers never silently change, and the whole pipeline reruns every month without breaking.",
+      ja: "企業のデータチームが実際に組むのと同じ構成。生データを Google Cloud に置き、Airflow が処理を自動で走らせ、dbt が段階的にきれいな分析用テーブルへ変換していく。先月の数字が勝手に変わらないよう履歴を保持し、毎月再実行しても壊れないパイプラインとして設計した。",
     },
     body: [
       {
@@ -566,17 +946,24 @@ def _download_from_gcs(gcs_path: str, **_):
                        object_name=gcs_path, filename=local_path)
     return local_path`,
     },
+    links: [
+      {
+        label: "github.com/masaki-kawa/airbnb-data-pipeline",
+        href: "https://github.com/masaki-kawa/airbnb-data-pipeline",
+      },
+    ],
   },
   {
     slug: "image-captioning",
     name: "Image Captioning",
+    tag: { en: "Deep Learning", ja: "Deep Learning" },
     desc: {
-      en: "Generating captions for photos taken by blind users (VizWiz), from a CNN and GRU baseline to a Transformer decoder.",
-      ja: "視覚障害のあるユーザーが撮った写真(VizWiz)にキャプションを生成。CNN+GRUからTransformerデコーダへ。",
+      en: "Teaching a model to describe photos taken by blind users, in words.",
+      ja: "視覚障害のあるユーザーが撮った写真を、言葉で説明するAIモデルを構築。",
     },
     detail: {
-      en: "An encoder and decoder captioning model on the VizWiz-Captions dataset, evaluated with BLEU. I built both models: an EfficientNet and GRU baseline, then an EfficientNet and Transformer decoder with beam search.",
-      ja: "VizWiz-Captions データセットでの、エンコーダ・デコーダ型キャプション生成。BLEUで評価。私の担当は、EfficientNet+GRUのベースラインから、ビームサーチ付きの EfficientNet+Transformer デコーダへ。",
+      en: "The photos are real ones taken by blind users, so they are often blurry, dark or off-centre, and describing them is genuinely hard. I built two generations of the model end to end, measured the jump between them, and then looked inside the newer one to see where it looks in the image when it chooses each word.",
+      ja: "写真は視覚障害のあるユーザーが実際に撮ったもので、ブレや暗さ、見切れが多く、言葉にするのは本当に難しい。旧世代と新世代の2つのモデルを端から端まで自作して性能の差を計測し、新モデルが単語を選ぶとき画像のどこを見ているかまで可視化した。",
     },
     body: [
       {
@@ -620,51 +1007,6 @@ def evaluate_beam(model, loader, beam_width: int = 5) -> dict:
     return {'scores': compute_bleu(ids, hyps), 'ids': ids, 'hyps': hyps}
 
 m2_eval = evaluate_beam(model2, test_loader, beam_width=5)`,
-    },
-  },
-  {
-    slug: "rental-regression",
-    name: "Rental Price Regression",
-    desc: {
-      en: "Predicting fair rent across six Australian cities, motivated by my own housing hunt as an international student.",
-      ja: "豪州6都市の適正家賃を予測。留学生として自分が住まい探しに苦労した経験が動機。",
-    },
-    detail: {
-      en: "A clean, solo regression project: messy listing data taken through careful cleaning and feature engineering to a model chosen for generalisation, not just training fit.",
-      ja: "一人で仕上げたシンプルな回帰プロジェクト。汚いリスティングデータを、丁寧なクレンジングと特徴量エンジニアリングを経て、訓練適合ではなく汎化で選んだモデルまで。",
-    },
-    body: [
-      {
-        h: { en: "Cleaning first", ja: "まずクレンジング" },
-        p: {
-          en: "Rentals across Sydney, Melbourne, Brisbane, Adelaide, Perth and Canberra came with the usual problems: 686 cross-split duplicates removed, unrealistic floor areas fixed, floor numbers extracted, and a target so skewed (skew 8.18) it needed a log transform down to 5.09 before any model could learn from it.",
-          ja: "シドニー・メルボルン・ブリスベン・アデレード・パース・キャンベラの賃貸データには、よくある問題があった。分割をまたぐ重複686件を除去し、非現実的な床面積を修正し、階数を抽出。目的変数は歪度8.18と偏りが激しく、モデルが学習できるよう対数変換で5.09まで落とした。",
-        },
-        img: ["rental-regression-3"],
-      },
-      {
-        h: { en: "Chosen for generalisation", ja: "汎化で選ぶ" },
-        p: {
-          en: "Across four experiment notebooks I compared linear regression (test RMSE 0.0702 on log-rent) and ElasticNet (0.0708) against a KNN model. The KNN with Manhattan distance at k equals 11 won at test RMSE 0.0649, chosen because its train and validation gap stayed small, not because it topped a single split.",
-          ja: "4本の実験ノートブックで、線形回帰(対数家賃のテストRMSE 0.0702)と ElasticNet(0.0708)を KNN と比較。マンハッタン距離・k=11 の KNN がテストRMSE 0.0649で最良となった。選定理由は、単一分割で首位だったからではなく、訓練と検証の差が小さく保たれたため。",
-        },
-        img: ["rental-regression-1", "rental-regression-2"],
-      },
-    ],
-    code: {
-      caption: {
-        en: "The final pick, with the losing option kept on record: euclidean vs manhattan at k=11, decided on the train/val/test spread (from experiment 3).",
-        ja: "最終選定。負けた案も記録に残す: k=11 でのユークリッド vs マンハッタン、train/val/test の広がりで判断(実験3より)。",
-      },
-      src: `# euclidean            # manhattan
-# n_neighbors = 11     n_neighbors = 11
-# p = 2                p = 1
-# train = 0.0452       # train = 0.0432
-# val   = 0.0472       # val   = 0.0443
-# test  = 0.0664       # test  = 0.0649  <- chosen
-
-knn_model = KNeighborsRegressor(n_neighbors=n_neighbors, p=p)
-knn_model.fit(X_train, y_train)`,
     },
   },
 ];

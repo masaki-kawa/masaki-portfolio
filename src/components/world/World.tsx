@@ -889,6 +889,7 @@ export function World() {
   const researchItems = RESEARCH.map((w) => ({
     slug: w.slug,
     name: w.name,
+    tag: w.tag ? pick(w.tag) : "",
     desc: pick(w.desc),
     detail: pick(w.detail),
   }));
@@ -1085,6 +1086,9 @@ export function World() {
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     {it.name}
+                    {it.tag ? (
+                      <span className="w-det-tag">{it.tag}</span>
+                    ) : null}
                   </button>
                   <div className="w-det-body">
                     <div className="w-det-inner">

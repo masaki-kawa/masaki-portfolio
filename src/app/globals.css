@@ -1791,6 +1791,21 @@ a.w-comcard:hover .w-slide-open i {
   color: var(--w-ink-3);
   font-variant-numeric: tabular-nums;
 }
+/* course label on the right edge of each research pill */
+.w-det-tag {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--w-ink-3);
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .w-det-tag {
+    display: none;
+  }
+}
 
 /* chapter rail: CH.XX, progress line, vertical label */
 /* chapter rail: a column of dots (active one grows into a pill),
