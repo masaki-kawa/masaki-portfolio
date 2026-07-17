@@ -318,7 +318,7 @@ export const WORK: WorkEntry[] = [
     tag: { en: "In development", ja: "開発中" },
     hero: "image",
     desc: {
-      en: "Solo founders running a company with AI agents as staff.",
+      en: "A desktop app where solo founders design an org chart of AI staff, then hand it to any coding agent to run.",
       ja: "AIエージェントのチームで1人の会社を回す。",
     },
     detail: {
