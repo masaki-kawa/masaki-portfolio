@@ -25,10 +25,6 @@ export type WorkEntry = {
     h: Localized;
     p: Localized;
     img?: string[] | { en: string[]; ja: string[] };
-    /* a product recording rendered in place of figures: basename of an
-       .mp4 under public/work/gallery/. Plays muted with a corner
-       step-through button. */
-    video?: string;
   }[];
   links?: { label: string; href: string }[];
   /* community cards carry a logo slug (public/community/<logo>.png) */
@@ -40,10 +36,8 @@ export type WorkEntry = {
   code?: { caption: Localized; src: string };
   /* hero media on the detail page: "video" plays /work/<slug>.mp4 over
      the /work/<slug>.png poster, "image" shows the poster only. Entries
-     without hero render no media slot and request nothing. heroStep
-     adds a corner button that hops through a hero recording in stages. */
+     without hero render no media slot and request nothing. */
   hero?: "video" | "image";
-  heroStep?: boolean;
 };
 
 export const WORK: WorkEntry[] = [
@@ -167,7 +161,6 @@ export const WORK: WorkEntry[] = [
     slug: "review365",
     name: "Review365",
     hero: "video",
-    heroStep: true,
     desc: {
       en: "An AI review management service for restaurants in Australia. I sell it face to face and build its monthly marketing reports.",
       ja: "豪州の飲食店向けAIレビュー運用サービス。営業から月次マーケティングレポートの制作まで、事業側を担当している。",

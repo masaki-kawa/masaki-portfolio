@@ -1,58 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLang } from "@/components/lang-provider";
 import { WORK, RESEARCH, COMMUNITY, type Localized } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
 import { Media } from "@/components/world/Media";
-
-/* In-section product recording: ambient loop plus a corner button that
-   steps a quarter of the way through, so a reader can hop between the
-   stages of a flow without scrubbing. */
-function SectionVideo({ src, next }: { src: string; next: string }) {
-  const ref = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) el.play().catch(() => {});
-        else el.pause();
-      },
-      { threshold: 0.2 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  const step = () => {
-    const el = ref.current;
-    if (!el || !el.duration) return;
-    const chunk = el.duration / 4;
-    const target = (Math.floor(el.currentTime / chunk) + 1) * chunk;
-    el.currentTime = target >= el.duration - 0.5 ? 0 : target;
-    el.play().catch(() => {});
-  };
-
-  return (
-    <div className="wd-vid">
-      <video
-        ref={ref}
-        src={`/work/gallery/${src}.mp4`}
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="metadata"
-      />
-      <button className="wd-vid-next" onClick={step} type="button">
-        {next}
-      </button>
-    </div>
-  );
-}
 
 /**
  * /work/[slug] — quiet detail page for one project. Same silver world
@@ -65,8 +17,14 @@ export function WorkDetail({ slug }: { slug: string }) {
   const pick = (l: Localized) => (en ? l.en : l.ja);
 
   const all = [...WORK, ...RESEARCH, ...COMMUNITY];
-  const w = all.find((x) => x.slug === slug);
-  if (!w) return null;
+  const idx = all.findIndex((x) => x.slug === slug);
+  if (idx === -1) return null;
+  const w = all[idx];
+  /* wrap around so there is always a next project to browse into,
+     letting a reader move through every case study without going back
+     to the home page */
+  const prev = all[(idx - 1 + all.length) % all.length];
+  const next = all[(idx + 1) % all.length];
 
   return (
     <div className="w-root wd-root">
@@ -94,12 +52,7 @@ export function WorkDetail({ slug }: { slug: string }) {
         </h1>
         <p className="wd-lead">{pick(w.desc)}</p>
         {w.hero && (
-          <Media
-            className="wd-media"
-            slug={w.slug}
-            kind={w.hero}
-            step={w.heroStep ? (en ? "Next →" : "次へ →") : undefined}
-          />
+          <Media className="wd-media" slug={w.slug} kind={w.hero} />
         )}
         <p className="wd-body">{pick(w.detail)}</p>
         {w.body?.map((s) => {
@@ -114,12 +67,6 @@ export function WorkDetail({ slug }: { slug: string }) {
             <section className="wd-sec" key={s.h.en}>
               <h2 className="wd-h2">{pick(s.h)}</h2>
               <p className="wd-p">{pick(s.p)}</p>
-              {s.video ? (
-                <SectionVideo
-                  src={s.video}
-                  next={en ? "Next →" : "次へ →"}
-                />
-              ) : null}
               {figs.length > 0 ? (
                 <div
                   className={figs.length > 1 ? "wd-figs wd-figs--2" : "wd-figs"}
@@ -170,6 +117,16 @@ export function WorkDetail({ slug }: { slug: string }) {
             ))}
           </div>
         ) : null}
+        <nav className="wd-pager" aria-label={en ? "Projects" : "プロジェクト"}>
+          <Link className="wd-pager-link wd-pager-prev" href={`/work/${prev.slug}`}>
+            <span className="wd-pager-dir">{en ? "← Previous" : "← 前へ"}</span>
+            <span className="wd-pager-name">{prev.name}</span>
+          </Link>
+          <Link className="wd-pager-link wd-pager-next" href={`/work/${next.slug}`}>
+            <span className="wd-pager-dir">{en ? "Next →" : "次へ →"}</span>
+            <span className="wd-pager-name">{next.name}</span>
+          </Link>
+        </nav>
         <div className="wd-next">
           <Link href="/#work">
             {en ? "← Back to all work" : "← 一覧に戻る"}

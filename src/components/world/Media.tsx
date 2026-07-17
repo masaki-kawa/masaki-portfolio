@@ -15,14 +15,10 @@ export function Media({
   slug,
   kind,
   className,
-  step,
 }: {
   slug: string;
   kind: "video" | "image";
   className: string;
-  /* label for an optional corner button that hops a quarter of the way
-     through the video, for recordings of multi-stage flows */
-  step?: string;
 }) {
   const [video, setVideo] = useState(false);
   const vidRef = useRef<HTMLVideoElement | null>(null);
@@ -72,22 +68,6 @@ export function Media({
           onError={() => setVideo(false)}
         />
       )}
-      {video && step ? (
-        <button
-          className="wd-vid-next"
-          type="button"
-          onClick={() => {
-            const el = vidRef.current;
-            if (!el || !el.duration) return;
-            const chunk = el.duration / 4;
-            const target = (Math.floor(el.currentTime / chunk) + 1) * chunk;
-            el.currentTime = target >= el.duration - 0.5 ? 0 : target;
-            el.play().catch(() => {});
-          }}
-        >
-          {step}
-        </button>
-      ) : null}
     </div>
   );
 }
