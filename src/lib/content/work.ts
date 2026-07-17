@@ -319,7 +319,7 @@ export const WORK: WorkEntry[] = [
     hero: "image",
     desc: {
       en: "A desktop app where solo founders design an org chart of AI staff, then hand it to any coding agent to run.",
-      ja: "AIエージェントのチームで1人の会社を回す。",
+      ja: "ひとり起業家がAI社員の組織図を設計し、任意のコーディングエージェントに委任して動かすデスクトップアプリ。",
     },
     detail: {
       en: "An operating layer where AI agents hold real roles in a one-person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
