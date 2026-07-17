@@ -448,7 +448,7 @@ for line in raw.strip().splitlines():
   {
     slug: "draft-prediction",
     name: "Draft Prediction",
-    tag: { en: "Advanced ML", ja: "Advanced ML" },
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Predicting which college basketball players get drafted, in a Kaggle competition where fewer than 1 in 100 are picked.",
       ja: "大学バスケ選手の中からドラフト指名される選手を当てるKaggleコンペ。指名されるのは100人に1人未満。",
@@ -461,24 +461,42 @@ for line in raw.strip().splitlines():
       {
         h: { en: "The problem", ja: "問題" },
         p: {
-          en: "The Kaggle set held 14,774 college-player seasons across 62 features, but only about 0.8 percent were drafted, so accuracy is meaningless and the real task is ranking. The data was also genuinely messy: 2,462 exact duplicates removed, and heights stored as dates (5'11\" had become \"11-May\") that had to be repaired before anything else.",
-          ja: "Kaggleのデータは62特徴量・14,774の大学選手シーズン分。だが指名されたのは約0.8%だけで、正解率は意味を持たず、本当の課題はランキングになる。データも相当汚く、完全重複2,462件を除去し、身長が日付として保存されていた箇所(5'11\" が \"11-May\" 化)を先に修復する必要があった。",
+          en: "The Kaggle set held 14,774 college-player seasons across 62 columns, and only about 0.8 percent were drafted. At that imbalance accuracy is a trap (predicting nobody gets drafted is 99.2 percent accurate), so the metric is AUROC: how well the model ranks drafted players above undrafted ones across every possible cutoff. The data itself needed forensics first: 2,462 exact duplicate rows dropped, while players who legitimately appear across several seasons were kept after checking they were repeat careers, not copies. And heights arrived stored as dates, so \"6-Jun\" had to be read back into 6 feet 6 before the column meant anything.",
+          ja: "Kaggleのデータは62列・14,774の大学選手シーズン分で、指名されたのは約0.8%だけ。この不均衡では正解率は罠になる(「誰も指名されない」と予測するだけで正解率99.2%)。だから指標は AUROC、つまり、あらゆるカットオフを通して指名選手を非指名選手より上に並べられるかというランキング性能だ。データ自体もまず検死が要った。完全重複2,462行を除去する一方、複数シーズンに登場する選手は「コピーではなく実際の複数年のキャリアか」を確認したうえで残した。身長は日付として保存されていて、\"6-Jun\" を6フィート6インチに読み戻すまで、その列は意味を持たなかった。",
         },
-        img: ["draft-prediction-1"],
       },
       {
-        h: { en: "Model and result", ja: "モデルと結果" },
-        p: {
-          en: "After ANOVA, chi-square and mutual-information feature selection, I compared logistic regression, random forest, XGBoost and LightGBM, then stacking and blending ensembles. Stacking maximised recall; the final pick was a 20/80 blend of logistic regression and XGBoost, which traded a little recall for cleaner positives and scored 0.9990 on the Kaggle public leaderboard. In business terms, a shortlist of 100 flagged players holds roughly 78 true prospects.",
-          ja: "ANOVA・カイ二乗・相互情報量で特徴選択し、ロジスティック回帰・ランダムフォレスト・XGBoost・LightGBM、さらにスタッキングとブレンディングを比較。スタッキングは再現率を最大化するが、最終的に選んだのはロジスティック回帰とXGBoostの20/80ブレンド。再現率を少し譲る代わりに誤検知の少ない予測になり、Kaggle 公開リーダーボードで 0.9990 を記録した。業務的に言えば、100人の候補リストに約78人の本命が含まれる。",
+        h: {
+          en: "Missingness that means something",
+          ja: "欠損そのものが信号になる",
         },
-        img: ["draft-prediction-2", "draft-prediction-3"],
+        p: {
+          en: "The scouting-rank column is 67 percent empty, yet a quick LightGBM screen put it at the top of the importance list by a factor of four. My starting rule said drop heavily missing features, but exploring first overturned the rule: players with a scouting rank get drafted 2.36 percent of the time, players without one 0.012 percent, a gap of roughly 195 times. Being unranked is not a data gap, it is information about the player. So instead of dropping or averaging the holes away, every such feature kept a missing-flag and a sentinel value, letting the model read absence as the signal it actually is.",
+          ja: "スカウトランクの列は67%が空欄。ところが LightGBM で軽く重要度を見ると、2位に4倍差をつけて首位に立った。当初のルールでは「欠損の多い特徴量は落とす」だったが、先に探索したことでルールのほうが覆った。ランクを持つ選手のドラフト率は2.36%、持たない選手は0.012%。およそ195倍の差だ。ランク外であることはデータの穴ではなく、選手についての情報そのものだった。だから穴を捨てたり平均で埋めたりせず、欠損フラグと番兵値を添えて残し、モデルが「無いこと」を信号として読めるようにした。",
+        },
+        img: ["draft-prediction-4"],
+      },
+      {
+        h: { en: "Three models, one honest pick", ja: "3モデルから、正直に選ぶ" },
+        p: {
+          en: "Experiment one raced logistic regression, LightGBM and XGBoost, each imbalance-corrected with class weights. LightGBM posted a spectacular test score (0.9966) over a shaky validation score (0.9518), the classic signature of instability, while logistic regression held steady on both (0.9905 and 0.9968) and won on trustworthiness rather than a single number. Feature choices were stress-tested the same way: three feature sets were compared (keep everything, prune by missingness rules, prune correlated pairs above 0.9), and keep-everything won because the pruned candidates turned out to carry that informative missingness.",
+          ja: "実験1では、クラス重みで不均衡補正したロジスティック回帰・LightGBM・XGBoost を競わせた。LightGBM はテストで華々しい数字(0.9966)を出しつつ、検証はぐらついた(0.9518)。不安定さの典型的なサインだ。一方ロジスティック回帰は両方で安定し(0.9905と0.9968)、単発の数字ではなく信頼できるかどうかで勝った。特徴量も同じやり方で検証した。全部残す、欠損ルールで削る、相関0.9超のペアを削る、の3案を比較し、勝ったのは全部残す案。削る候補だったものが、例の「意味のある欠損」を運んでいたからだ。",
+        },
+        img: ["draft-prediction-5", "draft-prediction-1"],
+      },
+      {
+        h: { en: "Stacking against blending", ja: "スタッキング対ブレンディング" },
+        p: {
+          en: "Ensembling was my slice of the group work, and the two designs turned out to serve two different users. The stacked model is the scout who refuses to miss anyone: on test it found every drafted player (recall 1.00, zero false negatives) at the price of 31 false alarms. The weighted blend is the triage tool: it cut false positives from 43 to 26 on validation while giving up a couple of finds. Tuning both and sweeping blend weights barely moved AUROC, which is its own lesson: the design choice mattered more than the hyperparameters. Internal splits favoured stacking; Kaggle's hidden leaderboard, the closest thing to truly unseen players, favoured the 20/80 blend at 0.9990, and that is the model the report recommends.",
+          ja: "グループワークの中で、アンサンブルは私の担当だった。そして2つの設計は、結局2種類のユーザーに仕えることが分かった。スタッキングは「誰も見逃さないスカウト」で、テストでは指名選手を全員発見(再現率1.00、見逃しゼロ)、その代償に誤検知31件。加重ブレンドは「選別の道具」で、検証の誤検知を43件から26件へ削る代わりに、数人の発見を譲る。両方をチューニングしてブレンド比率を掃引しても AUROC はほとんど動かず、これ自体が教訓になった。効いたのはハイパーパラメータではなく設計の選択だ。内部の分割はスタッキングに軍配を上げたが、本当に未知の選手に最も近い Kaggle の非公開リーダーボードは 20/80 ブレンドを選び、0.9990 を記録。レポートが推奨するのはこのモデルだ。",
+        },
+        img: ["draft-prediction-6", "draft-prediction-3", "draft-prediction-7"],
       },
       {
         h: { en: "Packaged, not just notebooked", ja: "ノートブックで終わらせない" },
         p: {
-          en: "The reusable utilities became my own pip package, my_krml_14658203, built from a cookiecutter template with source layout, tests and docs and pushed to TestPyPI. The project ships as a full CRISP-DM report, four experiment notebooks and saved model artefacts, not a single throwaway notebook.",
-          ja: "再利用可能なユーティリティは、自作のpipパッケージ my_krml_14658203 にまとめた。cookiecutterテンプレートでソース構成・テスト・ドキュメントを備え、TestPyPIに公開。成果物は、CRISP-DMに沿ったレポート、4本の実験ノートブック、保存済みモデル一式で、使い捨ての1ノートブックではない。",
+          en: "The reusable utilities became my own pip package, my_krml_14658203, built from a cookiecutter template with source layout, tests and docs and pushed to TestPyPI, and the same package later powered the feature engineering in the Bitcoin project. The work ships as a full CRISP-DM report, four experiment notebooks and saved model artefacts, not a single throwaway notebook.",
+          ja: "再利用可能なユーティリティは、自作のpipパッケージ my_krml_14658203 にまとめた。cookiecutterテンプレートでソース構成・テスト・ドキュメントを備えて TestPyPI に公開し、同じパッケージが後のビットコイン予測プロジェクトの特徴量エンジニアリングも支えている。成果物は、CRISP-DMに沿ったレポート、4本の実験ノートブック、保存済みモデル一式。使い捨ての1ノートブックではない。",
         },
       },
     ],
@@ -509,7 +527,7 @@ blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
   {
     slug: "weather-api",
     name: "Weather Prediction API",
-    tag: { en: "Advanced ML", ja: "Advanced ML" },
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Two Sydney rain prediction models, deployed as a live API anyone can call.",
       ja: "シドニーの降雨予測モデル2つを、誰でも呼び出せる稼働中のAPIとして公開。",
@@ -520,19 +538,42 @@ blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
     },
     body: [
       {
-        h: { en: "Two services", ja: "2つのサービス" },
-        p: {
-          en: "Built around a Sydney tourism use case on Open-Meteo history from 2010 to 2024, with time-series-aware cross-validation. The rain classifier (random forest) reached F1 around 0.66 at recall 0.61 and precision 0.72; the three-day precipitation regressor (linear regression, which beat an overfitting forest) landed at RMSE about 9.55 mm and R-squared around 0.67. Modest numbers, honestly reported.",
-          ja: "Open-Meteoの2010〜2024年の履歴データで、シドニーの観光需要を想定したユースケースとして構築。時系列を考慮した交差検証を使用。降雨分類(ランダムフォレスト)はF1約0.66、再現率0.61・適合率0.72。3日間の降水量回帰(過学習したランダムフォレストを上回った線形回帰)はRMSE約9.55mm、決定係数約0.67。控えめな数字を正直に報告している。",
+        h: {
+          en: "Two questions a tour operator asks",
+          ja: "ツアー会社が実際に聞く2つの質問",
         },
-        img: ["weather-api-1", "weather-api-3", "weather-api-2"],
+        p: {
+          en: "Sydney's tourism operators plan around rain: harbour cruises, outdoor events, daily itineraries. So the project ships two predictions on Open-Meteo history for Sydney (5,479 days, 2010 to 2024): will it rain exactly seven days from now, and how many millimetres will fall over the next three days. Both targets are built strictly from future values relative to each reference day, so the model never trains on information it would not have. The regression target's distribution explains the difficulty up front: the median three-day total is 1.8 mm but the maximum is 203.7, and a handful of storms dominates any error metric.",
+          ja: "シドニーの観光業は雨で計画が動く。ハーバークルーズ、屋外イベント、日々の行程。そこで Open-Meteo のシドニー履歴データ(2010〜2024年、5,479日分)から2つの予測を提供する。ちょうど7日後に雨が降るか。そして今後3日間の降水量は何ミリか。ターゲットはどちらも、各基準日から見た未来の値だけで構築し、本来知り得ない情報でモデルが学習しないようにした。回帰ターゲットの分布が、この課題の難しさを最初から物語っている。3日間合計の中央値は1.8mmなのに最大値は203.7mm。一握りの嵐が、どんな誤差指標も支配してしまう。",
+        },
+        img: ["weather-api-5"],
       },
       {
-        h: { en: "From model to running service", ja: "モデルから稼働サービスへ" },
-        p: {
-          en: "Both models were containerised with Docker and served through FastAPI with Swagger docs, deployed to a live public URL on Render behind /predict/rain_or_not and /predict/precipitation_fall. Most student projects stop at a notebook; this one is a call away.",
-          ja: "両モデルを Docker でコンテナ化し、Swaggerドキュメント付きの FastAPI で配信。Render の公開URLにデプロイし、/predict/rain_or_not と /predict/precipitation_fall で呼び出せる。多くの学生プロジェクトはノートブックで止まるが、これはリクエスト一つで動く。",
+        h: {
+          en: "Metrics and validation chosen for the job",
+          ja: "仕事から逆算した指標と検証",
         },
+        p: {
+          en: "The metric follows the cost of being wrong: for a tourist without an umbrella, a missed rainy day hurts more than a false alarm, so recall was prioritised, F1 became the headline metric, and accuracy is reported only as a reference. Validation respects time: the earliest 60 percent trains, the next 20 tunes, the most recent 20 is touched once at the end, and the tuning search uses TimeSeriesSplit so no fold ever peeks at the future. The feature work stayed grounded too: the strongest single signal turned out to be daylight duration, a seasonality proxy, alongside engineered flags like evaporation minus precipitation that carry domain sense.",
+          ja: "指標は間違いのコストから逆算した。傘を持たない観光客にとって、見逃された雨の日は空振りの警報より痛い。だから再現率を優先し、F1 を主指標に、正解率は参考値に留めた。検証は時間を尊重する。最も古い60%で学習し、続く20%でチューニングし、最新の20%には最後に一度だけ触れる。チューニング内の探索も TimeSeriesSplit で、どのフォールドも未来を覗けない。特徴量も地に足をつけた。単体で最も強いシグナルは日照時間(季節性の代理変数)で、「蒸発量−降水量」のような追加特徴量もドメインの意味を持つものに絞った。",
+        },
+        img: ["weather-api-4", "weather-api-2"],
+      },
+      {
+        h: { en: "When the simple model wins", ja: "シンプルなモデルが勝つとき" },
+        p: {
+          en: "The random forest regressor looked brilliant in training (RMSE 4.02, R-squared 0.90) and fell apart on validation (RMSE 11.52), the signature of memorised noise. Plain linear regression trained worse and generalised better, so it won on the only number that matters, validation error, and landed at test RMSE 9.55 with R-squared 0.67. The classifier told a similar story: random forest beat XGBoost on validation F1 and finished at F1 0.66 with recall 0.61 on test. The write-up spells out what that buys: about six in ten risk-prone days caught, a decision-support tool rather than a sole source of truth, and extreme rainfall still under-predicted.",
+          ja: "ランダムフォレスト回帰は学習では見事な数字を出し(RMSE 4.02、決定係数0.90)、検証で崩れた(RMSE 11.52)。ノイズを暗記したモデルの典型だ。素朴な線形回帰は学習成績こそ劣るのに汎化で勝ち、唯一意味のある数字である検証誤差で選ばれて、テスト RMSE 9.55・決定係数0.67に着地した。分類側も同じ物語で、ランダムフォレストが XGBoost を検証F1で上回り、テストは F1 0.66・再現率0.61。この数字で何ができるかも明記した。雨リスクの高い日のおよそ6割を捕捉する、単独の真実ではなく意思決定を支援する道具。そして極端な豪雨はまだ過小予測する。",
+        },
+        img: ["weather-api-6", "weather-api-1"],
+      },
+      {
+        h: { en: "From notebook to a URL", ja: "ノートブックからURLへ" },
+        p: {
+          en: "Both models ship behind a FastAPI service, containerised with Docker so the environment cannot drift between laptop and cloud, deployed on Render with Swagger docs, one endpoint per question. It is not a demo shell: at request time the service fetches that day's weather from Open-Meteo, rebuilds the exact engineered features from training, and answers with a dated prediction. That is also why 2025 data was held out of training entirely: it is what the live service runs on.",
+          ja: "2つのモデルは FastAPI サービスとして配信する。Docker でコンテナ化して手元とクラウドの環境ズレをなくし、Render にデプロイ。Swagger ドキュメント付きで、質問ごとに1つのエンドポイントを持つ。デモの張りぼてではない。リクエストのたびに Open-Meteo からその日の気象データを取得し、学習時とまったく同じ特徴量をその場で再構築して、日付つきの予測を返す。2025年のデータを学習から完全に外したのはこのためだ。稼働中のサービスが走っているのは、その2025年の上なのだから。",
+        },
+        img: ["weather-api-7"],
       },
     ],
     code: {
@@ -570,7 +611,7 @@ xgb = XGBClassifier(
   {
     slug: "bitcoin-forecast",
     name: "Bitcoin Price Forecast",
-    tag: { en: "Advanced ML", ja: "Advanced ML" },
+    tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Predicting tomorrow's Bitcoin high, packaged as a working prediction API.",
       ja: "明日のビットコイン最高値を予測し、動く予測APIまでパッケージ。",
@@ -581,10 +622,20 @@ xgb = XGBClassifier(
     },
     body: [
       {
+        h: {
+          en: "Choosing the data like a trader",
+          ja: "データをトレーダーの目で選ぶ",
+        },
+        p: {
+          en: "The raw material is daily price history for Bitcoin, Ethereum, XRP and Solana. Two data decisions shaped everything, and both are argued in the notebook rather than assumed. XRP was cut after a dedicated check: its year-by-year correlation with Bitcoin swings between 0.38 and 0.74, too unstable to trust as a signal, while Ethereum (0.83) and Solana (0.84) hold steady. And joining Solana's shorter history trims the data to 2020 onward, a loss accepted deliberately: the pre-2020 market was retail-dominated, and next to today's institution-heavy flows it reads as historical noise. Splits are strictly chronological (1,027 train, 343 validation, 343 test days), so the model is always judged on days after everything it learned from.",
+          ja: "素材はビットコイン・イーサリアム・XRP・ソラナの日次価格。すべてを方向づけたデータの判断が2つあり、どちらも思い込みではなくノートブック上で論証している。XRP は専用の検証の末に除外した。ビットコインとの相関が年ごとに0.38〜0.74と揺れて信号として不安定な一方、イーサリアム(0.83)とソラナ(0.84)は安定して強い。そして履歴の短いソラナと結合するとデータは2020年以降に削れるが、その損失は意図して受け入れた。2020年以前は個人投資家中心の市場で、機関投資家が主導する現在と並べれば歴史的ノイズに近い。分割は厳密に時系列順(学習1,027日・検証343日・テスト343日)。モデルは常に、学習に使ったすべての日より後の日々で審判を受ける。",
+        },
+      },
+      {
         h: { en: "When the baseline broke", ja: "ベースラインが壊れたとき" },
         p: {
-          en: "Daily price data for Bitcoin, Ethereum and Solana from 2015 to 2025, split chronologically so the model never peeks at the future. The baseline predicted the price directly, and the test set showed exactly why that fails: when Bitcoin rallied past 100,000 dollars in late 2024, the model kept predicting the 65,000 dollar world it was trained in, off by 6,752 dollars on average.",
-          ja: "2015〜2025年のビットコイン・イーサリアム・ソラナの日次価格データを、未来を覗かないよう時系列で分割。ベースラインは価格そのものを予測したが、テストで弱点がそのまま出た。2024年末にビットコインが10万ドルを超えて急騰すると、モデルは学習した「6.5万ドルの世界」を出し続け、平均6,752ドルも外した。",
+          en: "The baseline predicted the price directly, and the test set showed exactly why that fails: when Bitcoin rallied past 100,000 dollars in late 2024, the model kept predicting the 65,000 dollar world it was trained in, off by 6,752 dollars on average. A regime shift is precisely where a price forecaster earns its keep, and precisely where a naive one collapses.",
+          ja: "ベースラインは価格そのものを予測した。そしてテストが、そのやり方が失敗する理由をそのまま見せてくれた。2024年末にビットコインが10万ドルを超えて急騰すると、モデルは学習した「6.5万ドルの世界」を出し続け、平均6,752ドルも外した。相場つきが変わる瞬間こそ予測モデルの出番であり、素朴なモデルが崩れる瞬間でもある。",
         },
         img: ["bitcoin-forecast-2"],
       },
@@ -594,8 +645,8 @@ xgb = XGBClassifier(
           ja: "価格ではなく、変化率を予測する",
         },
         p: {
-          en: "The fix was to change the question: predict how far tomorrow's high sits above today's close, as a ratio, with a quantile LightGBM. Momentum, volatility and volume features came from my own pip package, reused from the draft prediction project. Test error fell from 6,752 to 1,110 dollars, and the forecast tracks a rally it had never seen.",
-          ja: "解決策は問いの立て替えだった。「明日の最高値は今日の終値からどれだけ上か」を比率として、分位点LightGBMで予測する。モメンタム・ボラティリティ・出来高の特徴量は、ドラフト予測プロジェクトから再利用した自作pipパッケージ製。テスト誤差は6,752ドルから1,110ドルへ下がり、見たことのない急騰にも追従した。",
+          en: "The fix was to change the question: predict how far tomorrow's high sits above today's close, as a ratio, with a quantile LightGBM. Momentum, volatility and volume features came from my own pip package, reused from the draft prediction project. Two restraint decisions are documented rather than hidden: alpha 0.8 aims at the upper tail of the distribution, where a next-day high actually lives in a bullish regime, and there is deliberately no hyperparameter sweep, because naive cross-validated search leaks the future in time series and aggressively tuned parameters tend to memorise one market regime. Test error fell from 6,752 to 1,110 dollars, and the forecast tracks a rally it had never seen.",
+          ja: "解決策は問いの立て替えだった。「明日の最高値は今日の終値からどれだけ上か」を比率として、分位点LightGBMで予測する。モメンタム・ボラティリティ・出来高の特徴量は、ドラフト予測プロジェクトから再利用した自作pipパッケージ製。抑制の判断も2つ、隠さず記録している。alpha 0.8 は分布の上側の裾を狙う設定で、強気相場の「明日の最高値」が実際に住んでいる場所だ。そしてハイパーパラメータ探索は意図的にやらない。時系列で素朴な交差検証探索をすれば未来が漏れ、強くチューニングしたパラメータは特定の相場つきを暗記しがちだからだ。テスト誤差は6,752ドルから1,110ドルへ下がり、見たことのない急騰にも追従した。",
         },
         img: ["bitcoin-forecast-1", "bitcoin-forecast-3"],
       },
@@ -636,52 +687,6 @@ q_model = LGBMRegressor(
     ],
   },
   {
-    slug: "rental-regression",
-    name: "Rental Price Regression",
-    tag: { en: "Machine Learning", ja: "Machine Learning" },
-    desc: {
-      en: "Predicting fair rent across six Australian cities, motivated by my own housing hunt as an international student.",
-      ja: "豪州6都市の適正家賃を予測。留学生として自分が住まい探しに苦労した経験が動機。",
-    },
-    detail: {
-      en: "What is a fair rent for a given home? Messy listing data from six cities, cleaned carefully, engineered into features, and modelled, with the winner chosen for how well it handles homes it has never seen, not for how well it memorised the training data.",
-      ja: "その物件の家賃は妥当なのか。6都市分の汚い賃貸データを丁寧にクレンジングし、特徴量を設計してモデルを比較。訓練データをどれだけ暗記したかではなく、見たことのない物件をどれだけ正しく当てられるかでモデルを選んだ。",
-    },
-    body: [
-      {
-        h: { en: "Cleaning first", ja: "まずクレンジング" },
-        p: {
-          en: "Rentals across Sydney, Melbourne, Brisbane, Adelaide, Perth and Canberra came with the usual problems: 686 cross-split duplicates removed, unrealistic floor areas fixed, floor numbers extracted, and a target so skewed (skew 8.18) it needed a log transform down to 5.09 before any model could learn from it.",
-          ja: "シドニー・メルボルン・ブリスベン・アデレード・パース・キャンベラの賃貸データには、よくある問題があった。分割をまたぐ重複686件を除去し、非現実的な床面積を修正し、階数を抽出。目的変数は歪度8.18と偏りが激しく、モデルが学習できるよう対数変換で5.09まで落とした。",
-        },
-        img: ["rental-regression-3"],
-      },
-      {
-        h: { en: "Chosen for generalisation", ja: "汎化で選ぶ" },
-        p: {
-          en: "Across four experiment notebooks I compared linear regression (test RMSE 0.0702 on log-rent) and ElasticNet (0.0708) against a KNN model. The KNN with Manhattan distance at k equals 11 won at test RMSE 0.0649, chosen because its train and validation gap stayed small, not because it topped a single split.",
-          ja: "4本の実験ノートブックで、線形回帰(対数家賃のテストRMSE 0.0702)と ElasticNet(0.0708)を KNN と比較。マンハッタン距離・k=11 の KNN がテストRMSE 0.0649で最良となった。選定理由は、単一分割で首位だったからではなく、訓練と検証の差が小さく保たれたため。",
-        },
-        img: ["rental-regression-1", "rental-regression-2"],
-      },
-    ],
-    code: {
-      caption: {
-        en: "The final pick, with the losing option kept on record: euclidean vs manhattan at k=11, decided on the train/val/test spread (from experiment 3).",
-        ja: "最終選定。負けた案も記録に残す: k=11 でのユークリッド vs マンハッタン、train/val/test の広がりで判断(実験3より)。",
-      },
-      src: `# euclidean            # manhattan
-# n_neighbors = 11     n_neighbors = 11
-# p = 2                p = 1
-# train = 0.0452       # train = 0.0432
-# val   = 0.0472       # val   = 0.0443
-# test  = 0.0664       # test  = 0.0649  <- chosen
-
-knn_model = KNeighborsRegressor(n_neighbors=n_neighbors, p=p)
-knn_model.fit(X_train, y_train)`,
-    },
-  },
-  {
     slug: "student-performance",
     name: "Student Performance Prediction",
     tag: { en: "Machine Learning", ja: "Machine Learning" },
@@ -697,8 +702,8 @@ knn_model.fit(X_train, y_train)`,
       {
         h: { en: "A needle-in-a-haystack target", ja: "針の山から探すターゲット" },
         p: {
-          en: "The scenario: recommend the students most likely to finish with an Excellent result to industry partners for internships, before final grades exist. In 1,009 student records only 5.55 percent are Excellent, so plain accuracy is meaningless, and every design choice, from the stratified 60/20/20 split to tuning for F1, follows from that imbalance.",
-          ja: "シナリオはこうだ。最終成績が出る前に、Excellent 評価に到達しそうな学生を企業インターンへ推薦したい。1,009人の記録のうち該当者は5.55%だけなので、単純な正解率は意味を失う。層化した60/20/20分割からF1を目的関数にしたチューニングまで、設計判断はすべてこの不均衡から逆算した。",
+          en: "The scenario: recommend the students most likely to finish with an Excellent result to industry partners for internships, before final grades exist. In 1,009 student records only 5.55 percent are Excellent, so plain accuracy is meaningless: a model that says no to everyone is 94 percent accurate and completely useless. That framing drove every design choice. The cost of a miss is asymmetric (a false negative is a deserving student losing an opportunity, a false positive risks the programme's credibility with partners), so recall was prioritised, F1 became the tuning objective, and a two-stage stratified split kept the tiny minority class at the same 5.5 percent in train, validation and test.",
+          ja: "シナリオはこうだ。最終成績が出る前に、Excellent 評価に到達しそうな学生を企業インターンへ推薦したい。1,009人の記録のうち該当者は5.55%だけなので、単純な正解率は意味を失う。全員に「該当しない」と答えるだけのモデルでも正解率94%になり、しかも完全に役立たずだ。この認識が設計のすべてを決めた。見逃しのコストは非対称で、偽陰性は「本来推薦されるべき学生が機会を失う」こと、偽陽性は「推薦制度そのものの信用を削る」こと。だから再現率を優先し、チューニングの目的関数はF1にし、2段階の層化分割で5.5%の少数クラスを train/validation/test すべてに同じ比率で残した。",
         },
         img: ["student-performance-1"],
       },
@@ -708,18 +713,25 @@ knn_model.fit(X_train, y_train)`,
           ja: "しきい値ではなく、論理で洗う",
         },
         p: {
-          en: "The data forensics mattered as much as the modelling: first-semester students carrying a previous GPA (logically impossible), an admission year of 22022, a student studying 30 hours a day. One finding was counterintuitive enough to test properly: in this data, higher-performing students come from lower-income households, and a Welch t-test (p = 0.0000010756) confirmed it before the feature was kept.",
-          ja: "モデリングと同じくらい効いたのが、データの検死だった。1学期目なのに前学期のGPAを持つ学生(論理的にあり得ない)、入学年22022、1日30時間勉強する学生。直感に反する発見もあった。このデータでは成績上位の学生ほど世帯収入が低い。Welch のt検定(p = 0.0000010756)で確かめてから、この特徴量を採用した。",
+          en: "The data forensics mattered as much as the modelling, and the interesting rows fail by logic, not by magnitude: first-semester students carrying a previous GPA (impossible, so out), an admission year of 22022 (a typo, fixed), a student studying 30 hours a day (removed). Extreme household incomes were capped at the 95th percentile rather than deleted, because rich students are real even when their values distort a model. One finding was counterintuitive enough to test properly: in this data, higher-performing students come from lower-income households. Rather than trust the eyeball, a Welch t-test (p = 0.0000010756) settled it, and the feature stayed. A gpa_change feature (current minus previous GPA) was added to capture academic momentum, not just level.",
+          ja: "モデリングと同じくらい効いたのが、データの検死だった。面白い行は、大きさではなく論理で壊れている。1学期目なのに前学期のGPAを持つ学生(あり得ないので除外)、入学年22022(誤記なので修正)、1日30時間勉強する学生(除外)。極端な世帯収入は削除せず95パーセンタイルで上限を掛けた。値がモデルを歪めるとしても、裕福な学生は実在するからだ。直感に反する発見もあった。このデータでは成績上位の学生ほど世帯収入が低い。目視で信じ込まず Welch のt検定(p = 0.0000010756)で決着させ、特徴量として採用した。さらに「現在のGPA−前学期のGPA」の gpa_change を追加し、成績の水準ではなく勢いを捉えられるようにした。",
         },
         img: ["student-performance-2", "student-performance-3"],
       },
       {
-        h: { en: "A winner, and an honest ablation", ja: "勝者と、正直なアブレーション" },
+        h: { en: "The model tournament", ja: "モデルのトーナメント" },
         p: {
-          en: "The baseline logistic regression missed most top students (validation recall 0.36). The tuned random forest reached 0.91 precision and 0.91 recall on test, finding 10 of 11 Excellent students with one false positive. A final experiment then removed the categorical features the importance plot called useless, holding everything else fixed, and performance dropped. Hypothesis rejected, and recorded as such: weak features were contributing through interactions.",
-          ja: "ベースラインのロジスティック回帰は上位学生の大半を見逃した(検証再現率0.36)。調整済みランダムフォレストはテストで適合率0.91・再現率0.91に到達し、該当11人中10人を誤検知1件で発見した。最後の実験では、重要度プロットが「不要」と示したカテゴリ特徴量を、他の条件を固定したまま外してみた。結果は悪化。仮説は棄却され、そのまま記録した。弱い特徴量が相互作用を通じて効いていた。",
+          en: "Every model faced the same question: how many of the rare top students do you find, and at what cost? The baseline logistic regression looked respectable on paper but missed most of them (validation recall 0.36). A tuned random forest (randomised search over 30 configurations, scored on F1) lifted validation recall to 0.73 and reached 0.91 precision and 0.91 recall on test: 10 of the 11 Excellent students found, one false alarm. A tuned SVC matched it on test but was weaker where it counts, validation recall. KNN was the interesting loser: perfect precision (every student it flagged was truly Excellent) but recall 0.82, and a recommender that misses deserving students fails the brief. The forest won on the balance.",
+          ja: "すべてのモデルに同じ問いを課した。希少な上位学生を何人見つけ、その代償は何か。ベースラインのロジスティック回帰は一見悪くない数字を出しつつ、大半を見逃した(検証再現率0.36)。ランダムフォレストは30構成のランダム探索(評価はF1)でチューニングし、検証再現率を0.73へ引き上げ、テストでは適合率0.91・再現率0.91。該当11人中10人を発見し、誤検知は1件だった。調整済みSVCはテストでは並んだが、肝心の検証再現率で劣った。面白い敗者はKNNで、適合率は完璧(検知した学生は全員本当にExcellent)だったが再現率0.82。該当者を見逃す推薦システムは要件を満たさない。バランスでフォレストが勝った。",
         },
         img: ["student-performance-4"],
+      },
+      {
+        h: { en: "An honest ablation, honest limits", ja: "正直なアブレーションと、正直な限界" },
+        p: {
+          en: "The importance plot said the categorical features were nearly useless, so a final experiment removed them, holding everything else fixed, and performance dropped. The randomised search even landed on identical best parameters, which is what makes the conclusion clean: the drop came from the features, not from tuning luck. Hypothesis rejected, and recorded as rejected. The write-up is equally plain about limits: the test set holds only 11 Excellent students, so test metrics move in nine-point steps, and the model is framed as input to a human decision, with an eligibility rule on completed credits applied downstream rather than trusted as a model feature.",
+          ja: "重要度プロットは「カテゴリ特徴量はほぼ無意味」と示していた。そこで最後の実験では、他の条件を固定したままそれらを外した。結果は悪化。ランダム探索は同一のベストパラメータに到達しており、だからこそ結論がきれいに出る。悪化の原因はチューニングの運ではなく特徴量の除去だ。仮説は棄却され、棄却のまま記録した。限界も同じ調子で明記している。テストに含まれる Excellent 学生は11人しかいないため、テスト指標は約9ポイント刻みでしか動かない。そしてこのモデルは人間の判断への入力であり、履修単位数による適格性ルールはモデルの特徴量として信じ込むのではなく、判定の下流で適用する設計にした。",
+        },
       },
     ],
     code: {
@@ -766,18 +778,29 @@ for train_idx, val_idx in sss2.split(X_trainval, y_trainval):
         img: ["anomaly-detection-1"],
       },
       {
+        h: {
+          en: "Designing an unsupervised evaluation honestly",
+          ja: "教師なしの評価を、正直に設計する",
+        },
+        p: {
+          en: "Anomaly detection has no labels, so the discipline is in what you refuse to do. No train/test split, because the job is finding current anomalies in this customer base, not predicting future ones. No handcrafted features, because in an unsupervised task manual feature engineering quietly encodes what the analyst already believes an anomaly looks like. The 82 columns from the merged datasets were cut to 12 by rule: drop one of every pair correlated above 0.8, drop zero-variance columns, drop sparse country dummies. And the contamination setting of 5 percent is written down for what it is, a business assumption about how much abnormal behaviour a base like this can plausibly contain.",
+          ja: "異常検知には正解ラベルがない。だから規律は「何をやらないか」に宿る。train/test 分割はしない。仕事は将来の予測ではなく、いまの顧客ベースに潜む異常を見つけることだからだ。手作りの特徴量も入れない。教師なしタスクでの特徴量エンジニアリングは、「アナリストが異常だと思っている姿」を静かにモデルへ埋め込んでしまう。結合後の82列はルールで12列まで削った。相関0.8超のペアは片方を落とし、分散ゼロの列を落とし、スカスカの国ダミーを落とす。そして contamination 5% という設定は、「この規模の顧客ベースに異常がどれだけ含まれうるか」という業務仮定であることを、仮定として明記した。",
+        },
+        img: ["anomaly-detection-5"],
+      },
+      {
         h: { en: "Two detectors, one honest choice", ja: "2つの検出器と、正直な選定" },
         p: {
-          en: "On 7,043 merged customers and 12 selected features I compared Local Outlier Factor and Isolation Forest, each with and without PCA compression, under a stated business assumption that about 5 percent of records may be abnormal. Isolation Forest without PCA separated the anomalies most clearly, and that visible separation, not a leaderboard number, is the documented reason it won: the goal here was interpretability, not prediction.",
-          ja: "結合後の7,043人・選抜した12特徴量に対し、Local Outlier Factor と Isolation Forest を、PCA圧縮あり/なしの計4構成で比較した。前提に置いたのは「約5%は異常でありうる」という業務仮定。最も明確に異常を分離したのは PCA なしの Isolation Forest で、選定理由はスコアではなく分離の明瞭さだと記録している。ここでの目的は予測ではなく解釈だからだ。",
+          en: "On 7,043 merged customers and the 12 selected features I compared Local Outlier Factor and Isolation Forest, each with and without PCA compression (8 components, chosen because they hold about 80 percent of the variance). No grid search, deliberately: with no labels there is no score to optimise without fooling yourself, so the four configurations were judged on how cleanly they separate the flagged group in projection plots and score distributions. Isolation Forest without PCA separated the anomalies most clearly, and that visible separation is the documented reason it won: the goal here was interpretability, not prediction.",
+          ja: "結合後の7,043人・選抜した12特徴量に対し、Local Outlier Factor と Isolation Forest を、PCA圧縮あり/なし(8成分、分散の約80%を保持するため)の計4構成で比較した。グリッドサーチは意図的にやらない。ラベルがない以上、最適化できるスコアは存在せず、やれば自分を騙すだけだからだ。代わりに4構成を、射影プロットとスコア分布で「検出群がどれだけ明瞭に分離するか」で判定した。最も明確に分離したのは PCA なしの Isolation Forest。その目に見える分離こそが採用理由だと記録している。ここでの目的は予測ではなく解釈だからだ。",
         },
         img: ["anomaly-detection-2"],
       },
       {
         h: { en: "What the anomalies turned out to be", ja: "異常の正体" },
         p: {
-          en: "The flagged customers average 13.55 in refunds against 1.33 for normal customers, 55.44 in extra data charges against 4.28, with markedly higher downloads, tenure and referrals. The key finding: a customer extreme on one axis alone is usually normal; the anomalies are extreme on several axes at once. For a risk team that reads as refund policy abuse, referral fraud and missed upsell opportunities, and every flagged case routes to human review.",
-          ja: "検出された顧客は、返金が平均13.55(通常群1.33)、追加データ課金が55.44(通常群4.28)、ダウンロード量・契約期間・紹介数も際立って高い。重要な発見は、1つの軸だけ極端な顧客はおおむね正常で、異常は複数の軸が同時に極端だということ。リスク管理チームの目には返金制度の悪用、紹介の不正、アップセルの機会損失として映る。検出された案件は必ず人間のレビューに回す設計にした。",
+          en: "The flagged customers average 13.55 in refunds against 1.33 for normal customers, 55.44 in extra data charges against 4.28, with markedly higher downloads, tenure and referrals. The counterexamples prove the point: customers with refunds of 30, double the anomaly average, still score as normal when their other axes are ordinary. One extreme value is just a heavy user; several at once is a pattern. For a risk team those patterns read as refund policy abuse, referral fraud and missed upsell opportunities, and every flagged case routes to human review before anyone acts on it.",
+          ja: "検出された顧客は、返金が平均13.55(通常群1.33)、追加データ課金が55.44(通常群4.28)、ダウンロード量・契約期間・紹介数も際立って高い。反例がこの結果の意味を証明する。返金が30と異常群平均の2倍を超える顧客でも、他の軸が普通なら正常と判定される。1軸の極端値はただのヘビーユーザーで、複数軸の同時の極端さこそがパターンなのだ。リスク管理チームの目には、返金制度の悪用、紹介の不正、アップセルの機会損失として映る。そして検出された案件は、誰かが動く前に必ず人間のレビューを通す設計にした。",
         },
         img: ["anomaly-detection-3", "anomaly-detection-4"],
       },
@@ -820,25 +843,36 @@ df_analysis['is_anomaly'] = df_analysis['if_score'] < 0`,
       {
         h: { en: "Files in, one table out", ja: "ファイルを入れ、テーブル1枚を出す" },
         p: {
-          en: "Trending videos arrive as one CSV per country plus nested JSON category definitions. An external stage lets Snowflake read the files where they sit in Azure Blob Storage; the country code is derived from each file name, the JSON is flattened in SQL, and everything joins into a single 2,667,041 row table with a surrogate key. No scripts outside the warehouse: ingestion is SQL end to end.",
-          ja: "トレンド動画は国ごとのCSVと、入れ子になったJSONのカテゴリ定義で届く。外部ステージを使えば Snowflake は Azure Blob Storage 上のファイルをその場で読める。国コードはファイル名から導出し、JSONはSQLで展開し、すべてを結合して2,667,041行のテーブル1枚に集約する。ウェアハウスの外にスクリプトは置かない。取り込みまで含めて、端から端までSQLで完結させた。",
+          en: "Trending videos arrive as one CSV per country plus nested JSON category definitions. An external stage lets Snowflake read the files where they sit in Azure Blob Storage; the country code is derived from each file name, and the JSON is flattened in SQL. One subtlety matters: the same category id means different things in different countries, so the join key is composite (country plus category id), and every row receives a generated id, which is what later lets the cleaning delete exact duplicates safely. Everything lands in a single 2,667,041 row table, and ingestion is SQL end to end, with no scripts outside the warehouse.",
+          ja: "トレンド動画は国ごとのCSVと、入れ子になったJSONのカテゴリ定義で届く。外部ステージを使えば Snowflake は Azure Blob Storage 上のファイルをその場で読める。国コードはファイル名から導出し、JSONはSQLで展開する。効いてくる細部が1つ。同じカテゴリIDでも国によって意味が違うため、結合キーは複合(国×カテゴリID)にした。さらに全行に生成IDを振ってあり、これが後のクレンジングで重複を安全に消せる理由になる。すべては2,667,041行のテーブル1枚に集約され、取り込みは端から端までSQL。ウェアハウスの外にスクリプトは置かない。",
         },
         img: ["youtube-lakehouse-1"],
       },
       {
         h: { en: "Cleaning as queries", ja: "クレンジングもクエリで" },
         p: {
-          en: "Duplicate trending records were fenced off with a window function (one row per video, country and trending date), corrupted video ids deleted, and a missing category label repaired with an update, taking the table from 2,667,041 to 2,597,494 rows with every step verified by a count. Each fix is documented next to its query, so the cleaning reads like code review material, not a mystery.",
-          ja: "重複したトレンド記録はウィンドウ関数で仕分け(動画×国×日付で1行)、破損した動画IDは削除、欠けていたカテゴリ名はUPDATEで修復。テーブルは2,667,041行から2,597,494行になり、各ステップを件数で検証した。どの修復が何のためかもクエリの隣に記録してあり、クレンジング自体がレビューできる資料になっている。",
+          en: "The same video can trend in the same country on the same day more than once in the raw data, so a window function ranks the duplicates by view count and keeps the highest, the most representative record of that day. Corrupted video ids were deleted, a missing category label was repaired with an update after a cross-country comparison identified what it should be, and the table went from 2,667,041 to 2,597,494 rows with every step verified by a count. Each fix is documented next to its query, so the cleaning reads like code review material, not a mystery.",
+          ja: "生データでは、同じ動画が同じ国・同じ日に複数回記録されていることがある。そこでウィンドウ関数で重複を再生数順に順位づけし、その日を最もよく代表する最大再生数の1行だけを残した。破損した動画IDは削除し、欠けていたカテゴリ名は他国との突き合わせで正体を特定してからUPDATEで修復。テーブルは2,667,041行から2,597,494行になり、各ステップを件数で検証した。どの修復が何のためかもクエリの隣に記録してあり、クレンジング自体がレビューできる資料になっている。",
         },
+      },
+      {
+        h: {
+          en: "Reading the numbers like an analyst",
+          ja: "数字をアナリストの目で読む",
+        },
+        p: {
+          en: "Averages alone would have told the wrong story. Film and animation tops average views (2.85 million), but the average is hostage to a few monster hits; on the median, comedy jumps to second (739 thousand, above science and technology's 636), meaning its performance is consistent rather than lottery-shaped. The country cut adds the caution: entertainment dominates almost everywhere, up to 42.35 percent of trending videos in India, except Canada and the United States, where gaming leads. And as a cross-border sanity check, videos mentioning BTS trended 468 times in Korea, 288 in India and 268 in the United States.",
+          ja: "平均値だけ見ていたら、間違った物語を信じるところだった。平均再生数の1位は映画・アニメーション(285万)だが、平均は一握りの怪物ヒットに引きずられる。中央値で見るとコメディが2位に浮上し(73.9万、科学技術の63.6万を上回る)、当たり外れの宝くじ型ではなく、安定して打てるカテゴリだと分かる。国別の集計は注意点を足してくれる。エンタメはほぼ全ての国で首位で、インドではトレンド動画の42.35%を占める。ただしカナダとアメリカだけはゲームが首位だ。国境を越える力の確認として、BTS に触れた動画は韓国で468本、インドで288本、アメリカで268本トレンド入りしていた。",
+        },
+        img: ["youtube-lakehouse-3", "youtube-lakehouse-4"],
       },
       {
         h: { en: "The business answer", ja: "ビジネスへの答え" },
         p: {
-          en: "The brief: which category should a new channel bet on, with music and entertainment excluded, and does the answer hold across countries? Comedy took the highest average like ratio of any category (6.19, ahead of education at 5.42), stayed strong across markets, and the write-up lands on a concrete strategy: comedy that leans on visuals over language travels best.",
-          ja: "問いは「音楽とエンタメを除いたとき、新しいチャンネルはどのカテゴリに賭けるべきか。その答えは国を跨いでも成立するか」。平均like率はコメディが全カテゴリ1位(6.19、2位は教育の5.42)で、市場を跨いでも強い。レポートの結論は具体的で、言語に頼らず映像で笑わせるコメディが一番遠くまで届く、という戦略に落ちた。",
+          en: "The brief: which category should a new channel bet on, with music and entertainment excluded, and does the answer hold across countries? Comedy took the highest average like ratio of any category (6.19, ahead of education at 5.42), held the strongest median-to-average consistency, and trended in volume everywhere from India (2,995 distinct videos) to Mexico (512). The recommendation lands as a concrete strategy, quoted from the report: comedy shorts without spoken language, balancing global accessibility with strong engagement.",
+          ja: "問いは「音楽とエンタメを除いたとき、新しいチャンネルはどのカテゴリに賭けるべきか。その答えは国を跨いでも成立するか」。平均like率はコメディが全カテゴリ1位(6.19、2位は教育の5.42)。中央値と平均の整合も最も安定していて、トレンド入りの本数もインドの2,995本からメキシコの512本まで全市場に届いていた。結論は具体的な戦略として着地する。レポートの言葉を借りれば、「話し言葉に頼らないコメディショート」。世界への届きやすさと高いエンゲージメントを両立させる選択だ。",
         },
-        img: ["youtube-lakehouse-2"],
+        img: ["youtube-lakehouse-2", "youtube-lakehouse-5"],
       },
     ],
     code: {
@@ -880,24 +914,32 @@ ORDER BY year_month, country;`,
       {
         h: { en: "A billion-row table, cleaned by rules", ja: "10億行規模を、ルールで洗う" },
         p: {
-          en: "Yellow and green cab records from 2014 to 2024 arrive with impossible trips: pickups after dropoffs, 120 kilometre-per-hour averages, one-minute rides, thousand-dollar fares. Nine explicit rules remove them, the two fleets are unified into one schema, and the result is a 964,078,678 row Delta table with borough names joined on. Every rule is written down, so the cleaning is an argument, not a black box.",
-          ja: "2014〜2024年のイエロー/グリーンキャブの記録には、あり得ない乗車が混ざっている。降車時刻が乗車より先、平均時速120km、1分間の乗車、1,000ドルの運賃。9つの明示的なルールでそれらを除去し、2系統のスキーマを統一して、行政区名を結合した964,078,678行の Delta テーブルに仕上げた。ルールはすべて文章化してあり、クレンジングはブラックボックスではなく論証になっている。",
+          en: "Yellow and green cab records from 2014 to 2024 arrive with impossible trips: pickups after dropoffs, 120 kilometre-per-hour averages, one-minute false starts, fares below New York's 3.30 dollar base fare and above 1,000. Nine explicit rules remove them, each reporting how many rows it dropped, under a brief that capped total data loss at 10 percent. The two fleets speak different schemas (tpep against lpep timestamps, fees that exist on one fleet only), so they are unified into one, tagged by colour, enriched with borough names by broadcasting the tiny zone table against the billion-row one, and stored as a 964,078,678 row Delta table so downstream steps never recompute from raw.",
+          ja: "2014〜2024年のイエロー/グリーンキャブの記録には、あり得ない乗車が混ざっている。降車時刻が乗車より先、平均時速120km、1分間の空発車、ニューヨークの初乗り3.30ドルを下回る運賃や1,000ドル超の運賃。9つの明示的なルールでそれらを除去し、各ルールが何行落としたかを毎回報告する。課題の制約は「総削除は10%以内」。2系統はスキーマも方言も違う(tpep と lpep のタイムスタンプ、片方にしか無い手数料列)ので、1つに統一して色タグを付け、小さなゾーン表を10億行側へブロードキャスト結合して行政区名を付与し、964,078,678行の Delta テーブルとして保存した。下流の処理が生データから再計算しない構えだ。",
         },
-        img: ["nyc-taxi-2"],
+        img: ["nyc-taxi-3"],
       },
       {
         h: { en: "What a billion trips say", ja: "10億件が語ること" },
         p: {
-          en: "Spark SQL over the full table answers the operator questions: trips inside Manhattan carry 61.9 percent of 2024 revenue; 63.07 percent of trips tip at all, while only 0.83 percent of tippers give 15 dollars or more; and for a driver, trips under five minutes earn the best rate per kilometre (6.42 dollars) at an estimated 58.10 dollars per hour. The heaviest of these queries crosses roughly a billion rows in about a minute.",
-          ja: "全量に対する Spark SQL が、現場の問いに答えていく。2024年の売上の61.9%はマンハッタン内の移動が占める。チップが発生する乗車は63.07%ある一方、15ドル以上払う人はそのうち0.83%だけ。ドライバーにとっては5分未満の乗車がキロ単価最高(6.42ドル)で、推定時給は58.10ドル。一番重いクエリでも、約10億行を1分前後で走り切る。",
+          en: "Spark SQL over the full table answers the operator questions. Trips inside Manhattan carry 61.9 percent of 2024 revenue (696 million dollars), with Queens-to-Manhattan a distant second at 15.5. Tipping has a shape: 63.07 percent of trips tip at all, but only 0.83 percent of tippers give 15 dollars or more, roughly one generous tip in 190 trips. For a driver the trade is explicit: half-hour-plus trips pay the best hourly rate (66.48 dollars) but arrive rarely, while under-five-minute hops pay the best rate per kilometre (6.42 dollars) at a solid 58.10 per hour, and the write-up argues that is the sustainable optimum. The heaviest of these queries crosses roughly a billion rows in about a minute.",
+          ja: "全量に対する Spark SQL が、現場の問いに答えていく。2024年の売上の61.9%(6.96億ドル)はマンハッタン内の移動が占め、2位のクイーンズ→マンハッタンは15.5%と大差がつく。チップにも形がある。チップが発生する乗車は63.07%ある一方、15ドル以上払う人はそのうち0.83%。気前のいいチップはおよそ190乗車に1回だ。ドライバーにとっての損得も明示的で、30分超の乗車は時給最高(66.48ドル)だが滅多に来ない。5分未満の短距離はキロ単価最高(6.42ドル)で時給も58.10ドルと堅く、レポートはこちらを持続可能な最適解と論じている。一番重いクエリでも、約10億行を1分前後で走り切る。",
         },
-        img: ["nyc-taxi-1"],
+        img: ["nyc-taxi-2", "nyc-taxi-1"],
+      },
+      {
+        h: { en: "The patterns underneath", ja: "その下にあるパターン" },
+        p: {
+          en: "The rhythm of the city is in the aggregates: volumes peak in July and December and on Fridays, evenings from five to eight are the busiest hours, and the average trip carries just 1.2 to 1.4 passengers. The efficiency cut explains driver economics from the cost side: trips under ten minutes are the least cost-efficient for the passenger (0.16 km per dollar) because fixed fares and surcharges dominate short rides. Even the trips-per-hour estimate is honest about the real world: it assumes a four-minute turnaround between fares rather than pretending drivers teleport to the next pickup.",
+          ja: "街のリズムは集計に現れる。乗車数のピークは7月と12月、曜日では金曜、時間帯では夕方5〜8時。平均乗車人数はわずか1.2〜1.4人だ。効率の断面はドライバー経済学をコスト側から説明する。10分未満の乗車は乗客にとって最も割高(1ドルあたり0.16km)で、固定運賃と加算料金が短距離を支配するからだ。時間あたり乗車数の見積もりも現実に正直で、次の客まで4分の切り替え時間を仮定に置いている。ドライバーが次の乗客へ瞬間移動する、とは仮定しない。",
+        },
+        img: ["nyc-taxi-4", "nyc-taxi-5"],
       },
       {
         h: { en: "A fare model on top", ja: "仕上げに運賃モデル" },
         p: {
-          en: "The prediction target is the total fare, split by time so the model is judged on genuinely future trips: everything to September 2024 trains, October onward tests. A group-average baseline computed in Spark over all 953 million training rows lands at RMSE 17.10; a linear model cuts it to 13.28 and a tuned gradient boosting model to 12.26. The write-up is honest about what that buys: good enough for aggregate planning, not for quoting a single trip.",
-          ja: "予測対象は運賃総額。2024年9月までを学習、10月以降をテストという時間分割にして、本当に未来の乗車で評価する。9.5億行の学習データ全量から Spark で計算したグループ平均ベースラインは RMSE 17.10。線形モデルで13.28、チューニングした勾配ブースティングで12.26まで削減した。この精度で何ができるかも正直に書いた。集計ベースの計画には十分、1回の乗車への運賃提示にはまだ足りない。",
+          en: "The prediction target is the total fare, split by time so the model is judged on genuinely future trips: everything to September 2024 trains, October onward tests. The baseline is computed honestly at full scale, a group-average fare over all 953 million training rows in Spark, landing at RMSE 17.10. The learned models trained on a 1 percent sample, a documented constraint (full-data training exceeded the cluster's memory), and still cut the error: 13.28 for a linear model, 12.26 for tuned gradient boosting. The write-up translates that plainly: an average miss near 10 dollars is fine for daily or borough-level planning where errors cancel, and not good enough to quote a single trip's fare.",
+          ja: "予測対象は運賃総額。2024年9月までを学習、10月以降をテストという時間分割にして、本当に未来の乗車で評価する。ベースラインは全量で正直に計算した。9.5億行の学習データすべてから Spark でグループ平均運賃を出し、RMSE 17.10。学習モデル側は1%サンプルで訓練した。全量学習はクラスタのメモリ上限を超えるという制約を明記したうえでだ。それでも誤差は削れて、線形モデルで13.28、チューニングした勾配ブースティングで12.26。この数字の意味も平易な言葉に訳してある。平均10ドル前後の外れは、誤差が相殺される日次・行政区レベルの計画には十分。1回の乗車の運賃提示には、まだ足りない。",
         },
       },
     ],
@@ -937,17 +979,25 @@ pred_baseline = (
       {
         h: { en: "The pipeline", ja: "パイプライン" },
         p: {
-          en: "Sydney Airbnb listings from May 2020 to April 2021 were enriched with ABS 2016 Census data and NSW LGA mapping, moved through bronze, silver and gold Medallion layers on Cloud SQL Postgres, and modelled as a star schema with SCD Type 2 snapshot dimensions so history is preserved across monthly, idempotent loads.",
-          ja: "2020年5月〜2021年4月のシドニーのAirbnbリスティングを、ABS 2016年国勢調査データとNSWのLGAマッピングで拡張。Cloud SQL(PostgreSQL)上で Bronze・Silver・Gold の Medallion 層を通し、SCD Type 2 のスナップショット次元を持つスタースキーマとしてモデル化。月次・冪等なロードで履歴を保持する。",
+          en: "Sydney Airbnb listings from May 2020 to April 2021, enriched with ABS 2016 Census data and NSW council-area mapping. Airflow on Cloud Composer lands each month's raw CSVs from cloud storage into its own bronze table, untouched and stamped with source-file and load-time audit columns, so any single month can be rerun without disturbing the others. From there dbt takes over: 17 version-controlled models and one snapshot transform bronze through silver into a gold star schema, and 12 tests on the fact table (uniqueness, not-null, referential integrity, value ranges) run with every build, so a bad load fails loudly instead of quietly corrupting the numbers.",
+          ja: "2020年5月〜2021年4月のシドニーのAirbnbリスティングを、ABS 2016年国勢調査データとNSWの行政区マッピングで拡張。Cloud Composer 上の Airflow が毎月の生CSVをクラウドストレージから月ごとの Bronze テーブルへ、無加工のまま取り込み、ソースファイル名とロード時刻の監査列を刻む。だからどの月も、他の月を乱さずに単独で再実行できる。そこから先は dbt の仕事だ。バージョン管理された17モデルと1スナップショットが Bronze から Silver、Gold のスタースキーマへ変換し、ファクトテーブルには12のテスト(一意性・非NULL・参照整合性・値域)がビルドのたびに走る。不正なロードは静かに数字を汚すのではなく、大きな音を立てて失敗する。",
         },
         img: ["cloud-elt-1", "cloud-elt-2"],
       },
       {
+        h: { en: "History that does not lie", ja: "嘘をつかない履歴" },
+        p: {
+          en: "A host's superhost badge changes over time, and analysis goes wrong quietly if June's numbers get judged with December's status. The host dimension is therefore an SCD Type 2 snapshot: each change opens a new versioned row, and every monthly fact joins to the host's state as of that month. This design also produced the project's best war story: snapshotting across twelve months of raw data first ran for over five hours, until a staging model using a window function reduced the input to genuine change points only, turning the run practical. Preserving history is cheap; preserving it naively is not.",
+          ja: "ホストのスーパーホスト認定は時間とともに変わる。6月の数字を12月のステータスで評価してしまうと、分析は静かに狂う。だからホスト次元は SCD Type 2 のスナップショットにした。変化のたびに新しいバージョン行が開き、毎月のファクトは「その月時点」のホストの状態と結合される。この設計は、このプロジェクト一番の実戦談も生んだ。12ヶ月分の生データへのスナップショットは当初5時間超も走り続け、ウィンドウ関数で「本当に変化した時点」だけに入力を絞るステージングモデルを挟んでようやく実用になった。履歴の保持は安い。素朴にやると、高くつく。",
+        },
+      },
+      {
         h: { en: "What the data said", ja: "データが語ったこと" },
         p: {
-          en: "The gold layer answered real questions: median host age correlated with revenue at Pearson r around 0.737, 79.4 percent of multi-listing hosts stayed within a single LGA, and entire-home listings sized for two to four guests maximised stays. The point of the engineering is that these answers are reproducible, not one-off queries.",
-          ja: "Gold層は実際の問いに答えた。ホストの年齢中央値と売上はピアソン相関 約0.737、複数物件を持つホストの79.4%が単一LGA内にとどまり、2〜4人向けの一棟貸しが宿泊数を最大化した。エンジニアリングの意義は、これらの答えが使い捨てクエリではなく再現可能である点にある。",
+          en: "The gold layer answered real questions, reproducibly. Median host age correlates with revenue at Pearson r around 0.737, 79.4 percent of multi-listing hosts stay within a single council area, and entire homes for two to four guests maximise stays. The demographic cut shows a roughly sevenfold revenue spread between the best and worst areas. And the census join earns its keep in one finding: even in the strongest area, a single-listing host's annual Airbnb revenue covers only about half the median mortgage, so the report concludes Airbnb income alone rarely carries a mortgage outside top-demand areas.",
+          ja: "Gold層は実際の問いに、再現可能な形で答えた。ホストの年齢中央値と売上はピアソン相関約0.737。複数物件ホストの79.4%は単一の行政区にとどまり、2〜4人向けの一棟貸しが宿泊数を最大化する。人口統計の断面では、最強エリアと最弱エリアの売上に約7倍の開きが出た。そして国勢調査を結合した甲斐は、1つの発見に集約される。最強エリアですら、1物件ホストの年間Airbnb収入は住宅ローン中央値の約半分にしか届かない。レポートの結論はこうだ。人気エリアの外では、Airbnb収入だけでローンを支えるのはまず難しい。",
         },
+        img: ["cloud-elt-3", "cloud-elt-4"],
       },
     ],
     code: {
@@ -995,25 +1045,37 @@ def _download_from_gcs(gcs_path: str, **_):
       {
         h: { en: "The dataset and the task", ja: "データセットと課題" },
         p: {
-          en: "VizWiz-Captions is built from photos taken by blind users, so images are often blurred, off-centre or poorly lit, which makes captioning genuinely hard. In a group of six, I built and owned two models end to end and evaluated them on BLEU-1 through BLEU-4 over a 1,131-image test split.",
-          ja: "VizWiz-Captions は視覚障害のあるユーザーが撮った写真からなり、ブレ・見切れ・暗所が多く、キャプション生成は本当に難しい。6人チームの中で、私は2つのモデルを端から端まで自分で構築し、1,131枚のテスト分割で BLEU-1〜BLEU-4 により評価した。",
+          en: "VizWiz-Captions is built from photos taken by blind users, so images are often blurred, off-centre or poorly lit, and 13.3 percent of the raw captions are the pre-canned quality rejection sentence. After filtering, 7,532 images and 32,619 usable captions remained, with a 3,738-word vocabulary (words seen at least five times) and an image-level 70/15/15 split so no photo leaks between train and test. In a group of six, I built and owned two models end to end and evaluated them on BLEU-1 through BLEU-4 over the 1,131-image test split.",
+          ja: "VizWiz-Captions は視覚障害のあるユーザーが撮った写真からなり、ブレ・見切れ・暗所が多い。生のキャプションの13.3%は「画質が悪すぎて説明不能」という定型の却下文だ。フィルタ後に残ったのは7,532枚の画像と32,619本の使えるキャプション。語彙は出現5回以上の3,738語に絞り、学習とテストの間で写真が漏れないよう画像単位で70/15/15に分割した。6人チームの中で、私は2つのモデルを端から端まで自分で構築し、1,131枚のテスト分割で BLEU-1〜BLEU-4 により評価した。",
         },
       },
       {
-        h: { en: "Baseline to Transformer", ja: "ベースラインからTransformerへ" },
+        h: { en: "Two models, one variable", ja: "2つのモデル、変えるのは1点だけ" },
         p: {
-          en: "The baseline paired a frozen EfficientNet-B0 encoder with a GRU decoder and greedy decoding, reaching BLEU-1 0.5278. The refined model swapped in a Transformer decoder with beam search (beam 5), lifting BLEU-1 to 0.5644 and BLEU-4 to 0.1416. My models are individually attributed in the delivered notebook.",
-          ja: "ベースラインは、凍結した EfficientNet-B0 エンコーダに GRU デコーダとグリーディ復号を組み合わせ、BLEU-1 0.5278。改良版は Transformer デコーダとビームサーチ(ビーム幅5)に置き換え、BLEU-1 を 0.5644、BLEU-4 を 0.1416 に引き上げた。提出ノートブックは個人名義で記録されている。",
+          en: "The comparison is designed like an experiment: the encoder stays identical and frozen, and only the decoder paradigm changes. Freezing EfficientNet-B0 (chosen for ResNet-50-level accuracy at roughly a fifth of the compute) means the costly image pass is paid once: all 7,532 feature maps are cached to disk, and an epoch then takes 7 to 12 seconds on a free Kaggle GPU. The baseline decodes with a single GRU fed one compressed image vector, deliberately the simplest classic design. The refined model is a three-layer Transformer decoder that cross-attends to all 49 spatial regions of the image at every word, so it never has to remember the picture through a bottleneck.",
+          ja: "比較は実験として設計した。エンコーダは両モデルで同一・凍結のまま、変えるのはデコーダの方式だけ。EfficientNet-B0(ResNet-50 級の精度を約5分の1の計算量で出すために選定)を凍結すると、高コストな画像処理は一度きりで済む。7,532枚分の特徴マップをディスクにキャッシュし、以後は1エポック7〜12秒、無料の Kaggle GPU で回る。ベースラインは、1本に圧縮した画像ベクトルを受け取る単層GRUで、意図的に「最も素朴な古典設計」にした。改良版は3層の Transformer デコーダで、単語を1つ生成するたびに画像の49領域すべてを見にいく。絵の記憶をボトルネック越しに保つ必要が、そもそもない。",
         },
-        img: ["image-captioning-3"],
+        img: ["image-captioning-4", "image-captioning-3"],
+      },
+      {
+        h: { en: "Beam search with guardrails", ja: "ガードレール付きビームサーチ" },
+        p: {
+          en: "The decoding constraints map one-to-one to failures observed in the baseline's outputs: unknown-token flooding on text-heavy photos like medicine labels (so unknown is masked), captions collapsing to nothing (so a minimum length), and \"that says that says\" loops (so a repetition penalty). Beam search runs five candidates with length normalisation, engineered so all beams share one cached image encoding and batch through the decoder together. The result: BLEU-1 rose from 0.5278 to 0.5644 and BLEU-4 from 0.1365 to 0.1416, and it happened while validation loss got worse, a documented reminder that loss and caption quality are different judges. A cross-team finding landed too: my simple baseline matched a teammate's attention model built on ResNet-50, meaning the encoder choice bought more than the attention did on that stack.",
+          ja: "復号の制約は、ベースラインの出力で実際に観察した失敗と1対1で対応している。薬のラベルのような文字だらけの写真で未知語が氾濫する(だから未知語をマスク)、キャプションが空同然に崩壊する(だから最小長)、「that says that says」のループ(だから繰り返しペナルティ)。ビームサーチは長さ正規化つきで5候補を走らせ、全ビームが1つのキャッシュ済み画像エンコードを共有してデコーダをまとめて通るよう実装した。結果、BLEU-1 は 0.5278 から 0.5644 へ、BLEU-4 は 0.1365 から 0.1416 へ上昇。しかも検証損失は悪化しながらの上昇で、損失とキャプションの質は別の審判だという教訓を記録に残した。チーム横断の発見もあった。私の素朴なベースラインは、ResNet-50 上に注意機構を載せたチームメイトのモデルと BLEU-4 で並んだ。このスタックでは、注意機構よりエンコーダの選択のほうが効いていたのだ。",
+        },
       },
       {
         h: { en: "Looking inside the model", ja: "モデルの中を見る" },
         p: {
-          en: "The gallery below is straight from the delivered notebook: both models' captions against the human references on twelve test photos, and the Transformer's cross-attention heatmaps, where the word \"barcode\" visibly attends to the barcode in the image. Seeing where the model looks is how you debug a captioner.",
-          ja: "下のギャラリーは提出ノートブックの出力そのまま。テスト12枚に対する両モデルのキャプションと人間の正解の比較、そして Transformer のクロスアテンション。「barcode」という単語の生成時に、モデルが実際に画像内のバーコードを見ているのが分かる。モデルがどこを見ているかを可視化することが、キャプション生成モデルのデバッグになる。",
+          en: "The figures below are straight from the delivered notebook: both models' captions against the human references on twelve test photos, and the Transformer's cross-attention heatmaps. The word \"barcode\" visibly attends to the barcode; on a chocolate package the words are wrong but the attention sits exactly on the lettering, which pins the remaining failures where the report puts them: vocabulary and object naming, colour swaps and guessed label text, not broken visual grounding. Seeing where the model looks is how you debug a captioner.",
+          ja: "下の図は提出ノートブックの出力そのまま。テスト12枚に対する両モデルのキャプションと人間の正解の比較、そして Transformer のクロスアテンションだ。「barcode」という単語は画像内のバーコードをはっきり見ている。チョコレートのパッケージでは単語こそ間違えたが、注意は文字の上に正確に乗っている。つまり残る失敗の在り処は、レポートの分析どおり語彙と物体の名づけ、色の取り違え、ラベル文字の当て推量であって、視覚の接地が壊れているのではない。モデルがどこを見ているかを可視化することが、キャプション生成モデルのデバッグになる。",
         },
-        img: ["image-captioning-2", "image-captioning-1"],
+        img: [
+          "image-captioning-2",
+          "image-captioning-5",
+          "image-captioning-6",
+          "image-captioning-1",
+        ],
       },
     ],
     code: {
