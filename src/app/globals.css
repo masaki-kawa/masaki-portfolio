@@ -2124,6 +2124,9 @@ a.w-comcard:hover .w-slide-open i {
   font-weight: 600;
   letter-spacing: 0.015em;
   line-height: 1.42;
+  text-wrap: balance;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* work carousel hint */

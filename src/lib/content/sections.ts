@@ -132,7 +132,7 @@ export const SECTION = {
     labelJa: "連絡先",
     headline: {
       en: "Let's talk. On Sydney time, or Tokyo time.",
-      ja: "話しましょう。シドニー時間でも、東京時間でも。",
+      ja: "話しましょう。シドニーでも、東京でも。",
     },
     tagline: {
       en: "I work across data and AI, between Japan and Australia. Say hello.",
