@@ -869,7 +869,13 @@ export function World() {
       (entries) => {
         for (const e of entries) {
           if (e.isIntersecting) {
-            e.target.classList.add("is-in");
+            /* data attribute, not classList: some .w-reveal nodes have a
+               className that is recomputed from `lang` (e.g. SectionHead's
+               serif headline). React overwrites the whole className string
+               on every re-render, which would silently wipe an "is-in"
+               class added here outside React. A data attribute lives
+               alongside className and survives those re-renders. */
+            (e.target as HTMLElement).dataset.in = "true";
             io.unobserve(e.target);
           }
         }
