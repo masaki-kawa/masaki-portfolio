@@ -1,10 +1,58 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLang } from "@/components/lang-provider";
 import { WORK, RESEARCH, COMMUNITY, type Localized } from "@/lib/content/work";
 import { GlassFilter } from "@/components/world/GlassFilter";
 import { Media } from "@/components/world/Media";
+
+/* In-section product recording: ambient loop plus a corner button that
+   steps a quarter of the way through, so a reader can hop between the
+   stages of a flow without scrubbing. */
+function SectionVideo({ src, next }: { src: string; next: string }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) el.play().catch(() => {});
+        else el.pause();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const step = () => {
+    const el = ref.current;
+    if (!el || !el.duration) return;
+    const chunk = el.duration / 4;
+    const target = (Math.floor(el.currentTime / chunk) + 1) * chunk;
+    el.currentTime = target >= el.duration - 0.5 ? 0 : target;
+    el.play().catch(() => {});
+  };
+
+  return (
+    <div className="wd-vid">
+      <video
+        ref={ref}
+        src={`/work/gallery/${src}.mp4`}
+        muted
+        loop
+        playsInline
+        autoPlay
+        preload="metadata"
+      />
+      <button className="wd-vid-next" onClick={step} type="button">
+        {next}
+      </button>
+    </div>
+  );
+}
 
 /**
  * /work/[slug] — quiet detail page for one project. Same silver world
@@ -59,6 +107,12 @@ export function WorkDetail({ slug }: { slug: string }) {
             <section className="wd-sec" key={s.h.en}>
               <h2 className="wd-h2">{pick(s.h)}</h2>
               <p className="wd-p">{pick(s.p)}</p>
+              {s.video ? (
+                <SectionVideo
+                  src={s.video}
+                  next={en ? "Next →" : "次へ →"}
+                />
+              ) : null}
               {figs.length > 0 ? (
                 <div
                   className={figs.length > 1 ? "wd-figs wd-figs--2" : "wd-figs"}
