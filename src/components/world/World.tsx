@@ -642,6 +642,17 @@ export function World() {
         }
         if (midY >= r.top) ci = i;
       }
+
+      /* the shard flourish is a hero-only device ("shards start
+         off-screen and drift in with scroll" above): hp freezes at 1
+         once you're a viewport past the top, so without a gate the
+         shards stay parked exactly where the drift left them — a
+         clipped, rainbow-edged glass corner haunting every later
+         chapter (Contact included). Hide them once the journey moves
+         past the prologue. */
+      shardA.visible = ci === 0;
+      shardB.visible = ci === 0;
+
       darkT = Math.max(darkT, flyT * 0.9);
       uDarkV += (darkT - uDarkV) * (reduced ? 1 : 0.06);
       bgUniforms.uDark.value = uDarkV;
