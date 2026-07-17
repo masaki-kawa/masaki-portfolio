@@ -162,11 +162,11 @@ export const WORK: WorkEntry[] = [
     name: "Review365",
     hero: "video",
     desc: {
-      en: "An AI review management service for restaurants in Australia. I sell it face to face and build its monthly marketing reports.",
-      ja: "豪州の飲食店向けAIレビュー運用サービス。営業から月次マーケティングレポートの制作まで、事業側を担当している。",
+      en: "An AI review management service for restaurants in Australia. I run its sales and client relationships and build its monthly marketing reports.",
+      ja: "豪州の飲食店向けAIレビュー運用サービス。営業とクライアント対応から月次マーケティングレポートの制作まで、事業側を担当している。",
     },
     detail: {
-      en: "Review365 turns happy customers into Google reviews: scan a QR code, tap what you liked, AI drafts the review, the customer posts it. My part is the business end of the service. I sold it door to door, and I build the monthly marketing report every subscriber gets, drafted by Claude on my procedures with a human final pass.",
+      en: "Review365 turns happy customers into Google reviews: scan a QR code, tap what you liked, AI drafts the review, the customer posts it. My part is the business end of the service: I run the sales and client relationships, and I build the monthly marketing report every subscriber gets, drafted by Claude on my procedures with a human final pass.",
       ja: "Review365 は、満足してくれたお客さんの声を Google レビューにつなげるサービスだ。店頭のQRコードを読み込んで、良かった点を選択式でタップしていくと、AIがその回答からレビューを下書きしてくれるので、お客さんは内容を確認して投稿するだけでいい。私はこのサービスのビジネス側を担当していて、シドニーの飲食店への営業から、契約店に毎月届くマーケティングレポートの制作までを受け持っている。レポートの下書きは私が書いた手順書に沿って Claude が生成し、納品前の最終判断は必ず人間が行う。",
     },
     body: [
@@ -182,12 +182,12 @@ export const WORK: WorkEntry[] = [
       },
       {
         h: {
-          en: "Sold the hard way",
-          ja: "飛び込みで売った",
+          en: "Won by referral, run in person",
+          ja: "紹介で広がり、運用まで一人で",
         },
         p: {
-          en: "The client list did not come from ads or referrals. I walked into restaurants in Sydney, pitched the owners face to face, and ran every sales meeting myself. Ten businesses signed up, and four became ongoing monthly engagements that I still operate end to end, from that first conversation to each month's report. Selling door to door and then delivering month after month is the business side of this portfolio at its most literal.",
-          ja: "クライアントは広告や紹介で集めたわけではなく、シドニーの飲食店に飛び込みで入り、オーナーに直接提案して、商談もすべて自分で回してきた。その結果10社と契約に至り、うち4社とは月次の継続契約として、初回の商談から毎月のレポート納品まで、今もエンドツーエンドで運用を続けている。足で売って、毎月納め続ける。このポートフォリオで語っている「事業側」という言葉の、いちばん文字通りの形がこの仕事だ。",
+          en: "Clients come mostly through referrals and word of mouth in Sydney's hospitality scene, not through advertising. I run the sales conversations and the client relationships myself, and once a restaurant signs I operate the account end to end, from the first meeting to each month's report. Ten businesses have signed, four are ongoing monthly engagements, and owning both the winning and the delivering is the business side of this portfolio at its most literal.",
+          ja: "クライアントは広告で集めるのではなく、シドニーの飲食シーンでの紹介や口コミで広がっていくことが多い。営業のやり取りとクライアントとの関係づくりは自分で回していて、契約が決まればそこから先も、初回の商談から毎月のレポート納品まで一人で受け持つ。これまでに10社と契約し、うち4社は月次の継続契約。取ってくることと納め続けることの両方を自分でやる、このポートフォリオの「事業側」という言葉の、いちばん文字通りの形がこの仕事だ。",
         },
       },
       {
