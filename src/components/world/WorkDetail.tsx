@@ -93,7 +93,14 @@ export function WorkDetail({ slug }: { slug: string }) {
           {w.tag ? <em className="w-tag">{pick(w.tag)}</em> : null}
         </h1>
         <p className="wd-lead">{pick(w.desc)}</p>
-        {w.hero && <Media className="wd-media" slug={w.slug} kind={w.hero} />}
+        {w.hero && (
+          <Media
+            className="wd-media"
+            slug={w.slug}
+            kind={w.hero}
+            step={w.heroStep ? (en ? "Next →" : "次へ →") : undefined}
+          />
+        )}
         <p className="wd-body">{pick(w.detail)}</p>
         {w.body?.map((s) => {
           const figs = Array.isArray(s.img)

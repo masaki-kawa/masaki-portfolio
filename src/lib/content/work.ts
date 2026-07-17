@@ -40,8 +40,10 @@ export type WorkEntry = {
   code?: { caption: Localized; src: string };
   /* hero media on the detail page: "video" plays /work/<slug>.mp4 over
      the /work/<slug>.png poster, "image" shows the poster only. Entries
-     without hero render no media slot and request nothing. */
+     without hero render no media slot and request nothing. heroStep
+     adds a corner button that hops through a hero recording in stages. */
   hero?: "video" | "image";
+  heroStep?: boolean;
 };
 
 export const WORK: WorkEntry[] = [
@@ -52,7 +54,7 @@ export const WORK: WorkEntry[] = [
     hero: "video",
     desc: {
       en: "COO of a cross-border innovation hub connecting Japan and Australia: I run operations and grow the ventures that live under it.",
-      ja: "日本とオーストラリアをつなぐクロスボーダー・イノベーションハブのCOO。運営を回し、その中の事業を育てる。",
+      ja: "日本とオーストラリアをつなぐクロスボーダー・イノベーションハブのCOOとして、運営を回しながらその中の事業を育てている。",
     },
     detail: {
       en: "Cubic Innov8 is a cross-border innovation hub spanning Kyoto, Tokyo, Nagano and Sydney. As COO I run its operations and build the ventures inside it, from client services to community events.",
@@ -106,7 +108,7 @@ export const WORK: WorkEntry[] = [
     },
     detail: {
       en: "Motion ships AI-assisted promo videos off the shelf, Build writes custom AI software from scratch, and Flow, launching next, will build AI workflows to order. The Vacanti promo playing above and the work wall below are the studio's own output.",
-      ja: "Motion は AI プロモ動画を定型で、Build はカスタム AI ソフトウェアをゼロから、そして準備中の Flow は AI ワークフローを受注で。上で流れている Vacanti のプロモも下の作品一覧も、スタジオ自身のアウトプット。",
+      ja: "Motion は AI プロモ動画を定型で提供し、Build はカスタム AI ソフトウェアをゼロから書き、準備中の Flow は AI ワークフローを受注でつくる。上で流れている Vacanti のプロモも、下の作品一覧も、すべてスタジオ自身のアウトプットだ。",
     },
     body: [
       {
@@ -164,14 +166,15 @@ export const WORK: WorkEntry[] = [
   {
     slug: "review365",
     name: "Review365",
-    hero: "image",
+    hero: "video",
+    heroStep: true,
     desc: {
       en: "An AI review management service for restaurants in Australia. I sell it face to face and build its monthly marketing reports.",
-      ja: "豪州の飲食店向けAIレビュー運用サービス。営業は自分の足で、月次マーケティングレポートは私が作っている。",
+      ja: "豪州の飲食店向けAIレビュー運用サービス。営業から月次マーケティングレポートの制作まで、事業側を担当している。",
     },
     detail: {
       en: "Review365 turns happy customers into Google reviews: scan a QR code, tap what you liked, AI drafts the review, the customer posts it. My part is the business end of the service. I sold it door to door, and I build the monthly marketing report every subscriber gets, drafted by Claude on my procedures with a human final pass.",
-      ja: "Review365 は、満足したお客さんを Google レビューにつなげるサービス。QRコードを読み、良かった点をタップすると、AIがレビューを下書きし、お客さんがそのまま投稿する。私の持ち場はこのサービスのビジネス側。飛び込みで売り、契約店が毎月受け取るマーケティングレポートを作っている。下書きは私の手順書に沿って Claude が生成し、最終判断は人間。",
+      ja: "Review365 は、満足してくれたお客さんの声を Google レビューにつなげるサービスだ。店頭のQRコードを読み込んで、良かった点を選択式でタップしていくと、AIがその回答からレビューを下書きしてくれるので、お客さんは内容を確認して投稿するだけでいい。私はこのサービスのビジネス側を担当していて、シドニーの飲食店への営業から、契約店に毎月届くマーケティングレポートの制作までを受け持っている。レポートの下書きは私が書いた手順書に沿って Claude が生成し、納品前の最終判断は必ず人間が行う。",
     },
     body: [
       {
@@ -180,10 +183,9 @@ export const WORK: WorkEntry[] = [
           ja: "商品",
         },
         p: {
-          en: "Review365 is an AI review management service for hospitality businesses in Australia, and the recording above is the product itself: a customer scans a QR code at the counter, taps a few multiple-choice questions about their visit, AI turns those answers into a natural review draft, and the customer posts it to Google in well under a minute. Reviews build up, the profile climbs the map rankings, and unhappy feedback goes to the owner instead of going public.",
-          ja: "Review365 は、豪州の飲食ビジネス向けのAIレビュー運用サービス。上の録画がプロダクトそのもので、お客さんがカウンターのQRコードを読み、来店についての選択式の質問をいくつかタップすると、AIがその回答を自然なレビュー文に変換し、お客さんがそのまま Google に投稿する。1分もかからない。レビューが積み上がって地図検索の順位が上がり、不満の声は公開されずにオーナーへ届く。",
+          en: "Review365 is an AI review management service for hospitality businesses in Australia, and the recording at the top of this page is the product itself: a customer scans a QR code at the counter, taps a few multiple-choice questions about their visit, AI turns those answers into a natural review draft, and the customer posts it to Google in well under a minute. Reviews build up, the profile climbs the map rankings, and unhappy feedback goes to the owner instead of going public.",
+          ja: "Review365 は、オーストラリアの飲食ビジネスに向けたAIレビュー運用サービスで、ページ上部の録画がプロダクトそのものになっている。お客さんがカウンターのQRコードを読み込み、来店についての選択式の質問をいくつかタップすると、AIがその回答を自然なレビュー文に変換してくれるので、あとは内容を確認して Google に投稿するだけ。全体で1分もかからない。こうしてレビューが積み上がるほど地図検索での順位も上がっていき、逆に不満の声は公開される前にオーナーのもとへ届く仕組みになっている。",
         },
-        video: "review365-flow",
       },
       {
         h: {
@@ -192,7 +194,7 @@ export const WORK: WorkEntry[] = [
         },
         p: {
           en: "The client list did not come from ads or referrals. I walked into restaurants in Sydney, pitched the owners face to face, and ran every sales meeting myself. Ten businesses signed up, and four became ongoing monthly engagements that I still operate end to end, from that first conversation to each month's report. Selling door to door and then delivering month after month is the business side of this portfolio at its most literal.",
-          ja: "クライアントは広告や紹介で集めたのではない。シドニーの飲食店に飛び込みで入り、オーナーに直接売り込み、商談もすべて自分で回した。10社が契約し、うち4社は月次の継続契約として、初回の商談から毎月のレポートまで今もエンドツーエンドで運用している。飛び込みで売り、毎月納品し続ける。このポートフォリオの「事業側」の、いちばん文字通りの形。",
+          ja: "クライアントは広告や紹介で集めたわけではなく、シドニーの飲食店に飛び込みで入り、オーナーに直接提案して、商談もすべて自分で回してきた。その結果10社と契約に至り、うち4社とは月次の継続契約として、初回の商談から毎月のレポート納品まで、今もエンドツーエンドで運用を続けている。足で売って、毎月納め続ける。このポートフォリオで語っている「事業側」という言葉の、いちばん文字通りの形がこの仕事だ。",
         },
       },
       {
@@ -202,7 +204,7 @@ export const WORK: WorkEntry[] = [
         },
         p: {
           en: "Every month the same loop runs: keyword rankings tracked against local competitors, Google Business Profile insights compared over stable windows so the numbers stay honest, and an AI visibility check covering how the business shows up in LLM answers. Gaps and wins land in a report with charts and recommendations the owner can execute.",
-          ja: "毎月同じループを回す。ローカル競合に対するキーワード順位の追跡、期間を揃えて比較することで数字を正直に保つ Google ビジネスプロフィールのインサイト、そして LLM の回答にその店がどう登場するかという AI 可視性のチェック。差分と成果はチャート付きのレポートにまとめ、オーナーが実行できる推奨事項まで落とし込む。",
+          ja: "運用は、毎月同じループの繰り返しになっている。ローカル競合に対するキーワード順位を追跡し、Google ビジネスプロフィールのインサイトは計測期間を揃えて比較することで数字の正直さを保ち、さらに LLM の回答の中でその店がどう紹介されているかという、AI上での見え方まで確認する。そうして拾った変化と成果をチャート付きのレポートにまとめ、最後はオーナーがそのまま実行に移せる打ち手にまで落とし込むところまでが、毎月の仕事だ。",
         },
         img: ["review365-4"],
       },
@@ -213,14 +215,14 @@ export const WORK: WorkEntry[] = [
         },
         p: {
           en: "Generation runs on Japanese SOPs executed by Claude: a thirteen-step procedure with preflight checks and schema validation drafts each report, and I make the final call before anything reaches a paying client. Operating LLM output at client quality, month after month, is the discipline this service taught me.",
-          ja: "生成は Claude が実行する日本語 SOP で回る。preflight チェックとスキーマ検証を含む13ステップの手順が各レポートの初稿を作り、課金クライアントに届く前に必ず人間が最終判断する。LLM の出力をクライアント品質で毎月運用し続けること、それがこのサービスで身についた規律になっている。",
+          ja: "レポートの生成は、Claude が実行する日本語の作業手順書で回している。事前チェックとスキーマ検証を含む13ステップの手順が各レポートの初稿を作り、課金クライアントに届く前には必ず人間の最終判断を挟む。LLM の出力を、お金をいただける品質のまま毎月運用し続けること。それがこのサービスを通じていちばん鍛えられた規律だと思っている。",
         },
       },
       {
         h: { en: "A real report, as delivered", ja: "実際に納品しているレポート" },
         p: {
           en: "The pages in this case study are from an actual monthly report as delivered to a paying client (identifying details masked). The KPI header the owner reads first, the month's summary in plain language, keyword movement against local competitors, and a prioritised list of moves. When the numbers dip, the report says so plainly; an honest bad month is what keeps the good months credible.",
-          ja: "このページに載せているのは、課金クライアントに実際に納品している月次レポートそのもの(固有情報はマスク済み)。オーナーが最初に見る KPI ヘッダー、平易な言葉での今月の要点、ローカル競合に対するキーワードの動き、優先順位つきの打ち手。数字が落ちた月は落ちたと正直に書く。悪い月を正直に報告するから、良い月の報告が信用される。",
+          ja: "ここに載せているのは、課金クライアントに実際に納品している月次レポートそのものだ(固有情報はマスクしてある)。オーナーが最初に目にする KPI ヘッダーから、平易な言葉でまとめた今月の要点、ローカル競合に対するキーワードの動き、優先順位をつけた打ち手までが1本に収まっている。数字が落ちた月は、落ちたと正直に書く。悪い月を正直に報告しているからこそ、良い月の報告を信じてもらえる。",
         },
         img: ["review365-2", "review365-3"],
       },
@@ -232,11 +234,11 @@ export const WORK: WorkEntry[] = [
     hero: "video",
     desc: {
       en: "AI job matching SaaS, designed, built and shipped solo. Live in production.",
-      ja: "一人で設計から本番投入まで。稼働中のAIジョブマッチングSaaS。",
+      ja: "設計から本番投入まで一人でつくり上げた、稼働中のAIジョブマッチングSaaS。",
     },
     detail: {
       en: "A matching engine with four-axis scoring, embeddings on pgvector, and a vision-based evaluation pipeline that catches false positives before users see them. Next.js, Supabase, Drizzle and Stripe, taken to production by one person.",
-      ja: "4軸スコアリングのマッチングエンジン、pgvector の埋め込み、偽陽性を配信前に検知する Vision 評価パイプライン。Next.js、Supabase、Drizzle、Stripe を一人で本番まで。",
+      ja: "4軸スコアリングのマッチングエンジンに pgvector の埋め込み、そして偽陽性を配信前に検知する Vision 評価パイプラインまでを備え、Next.js・Supabase・Drizzle・Stripe のスタックを一人で本番まで持っていった。",
     },
     body: [
       {
@@ -328,7 +330,7 @@ export const WORK: WorkEntry[] = [
     },
     detail: {
       en: "An operating layer where AI agents hold real roles in a one-person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
-      ja: "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡し。開発中、いま一番つくりたいもの。",
+      ja: "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡しまでを担う。現在開発中で、いま一番つくりたいものだ。",
     },
     body: [
       {
@@ -357,7 +359,7 @@ export const RESEARCH: WorkEntry[] = [
     tag: { en: "Capstone", ja: "卒業研究" },
     desc: {
       en: "Can you catch an attack on an AI by watching the AI think? Capstone research at the University of Technology Sydney, submitted.",
-      ja: "AIの思考過程を監視すれば、AIへの攻撃は検出できるか。シドニー工科大学の卒業研究として提出済み。",
+      ja: "AIの思考過程を監視すれば、AIへの攻撃は検出できるか。この問いに取り組んだシドニー工科大学の卒業研究で、提出を終えている。",
     },
     detail: {
       en: "AI agents can be hijacked by malicious instructions hidden inside the content they read, an attack called prompt injection. Warden watches the model's reasoning while it works and blocks the reply the moment the reasoning starts drifting toward an attacker's goal. Across 2,880 evaluation runs it cut successful attacks by more than a third while traditional defences did no better than nothing, with a third of their false alarms.",
@@ -530,11 +532,11 @@ blend_df = pd.DataFrame(records).sort_values("AUROC_val", ascending=False)`,
     tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Two Sydney rain prediction models, deployed as a live API anyone can call.",
-      ja: "シドニーの降雨予測モデル2つを、誰でも呼び出せる稼働中のAPIとして公開。",
+      ja: "シドニーの降雨予測モデル2つを、誰でも呼び出せる稼働中のAPIとして公開している。",
     },
     detail: {
       en: "Will it rain in Sydney seven days from now, and how much over the next three days? I trained a model for each question, then did the part most coursework skips: packaged them with Docker and put them on the internet as a working API. Modest accuracy, honestly reported; what this project shows is the road from notebook to running service.",
-      ja: "7日後のシドニーに雨は降るか、今後3日でどれだけ降るか。それぞれの問いにモデルを学習させ、多くの課題が省略する部分までやり切った。Docker でパッケージし、実際に動くAPIとしてインターネットに公開する。精度は控えめな数字を正直に報告。このプロジェクトで見せたいのは、ノートブックから稼働サービスまでの道筋。",
+      ja: "7日後のシドニーに雨は降るか、今後3日でどれだけ降るか。それぞれの問いにモデルを学習させ、多くの課題が省略する部分までやり切った。Docker でパッケージし、実際に動くAPIとしてインターネットに公開する。精度は控えめな数字を正直に報告している。このプロジェクトで見せたいのは、ノートブックから稼働サービスまでの道筋そのものだ。",
     },
     body: [
       {
@@ -614,7 +616,7 @@ xgb = XGBClassifier(
     tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Predicting tomorrow's Bitcoin high, packaged as a working prediction API.",
-      ja: "明日のビットコイン最高値を予測し、動く予測APIまでパッケージ。",
+      ja: "明日のビットコイン最高値を予測し、実際に動く予測APIとして仕上げた。",
     },
     detail: {
       en: "A decision-support tool, not a trading bot: it forecasts tomorrow's Bitcoin high so a trader can sanity-check a plan. The first model failed the way naive price models fail, and reframing the target (predict the change, not the price) cut test error by six times. A Dockerised FastAPI serves the model on live prices.",
@@ -692,7 +694,7 @@ q_model = LGBMRegressor(
     tag: { en: "Machine Learning", ja: "Machine Learning" },
     desc: {
       en: "Finding the top 5 percent of students early, so a university can recommend them for internships.",
-      ja: "上位5%の学生を早期に見つけ、大学のインターン推薦につなげる分類モデル。",
+      ja: "上位5%の学生を早期に見つけて、大学のインターン推薦につなげるための分類モデル。",
     },
     detail: {
       en: "Only 56 students in roughly 1,000 reach the top grade, and the university wants to spot them before final results are out. After forensic data cleaning and honest feature work, the tuned random forest found 10 of the 11 top students in the test set, with a single false alarm.",
@@ -837,7 +839,7 @@ df_analysis['is_anomaly'] = df_analysis['if_score'] < 0`,
     },
     detail: {
       en: "Raw files from ten countries land in Azure cloud storage, Snowflake reads them in place, and SQL turns them into one clean table of 2.6 million rows. The analysis ends in an actual recommendation: comedy earns the highest engagement of any category, and it works across countries.",
-      ja: "10カ国分の生データを Azure のクラウドストレージに置き、Snowflake がその場で読み込み、SQLで260万行のきれいなテーブル1枚に仕上げる。分析の出口は実際の提言まで。エンゲージメント率はコメディが全カテゴリ1位で、しかも国を越えて通用する。",
+      ja: "10カ国分の生データを Azure のクラウドストレージに置き、Snowflake がその場で読み込み、SQLで260万行のきれいなテーブル1枚に仕上げる。分析は実際の提言まで到達していて、エンゲージメント率はコメディが全カテゴリ1位、しかもその強さは国を越えて通用するという答えが出た。",
     },
     body: [
       {
@@ -904,7 +906,7 @@ ORDER BY year_month, country;`,
     tag: { en: "Big Data", ja: "Big Data" },
     desc: {
       en: "Cleaning, analysing and modelling 964 million taxi trips, end to end on Databricks.",
-      ja: "9.6億件のタクシー乗車データを、Databricks 上でクレンジングから分析・予測まで一気通貫。",
+      ja: "9.6億件のタクシー乗車データを、Databricks 上でクレンジングから分析・予測まで一気通貫で処理した。",
     },
     detail: {
       en: "Eleven years of New York taxi trips, 964 million rows after cleaning, processed with Spark on Databricks. The analysis answers operator questions (where the money is, when tips happen, which trips pay a driver best), and a fare model closes the loop, cutting prediction error by 28 percent against the baseline.",
@@ -1035,7 +1037,7 @@ def _download_from_gcs(gcs_path: str, **_):
     tag: { en: "Deep Learning", ja: "Deep Learning" },
     desc: {
       en: "Teaching a model to describe photos taken by blind users, in words.",
-      ja: "視覚障害のあるユーザーが撮った写真を、言葉で説明するAIモデルを構築。",
+      ja: "視覚障害のあるユーザーが撮った写真を、言葉で説明するAIモデルを構築した。",
     },
     detail: {
       en: "The photos are real ones taken by blind users, so they are often blurry, dark or off-centre, and describing them is genuinely hard. I built two generations of the model end to end, measured the jump between them, and then looked inside the newer one to see where it looks in the image when it chooses each word.",
