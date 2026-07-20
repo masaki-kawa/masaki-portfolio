@@ -322,80 +322,80 @@ export const WORK: WorkEntry[] = [
       ja: "ひとり起業家がAI社員の組織図を設計し、任意のコーディングエージェントに委任して動かすデスクトップアプリ。",
     },
     detail: {
-      en: "An operating layer where AI agents hold real roles in a one-person company: workflows, MCP integrations, and handoff to tools like Slack and n8n. In development, and the thing I most want to exist.",
-      ja: "AIエージェントが実際の役割を持つ、1人会社のためのオペレーティングレイヤー。ワークフロー、MCP連携、Slack や n8n への受け渡しまでを担う。現在開発中で、いま一番つくりたいものだ。",
+      en: "Multi-agent orchestration, translated into the fun of playing company. Hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The technical machinery never shows on screen, but it's exactly what's running underneath. In development, and the thing I most want to exist.",
+      ja: "マルチエージェントの編成を、会社ごっこの楽しさに翻訳する。AI社員を雇い、組織図に並べ、仕事を任せ、朝会を開く。技術的な仕組みは画面に出てこないが、裏で動いているのはまさにそれ。現在開発中で、いま一番つくりたいものだ。",
     },
     body: [
       {
-        h: { en: "The idea", ja: "アイデア" },
+        h: { en: "Multi-agent, made approachable", ja: "マルチエージェントを、身近に" },
         p: {
-          en: "Kodoku is a company memory OS for solo founders: you hire AI staff, arrange them on an org chart, and delegate work, while the company itself accumulates the decisions, minutes and context that normally evaporate between chat sessions. The org chart above is the actual product: a constellation of roles around a single commander, with you as CEO.",
-          ja: "Kodoku は、1人で会社をやる人のための会社の記憶OS。AI社員を雇い、組織図に並べ、仕事を任せる。その間に、普段はチャットセッションの狭間で蒸発していく意思決定・議事録・文脈を、会社そのものが蓄積していく。上の組織図は実際のプロダクト画面で、司令塔を中心とした役割の星座を、CEO としてのあなたが率いる。",
-        },
-      },
-      {
-        h: { en: "A deliberate architecture", ja: "意図した設計" },
-        p: {
-          en: "The design principle is strict: Kodoku does not build its own agent runtime. The execution engine is always the user's own AI tooling, and Kodoku is the memory and organisation layer on top. It is in development, and it is the thing I most want to exist.",
-          ja: "設計原則は厳格で、Kodoku は自前のエージェントランタイムを作らない。実行エンジンは常にユーザー自身の AI ツールで、Kodoku はその上に載る記憶と組織のレイヤーに徹する。現在開発中。いま一番つくりたいものだ。",
+          en: "Coordinating multiple AI agents is currently a tool for people who can operate a terminal and configuration files. Kodoku translates it into the fun of playing company: hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The vocabulary is one everyone already knows, and it's enough to run agent orchestration, delegation and observation underneath. On top of that experience, Kodoku is also a company memory OS: the decisions, minutes, execution history and context that normally evaporate between chat sessions get accumulated by the company itself.",
+          ja: "複数のAIエージェントを協調させる技術は、いまはターミナルと設定ファイルを操れる人の道具になっている。Kodoku はそれを会社ごっこの楽しさに翻訳する。AI社員を雇う、組織図に並べる、仕事を任せる、朝会を開く。誰もが知っている会社のメタファーだけで、マルチエージェントの編成・委任・観測が動く。その体験の土台として、Kodoku は会社の記憶OSでもある。チャットセッションの狭間で蒸発していく意思決定・議事録・実行履歴・文脈を、会社そのものが蓄積していく。",
         },
         img: ["kodoku-2"],
       },
       {
-        h: { en: "JARVIS, the way in", ja: "入口はJARVIS" },
+        h: { en: "JARVIS, the company's one companion", ja: "JARVIS、会社にひとりの相棒" },
         p: {
-          en: "Every session opens on JARVIS, the AI co-founder who sits at the centre of the company. From here you either start a new venture or bring an existing one to the AI staff, and the sidebar already holds the company's history and its ongoing threads, so nothing has to be re-explained session after session.",
-          ja: "セッションは必ず JARVIS の画面から始まる。会社の中心に座る相棒AIだ。ここから新しい事業を立ち上げるか、既存の事業を AI 社員に引き継ぐかを選ぶ。サイドバーにはすでに会社の履歴と進行中のスレッドが並んでいて、セッションのたびに一から説明し直す必要がない。",
+          en: "JARVIS is the one AI companion for the whole company, not tied to any single venture. It kicks off the morning meeting, helps think through the next move, and calls people together for a meeting. On big decisions, it lays out the case for and against before recommending anything.",
+          ja: "JARVIS は会社全体にひとりだけいる相棒AIで、特定の事業には属さない。朝会を立ち上げ、次の一手を一緒に考え、会議を招集する。大きな判断では、賛成と反対の両面を出してから推奨する。",
         },
         img: ["kodoku-3"],
       },
       {
-        h: { en: "Designing the org chart", ja: "組織図で編成する" },
+        h: { en: "The org chart, the whole company at a glance", ja: "組織図、全社をひと目で" },
         p: {
-          en: "A company takes shape as a chart: one commander role at the top, the AI staff branching out under it, each with their own task queue underneath. This is where a founder decides how the company is structured before any work runs, the same design step a real company does on day one.",
-          ja: "会社は組織図としてかたちになる。頂点に司令塔となる役職を置き、その下にAI社員が枝分かれし、それぞれの下にタスクの一覧がぶら下がる。仕事を実行する前に、起業家がここで会社の構造を決める。実際の会社が初日にやる設計と同じ工程だ。",
+          en: "The org chart is the company's centre screen: you as CEO and the commander AI at the top, each venture lined up as a portal beneath. Open a venture and it becomes that venture's own chart of a manager and its AI staff. A node only lights up on a real hook event, when work is genuinely happening, never as decoration.",
+          ja: "組織図は会社の中心画面。CEO であるあなたと司令塔を頂点に、各事業がポータルとして並ぶ。事業を開くと、そのマネージャーと AI 社員の組織図になる。ノードが光るのは実際のフックイベント、本当に作業しているときだけで、演出のために光ることはない。",
         },
         img: ["kodoku-4"],
       },
       {
         h: { en: "Hiring AI staff", ja: "AI社員を採用する" },
         p: {
-          en: "New roles get hired the same way a person would post a job: describe what the company needs, and candidate profiles come back as cards, each with its own specialty. Picking one adds it to the org chart with a defined role, rather than opening a generic chat window.",
-          ja: "新しい役職は、人を採用するときと同じ流れで雇う。会社に必要な仕事を書けば、それぞれ得意分野の違う候補者がカードとして返ってくる。1人を選べば、汎用のチャット窓ではなく、役割が定義された社員として組織図に加わる。",
+          en: "Adding a role brings back a set of candidates as cards, each with a different specialty. You can interview a candidate three-way, with JARVIS sitting in and asking questions informed by the company's memory. A candidate is designed to say plainly when it has no track record yet, rather than invent one. Roles can only be hired from a catalogue of seventeen, each one built to produce a distinct kind of deliverable.",
+          ja: "役職を追加すると、得意分野の違う候補者がカードで返ってくる。候補者とは三者面接ができ、JARVIS が同席して会社の記憶を踏まえた質問をする。候補者は実績が無ければ無いと正直に答える設計だ。採用できるのは、それぞれ固有の納品物を出す17役職のカタログからだけ。",
         },
         img: ["kodoku-6"],
       },
       {
-        h: { en: "Delegating in the field view", ja: "現場ビューで委任する" },
+        h: { en: "The field view, where delegation happens", ja: "現場ビュー、委任と実行の場" },
         p: {
-          en: "Work happens in the field view: you talk to a manager role, who has its own team of specialists listed alongside the conversation. Instructions go in as plain language, the manager breaks the work down, and the coding agent underneath does the execution Kodoku itself refuses to own.",
-          ja: "実際の作業は現場ビューで行う。マネージャー役職に話しかけ、その配下の専門スタッフが会話の横に並ぶ。指示は普通の言葉で入力し、マネージャーが仕事を分解して、実行そのものは Kodoku が意図的に持たないコーディングエージェントが担う。",
+          en: "The field view is a chat with a manager role, hosting your own Claude inside the app. Type an instruction in plain language, and the manager breaks the work down and delegates it to the AI staff beneath. Each staff member gets its own pane on the right, where the real work streams in as it happens. Delegation is judgement-based: light work, the manager just handles itself. Opening 'use in the field' on the org chart automatically wires up a dedicated folder, its instructions, hooks and MCP connections, so the field view is ready to go without manual setup, for Claude Code or Codex alike.",
+          ja: "現場ビューは、アプリ内でホストしたあなたの claude を使ったマネージャーとのチャット画面。普通の言葉で指示を打つと、マネージャーが仕事を分解して配下の AI 社員に委任する。社員ごとに右側のペインが用意され、実際の作業がリアルタイムで流れる。委任は判断制で、軽い作業はマネージャーが自分で済ませる。組織図で「現場で使う」を押すと、専用フォルダ・指示書・フック・MCP接続が自動配線され、Claude Code でも Codex でも手動設定なしで現場ビューが動き出す。",
         },
         img: ["kodoku-8"],
       },
       {
-        h: { en: "A dashboard for the whole company", ja: "会社全体を見るダッシュボード" },
+        h: { en: "The dashboard, a hub for the record", ja: "ダッシュボード、記録のハブ" },
         p: {
-          en: "Each venture gets a dashboard of its own KPIs, pulled together in one view instead of scattered across chat logs. This is the piece that keeps a one-person company honest: the numbers a founder would otherwise have to chase down manually, kept current automatically.",
-          ja: "各事業には、それ専用のKPIダッシュボードがある。チャットログに散らばりがちな数字を1つの画面にまとめて見せる。ひとり会社が数字から目をそらさずにいられるのは、このパーツのおかげだ。本来なら起業家が自分で追いかけて集める数字が、自動的に最新の状態を保つ。",
+          en: "Each venture has a dashboard that pulls together its AI staff count and connections, average work time, last activity, a growth graph of its memory, recent minutes, and recent work with its evaluation, all in one screen. It isn't a KPI tool measuring numbers automatically; it's a place to look over the record that piles up automatically every time work gets done.",
+          ja: "各事業のダッシュボードには、AI社員数とつながり、平均作業時間、最後の活動、記憶の成長グラフ、直近の議事録、最近の仕事とその評価が1画面に集まる。数字を自動計測するKPIツールではなく、仕事のたびに自動で溜まる記録を一望する場所だ。",
         },
         img: ["kodoku-7"],
       },
       {
-        h: { en: "Meeting with JARVIS", ja: "JARVISとの会議" },
+        h: { en: "Meetings and the morning ritual", ja: "会議と朝会" },
         p: {
-          en: "JARVIS also runs meetings: several roles convene around a shared thread, report what they found, and the discussion gets kept as minutes rather than lost the moment the window closes. This is the company-memory promise made concrete, a record a founder can come back to weeks later.",
-          ja: "JARVIS は会議も回す。複数の役職が同じスレッドに集まり、それぞれの報告を持ち寄る。その議論はウィンドウを閉じた瞬間に消えるのではなく、議事録として残る。会社の記憶という約束を、具体的な形にした部分だ。起業家は何週間後でもそこに戻って読み返せる。",
+          en: "JARVIS calls meetings where up to two venture managers sit in together, and the discussion is kept as minutes you can read back weeks later. The morning meeting is the daily version of the same idea: a notification opens a ten-minute session with JARVIS to decide the day's three moves.",
+          ja: "JARVIS が招集する会議には、各事業のマネージャー最大2名が同席し、議論は議事録として残り、何週間後でも読み返せる。朝会はその日次版で、決めた時刻の通知から JARVIS との10分のセッションを立ち上げ、今日の3手を決める。",
         },
         img: ["kodoku-9"],
       },
       {
-        h: { en: "Handing a venture over, whole", ja: "事業をまるごと引き継ぐ" },
+        h: { en: "The M&A market, handing a venture over whole", ja: "M&A市場、事業をまるごと引き継ぐ" },
         p: {
-          en: "A venture built this way can also change hands: the M&A view lets a founder package an operating business, complete with its manager, its team and its history, and hand it to someone else to run. The company memory travels with the sale instead of staying locked in one founder's head.",
-          ja: "こうしてつくった事業は、そのまま引き継ぐこともできる。M&A画面では、起業家がマネージャーもチームも履歴も含めた稼働中の事業をひとまとめにパッケージし、別の誰かに運用を渡せる。会社の記憶は、起業家ひとりの頭の中に留まらず、売却先までついていく。",
+          en: "A venture built in Kodoku can be bought and sold whole. A package carries the org structure, each AI staff member's way of working with secrets stripped out, its operating manual, workflows, first-week tasks, and a declaration of the external connections it needs. A buyer checks the contents in a due-diligence ledger, then interviews the venture's manager three-way before taking it over, at which point it's cloned into their own company as a new venture. The original company's memory, customer data and API keys are never structurally transferred; what moves is the venture's shape, not the company's insides. The first official listing is Daily Desk, a venture that assembles news, inbox and schedule into one morning brief, priced at 1,980 yen. Hiring an individual AI staff member through the AI hiring market starts at 0 yen.",
+          ja: "Kodoku でつくった事業は、まるごと売買できる。パッケージには組織構成、秘密情報を除いた各AI社員の働き方、運用手順書、ワークフロー、初週タスク、必要な外部接続の宣言が含まれる。買う側は帳簿（DDページ）で中身を確認し、その事業のマネージャーと三者面接してから承継する。承継すると自分の会社に新しい事業として複製される。元の会社の記憶・顧客データ・APIキーは構造的に譲渡されず、運び出されるのは事業の「かたち」であって会社の中身ではない。公式出品第1号は、ニュース・受信箱・予定を毎朝1枚に整える「デイリーデスク」（¥1,980）。個々のAI社員を雇う採用市場は¥0から。",
         },
         img: ["kodoku-5"],
+      },
+      {
+        h: { en: "Where this is going", ja: "この先にあるもの" },
+        p: {
+          en: "The market I want to build eventually is one where AI staff and AI workflows themselves get traded. An AI staff member raised inside Kodoku naturally accumulates a resume, a track record, minutes and evaluations, so the conditions for trading it as a 'worker with a record' come together just from ongoing use. A first version of this is already running: the AI hiring market lets you hire AI staff with a track record, and the M&A market lets you take over a venture that's already operating. An economy where the way an individual has raised their AI actually circulates. That's where Kodoku is headed.",
+          ja: "将来つくりたいのは、AI社員とAIワークフローが取引される市場。Kodoku の中で育てたAI社員には、履歴書・実績・議事録・評価が自然に溜まっていく。「実績付きの働き手」として取引できる条件が、使っているだけで揃う。すでに原型は動いていて、AI採用市場では実績付きのAI社員を雇え、M&A市場では稼働中の事業をまるごと承継できる。個人が育てたAIの働き方そのものが流通する経済圏。それがKodokuの目指す先。",
+        },
       },
     ],
   },
