@@ -318,19 +318,19 @@ export const WORK: WorkEntry[] = [
     tag: { en: "In development", ja: "開発中" },
     hero: "image",
     desc: {
-      en: "A desktop app that turns multi-agent orchestration into the fun of playing company: hire AI staff, place them on an org chart, delegate work.",
-      ja: "AI社員を雇い、組織図に並べ、仕事を任せる。マルチエージェントを会社ごっこの楽しさに翻訳するデスクトップアプリ。",
+      en: "A desktop app that turns multi-agent orchestration into the fun of growing your own company: hire AI staff, place them on an org chart, delegate work.",
+      ja: "AI社員を雇い、組織図に並べ、仕事を任せる。マルチエージェントを自分の会社を育てる楽しさに翻訳するデスクトップアプリ。",
     },
     detail: {
-      en: "Multi-agent orchestration, translated into the fun of playing company. Hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The technical machinery never shows on screen, but it's exactly what's running underneath. In development, and the thing I most want to exist.",
-      ja: "マルチエージェントの編成を、会社ごっこの楽しさに翻訳する。AI社員を雇い、組織図に並べ、仕事を任せ、朝会を開く。技術的な仕組みは画面に出てこないが、裏で動いているのはまさにそれ。現在開発中で、いま一番つくりたいものだ。",
+      en: "Multi-agent orchestration, translated into the fun of growing your own company. Hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The technical machinery never shows on screen, but it's exactly what's running underneath. In development, and the thing I most want to exist.",
+      ja: "マルチエージェントの編成を、自分の会社を育てる楽しさに翻訳する。AI社員を雇い、組織図に並べ、仕事を任せ、朝会を開く。技術的な仕組みは画面に出てこないが、裏で動いているのはまさにそれ。現在開発中で、いま一番つくりたいものだ。",
     },
     body: [
       {
         h: { en: "Multi-agent, made approachable", ja: "マルチエージェントを、身近に" },
         p: {
-          en: "Coordinating multiple AI agents is currently a tool for people who can operate a terminal and configuration files. Kodoku translates it into the fun of playing company: hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The vocabulary is one everyone already knows, and it's enough to run agent orchestration, delegation and observation underneath. On top of that experience, Kodoku is also a company memory OS: the decisions, minutes, execution history and context that normally evaporate between chat sessions get accumulated by the company itself.",
-          ja: "複数のAIエージェントを協調させる技術は、いまはターミナルと設定ファイルを操れる人の道具になっている。Kodoku はそれを会社ごっこの楽しさに翻訳する。AI社員を雇う、組織図に並べる、仕事を任せる、朝会を開く。誰もが知っている会社のメタファーだけで、マルチエージェントの編成・委任・観測が動く。その体験の土台として、Kodoku は会社の記憶OSでもある。チャットセッションの狭間で蒸発していく意思決定・議事録・実行履歴・文脈を、会社そのものが蓄積していく。",
+          en: "Coordinating multiple AI agents is currently a tool for people who can operate a terminal and configuration files. Kodoku translates it into the fun of growing your own company: hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The vocabulary is one everyone already knows, and it's enough to run agent orchestration, delegation and observation underneath. On top of that experience, Kodoku is also a company memory OS: the decisions, minutes, execution history and context that normally evaporate between chat sessions get accumulated by the company itself.",
+          ja: "複数のAIエージェントを協調させる技術は、いまはターミナルと設定ファイルを操れる人の道具になっている。Kodoku はそれを自分の会社を育てる楽しさに翻訳する。AI社員を雇う、組織図に並べる、仕事を任せる、朝会を開く。誰もが知っている会社のメタファーだけで、マルチエージェントの編成・委任・観測が動く。その体験の土台として、Kodoku は会社の記憶OSでもある。チャットセッションの狭間で蒸発していく意思決定・議事録・実行履歴・文脈を、会社そのものが蓄積していく。",
         },
       },
       {
