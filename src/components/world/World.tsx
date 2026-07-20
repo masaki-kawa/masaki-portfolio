@@ -386,12 +386,14 @@ export function World() {
     let gInit = false;
     let raf = 0;
     let running = true;
+    let isMobile = false;
 
     const cue = cueRef.current;
 
     function measure() {
       vw = window.innerWidth;
       vh = window.innerHeight;
+      isMobile = vw <= 768;
       renderer.setSize(vw, vh, false);
       rt.setSize(Math.round(vw * dpr), Math.round(vh * dpr));
       camera.aspect = vw / vh;
@@ -672,6 +674,37 @@ export function World() {
           bIdx = 1;
           trProg = flyT;
           trType = 0;
+        } else if (isMobile) {
+          /* on phones a chapter section is much taller than the
+             viewport, so a viewport-sized zone around the boundary
+             (the desktop scheme below) leaves a long dead stretch in
+             the middle of every section where trProg sits at 0/1 and
+             only the slow Ken Burns pan moves — the background reads
+             as frozen while scrolling through it. Instead, spread the
+             transition across the whole section: while inside
+             chapter k (k=1..4), progress climbs continuously for the
+             entire section height so the scene keeps drifting toward
+             the next one on every scroll pixel. */
+          for (let k = 1; k < 5; k++) {
+            const r = chRects[k];
+            if (midY >= r.top && midY < r.top + r.h) {
+              const tt = (midY - r.top) / Math.max(1, r.h);
+              trProg = tt * tt * (3 - 2 * tt);
+              aIdx = k;
+              bIdx = k + 1;
+              trType = TR_TYPES[k];
+              break;
+            }
+            if (midY >= r.top + r.h) {
+              /* past this section already: land fully on its far scene
+                 (k+1) so the last chapter normalizes to the final
+                 scene instead of stalling at trProg 0 */
+              aIdx = k + 1;
+              bIdx = Math.min(k + 1, 5);
+              trProg = 0;
+              trType = TR_TYPES[k];
+            }
+          }
         } else {
           const zone = vh * 0.5;
           for (let k = 1; k < 5; k++) {
