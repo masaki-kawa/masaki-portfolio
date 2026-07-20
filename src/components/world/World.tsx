@@ -685,15 +685,39 @@ export function World() {
              the middle of every section where trProg sits at 0/1 and
              only the slow Ken Burns pan moves — the background reads
              as frozen while scrolling through it. Instead, spread the
-             transition across the whole section: while inside
-             chapter k (k=1..4), progress climbs continuously for the
-             entire section height so the scene keeps drifting toward
-             the next one on every scroll pixel. */
+             transition across the whole section — but keep the real
+             scene change for the seam. While reading chapter k the
+             scrub only creeps (0 → CREEP) so the current photo stays
+             dominant yet never freezes; the remaining travel plays out
+             in the section's tail and lands on trProg = 1 exactly when
+             the next chapter's heading enters the viewport (next top
+             at ~90% of vh, i.e. midY at r.h − 0.45*vh). Spreading it
+             linearly instead put the transition half-done mid-section:
+             by chapter 2 you were already inside the clouds instead of
+             seeing Skytree appear at the boundary. */
           for (let k = 1; k < 5; k++) {
             const r = chRects[k];
             if (midY >= r.top && midY < r.top + r.h) {
               const tt = (midY - r.top) / Math.max(1, r.h);
-              trProg = tt * tt * (3 - 2 * tt);
+              const CREEP = 0.12;
+              /* the next heading crosses into view (top at ~88% of
+                 vh) when midY sits 0.38*vh above the section's end —
+                 that is where the travel must land on 1. Sections vary
+                 from ~1 to ~3 viewports tall, so derive both points
+                 from geometry instead of fixed fractions. */
+              const doneAt = Math.min(
+                0.98,
+                Math.max(0.45, (r.h - vh * 0.38) / Math.max(1, r.h)),
+              );
+              const slowEnd = Math.max(0.3, doneAt - 0.35);
+              if (tt <= slowEnd) {
+                trProg = (tt / slowEnd) * CREEP;
+              } else if (tt >= doneAt) {
+                trProg = 1;
+              } else {
+                const u = (tt - slowEnd) / (doneAt - slowEnd);
+                trProg = CREEP + (1 - CREEP) * (u * u * (3 - 2 * u));
+              }
               aIdx = k;
               bIdx = k + 1;
               trType = TR_TYPES[k];
