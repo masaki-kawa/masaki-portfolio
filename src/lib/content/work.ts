@@ -318,8 +318,8 @@ export const WORK: WorkEntry[] = [
     tag: { en: "In development", ja: "開発中" },
     hero: "image",
     desc: {
-      en: "A desktop app where solo founders design an org chart of AI staff, then hand it to any coding agent to run.",
-      ja: "ひとり起業家がAI社員の組織図を設計し、任意のコーディングエージェントに委任して動かすデスクトップアプリ。",
+      en: "A desktop app that turns multi-agent orchestration into the fun of playing company: hire AI staff, place them on an org chart, delegate work.",
+      ja: "AI社員を雇い、組織図に並べ、仕事を任せる。マルチエージェントを会社ごっこの楽しさに翻訳するデスクトップアプリ。",
     },
     detail: {
       en: "Multi-agent orchestration, translated into the fun of playing company. Hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The technical machinery never shows on screen, but it's exactly what's running underneath. In development, and the thing I most want to exist.",
