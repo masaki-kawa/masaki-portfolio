@@ -332,7 +332,6 @@ export const WORK: WorkEntry[] = [
           en: "Coordinating multiple AI agents is currently a tool for people who can operate a terminal and configuration files. Kodoku translates it into the fun of playing company: hire AI staff, place them on an org chart, delegate work, hold a morning meeting. The vocabulary is one everyone already knows, and it's enough to run agent orchestration, delegation and observation underneath. On top of that experience, Kodoku is also a company memory OS: the decisions, minutes, execution history and context that normally evaporate between chat sessions get accumulated by the company itself.",
           ja: "複数のAIエージェントを協調させる技術は、いまはターミナルと設定ファイルを操れる人の道具になっている。Kodoku はそれを会社ごっこの楽しさに翻訳する。AI社員を雇う、組織図に並べる、仕事を任せる、朝会を開く。誰もが知っている会社のメタファーだけで、マルチエージェントの編成・委任・観測が動く。その体験の土台として、Kodoku は会社の記憶OSでもある。チャットセッションの狭間で蒸発していく意思決定・議事録・実行履歴・文脈を、会社そのものが蓄積していく。",
         },
-        img: ["kodoku-2"],
       },
       {
         h: { en: "JARVIS, the company's one companion", ja: "JARVIS、会社にひとりの相棒" },
