@@ -681,41 +681,38 @@ export function World() {
         } else if (isMobile) {
           /* on phones a chapter section is much taller than the
              viewport, so a viewport-sized zone around the boundary
-             (the desktop scheme below) leaves a long dead stretch in
-             the middle of every section where trProg sits at 0/1 and
-             only the slow Ken Burns pan moves — the background reads
-             as frozen while scrolling through it. Instead, spread the
-             transition across the whole section — but keep the real
-             scene change for the seam. While reading chapter k the
-             scrub only creeps (0 → CREEP) so the current photo stays
-             dominant yet never freezes; the remaining travel plays out
-             in the section's tail and lands on trProg = 1 exactly when
-             the next chapter's heading enters the viewport (next top
-             at ~90% of vh, i.e. midY at r.h − 0.45*vh). Spreading it
-             linearly instead put the transition half-done mid-section:
-             by chapter 2 you were already inside the clouds instead of
-             seeing Skytree appear at the boundary. */
+             (the desktop scheme below) can leave a dead stretch in the
+             middle of a tall section where only the slow Ken Burns pan
+             moves. But spreading the transition across the whole
+             section (the previous scheme, doneAt/slowEnd derived from
+             section-height fractions) shifted every scene one chapter
+             early: short sections (some are under one viewport tall)
+             hit the fast ramp almost immediately, so Skytree was
+             already on screen mid-chapter 01 and the clouds arrived
+             during 04. Anchor the travel to the boundary itself
+             instead: while reading chapter k the scrub only creeps
+             (0 → CREEP), keeping scene k dominant yet never frozen;
+             the real transition runs in a fixed window measured back
+             from the section's end and lands on exactly 1 as midY
+             crosses into chapter k+1 — so the next landmark appears
+             at the seam, right as the next heading scrolls up, and
+             the handoff to the next chapter's pair (trProg back to 0,
+             aIdx = k+1) is visually continuous. */
           for (let k = 1; k < 5; k++) {
             const r = chRects[k];
             if (midY >= r.top && midY < r.top + r.h) {
-              const tt = (midY - r.top) / Math.max(1, r.h);
-              const CREEP = 0.12;
-              /* the next heading crosses into view (top at ~88% of
-                 vh) when midY sits 0.38*vh above the section's end —
-                 that is where the travel must land on 1. Sections vary
-                 from ~1 to ~3 viewports tall, so derive both points
-                 from geometry instead of fixed fractions. */
-              const doneAt = Math.min(
-                0.98,
-                Math.max(0.45, (r.h - vh * 0.38) / Math.max(1, r.h)),
-              );
-              const slowEnd = Math.max(0.3, doneAt - 0.35);
-              if (tt <= slowEnd) {
-                trProg = (tt / slowEnd) * CREEP;
-              } else if (tt >= doneAt) {
-                trProg = 1;
+              const CREEP = 0.1;
+              const sEnd = r.top + r.h;
+              /* the travel window: at most ~a viewport, but never more
+                 than half the section, so short sections still get a
+                 calm reading stretch before the scene changes */
+              const zone = Math.min(vh * 0.9, r.h * 0.5);
+              const zStart = sEnd - zone;
+              if (midY <= zStart) {
+                const tt = (midY - r.top) / Math.max(1, zStart - r.top);
+                trProg = Math.max(0, Math.min(1, tt)) * CREEP;
               } else {
-                const u = (tt - slowEnd) / (doneAt - slowEnd);
+                const u = Math.min(1, (midY - zStart) / Math.max(1, zone));
                 trProg = CREEP + (1 - CREEP) * (u * u * (3 - 2 * u));
               }
               aIdx = k;
