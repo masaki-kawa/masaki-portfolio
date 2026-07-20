@@ -738,6 +738,16 @@ button:focus-visible {
   z-index: 10;
   padding: clamp(70px, 12vh, 150px) 0 10px;
 }
+/* phones: 12vh of lead-in (vh = the LARGE viewport on iOS) pushes the
+   chapter heading a third of a screen below the section seam — part of
+   the hero → 01 blank stretch. Tighten it so the heading rides just
+   behind the seam. */
+@media (max-width: 768px) {
+  .w-carsec,
+  .w-detsec {
+    padding-top: clamp(36px, 5.5vh, 56px);
+  }
+}
 .w-carhead {
   max-width: 1140px;
   width: calc(100% - clamp(32px, 9vw, 200px));
@@ -1744,13 +1754,19 @@ a.w-comcard:hover .w-slide-open i {
 .w-sec-hero {
   height: 225vh;
 }
-/* phones: the 225vh prologue leaves ~1.5 screens of scenery with no
-   copy at all between the hero sub-line and chapter 01 — it reads as
-   a dead stretch, not a reveal. Shorten the runway (the fly-through
-   window in World.tsx compresses to match via the same 768px break) */
+/* phones: the 225vh prologue leaves screens of scenery with no copy
+   at all between the hero sub-line and chapter 01 — it reads as a
+   dead stretch, not a reveal. 185vh still measured ~0.4 screen of
+   blank on a lab viewport and closer to a full visible screen on a
+   real iPhone (vh is the LARGE viewport there, so the runway is
+   taller than what the address-bar-cropped screen shows, and the
+   720ms reveal fade adds to it). 150vh puts chapter 01's heading at
+   the bottom edge right as the hero sub-line leaves the top, so some
+   copy is always on screen. The fly-through window in World.tsx
+   compresses to match via the same 768px break. */
 @media (max-width: 768px) {
   .w-sec-hero {
-    height: 185vh;
+    height: 150vh;
   }
 }
 .w-cue {

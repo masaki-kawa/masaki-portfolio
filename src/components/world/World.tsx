@@ -532,7 +532,7 @@ export function World() {
 
       /* fly-through: past the sweep the camera passes THROUGH the
          glass. Entirely scroll-driven; nothing ever gates the page */
-      /* phones use a shorter hero (185vh vs 225vh, globals.css), so the
+      /* phones use a shorter hero (150vh vs 225vh, globals.css), so the
          fly-through window compresses with it: the flash and the hand-off
          into the dark chapter finish just before chapter 01's copy
          scrolls up, instead of a screen and a half later */
@@ -938,7 +938,19 @@ export function World() {
           }
         }
       },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 },
+      /* phones: pre-fire the reveal ~a quarter screen BELOW the
+         viewport, so the 720ms fade has already run by the time the
+         element scrolls into the visible screen — otherwise the next
+         chapter's heading spends its first moments on screen invisible
+         and the hero → 01 seam reads as a blank stretch. Desktop keeps
+         the slight hold-back (-10%) for the staged feel. */
+      {
+        rootMargin:
+          window.innerWidth <= 768
+            ? "0px 0px 25% 0px"
+            : "0px 0px -10% 0px",
+        threshold: 0.12,
+      },
     );
     document.querySelectorAll(".w-reveal").forEach((el) => io.observe(el));
     return () => io.disconnect();
