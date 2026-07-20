@@ -341,15 +341,62 @@ export const WORK: WorkEntry[] = [
         },
         img: ["kodoku-2"],
       },
-    ],
-    gallery: [
-      "kodoku-3",
-      "kodoku-4",
-      "kodoku-5",
-      "kodoku-6",
-      "kodoku-7",
-      "kodoku-8",
-      "kodoku-9",
+      {
+        h: { en: "JARVIS, the way in", ja: "入口はJARVIS" },
+        p: {
+          en: "Every session opens on JARVIS, the AI co-founder who sits at the centre of the company. From here you either start a new venture or bring an existing one to the AI staff, and the sidebar already holds the company's history and its ongoing threads, so nothing has to be re-explained session after session.",
+          ja: "セッションは必ず JARVIS の画面から始まる。会社の中心に座る相棒AIだ。ここから新しい事業を立ち上げるか、既存の事業を AI 社員に引き継ぐかを選ぶ。サイドバーにはすでに会社の履歴と進行中のスレッドが並んでいて、セッションのたびに一から説明し直す必要がない。",
+        },
+        img: ["kodoku-3"],
+      },
+      {
+        h: { en: "Designing the org chart", ja: "組織図で編成する" },
+        p: {
+          en: "A company takes shape as a chart: one commander role at the top, the AI staff branching out under it, each with their own task queue underneath. This is where a founder decides how the company is structured before any work runs, the same design step a real company does on day one.",
+          ja: "会社は組織図としてかたちになる。頂点に司令塔となる役職を置き、その下にAI社員が枝分かれし、それぞれの下にタスクの一覧がぶら下がる。仕事を実行する前に、起業家がここで会社の構造を決める。実際の会社が初日にやる設計と同じ工程だ。",
+        },
+        img: ["kodoku-4"],
+      },
+      {
+        h: { en: "Hiring AI staff", ja: "AI社員を採用する" },
+        p: {
+          en: "New roles get hired the same way a person would post a job: describe what the company needs, and candidate profiles come back as cards, each with its own specialty. Picking one adds it to the org chart with a defined role, rather than opening a generic chat window.",
+          ja: "新しい役職は、人を採用するときと同じ流れで雇う。会社に必要な仕事を書けば、それぞれ得意分野の違う候補者がカードとして返ってくる。1人を選べば、汎用のチャット窓ではなく、役割が定義された社員として組織図に加わる。",
+        },
+        img: ["kodoku-6"],
+      },
+      {
+        h: { en: "Delegating in the field view", ja: "現場ビューで委任する" },
+        p: {
+          en: "Work happens in the field view: you talk to a manager role, who has its own team of specialists listed alongside the conversation. Instructions go in as plain language, the manager breaks the work down, and the coding agent underneath does the execution Kodoku itself refuses to own.",
+          ja: "実際の作業は現場ビューで行う。マネージャー役職に話しかけ、その配下の専門スタッフが会話の横に並ぶ。指示は普通の言葉で入力し、マネージャーが仕事を分解して、実行そのものは Kodoku が意図的に持たないコーディングエージェントが担う。",
+        },
+        img: ["kodoku-8"],
+      },
+      {
+        h: { en: "A dashboard for the whole company", ja: "会社全体を見るダッシュボード" },
+        p: {
+          en: "Each venture gets a dashboard of its own KPIs, pulled together in one view instead of scattered across chat logs. This is the piece that keeps a one-person company honest: the numbers a founder would otherwise have to chase down manually, kept current automatically.",
+          ja: "各事業には、それ専用のKPIダッシュボードがある。チャットログに散らばりがちな数字を1つの画面にまとめて見せる。ひとり会社が数字から目をそらさずにいられるのは、このパーツのおかげだ。本来なら起業家が自分で追いかけて集める数字が、自動的に最新の状態を保つ。",
+        },
+        img: ["kodoku-7"],
+      },
+      {
+        h: { en: "Meeting with JARVIS", ja: "JARVISとの会議" },
+        p: {
+          en: "JARVIS also runs meetings: several roles convene around a shared thread, report what they found, and the discussion gets kept as minutes rather than lost the moment the window closes. This is the company-memory promise made concrete, a record a founder can come back to weeks later.",
+          ja: "JARVIS は会議も回す。複数の役職が同じスレッドに集まり、それぞれの報告を持ち寄る。その議論はウィンドウを閉じた瞬間に消えるのではなく、議事録として残る。会社の記憶という約束を、具体的な形にした部分だ。起業家は何週間後でもそこに戻って読み返せる。",
+        },
+        img: ["kodoku-9"],
+      },
+      {
+        h: { en: "Handing a venture over, whole", ja: "事業をまるごと引き継ぐ" },
+        p: {
+          en: "A venture built this way can also change hands: the M&A view lets a founder package an operating business, complete with its manager, its team and its history, and hand it to someone else to run. The company memory travels with the sale instead of staying locked in one founder's head.",
+          ja: "こうしてつくった事業は、そのまま引き継ぐこともできる。M&A画面では、起業家がマネージャーもチームも履歴も含めた稼働中の事業をひとまとめにパッケージし、別の誰かに運用を渡せる。会社の記憶は、起業家ひとりの頭の中に留まらず、売却先までついていく。",
+        },
+        img: ["kodoku-5"],
+      },
     ],
   },
 ];
