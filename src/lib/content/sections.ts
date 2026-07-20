@@ -144,6 +144,7 @@ export const SECTION = {
     },
     meta: [
       { labelEn: "Based", body: { en: "Sydney, working across Japan and Australia.", ja: "シドニー。日本とオーストラリアの両市場で。" } },
+      { labelEn: "Work rights", body: { en: "Full Australian working rights, Temporary Graduate visa (subclass 485).", ja: "豪州での就労制限なし。卒業生ビザ(サブクラス485)。" } },
       { labelEn: "Languages", body: { en: "English and Japanese.", ja: "英語と日本語で。" } },
       {
         labelEn: "Focus",
