@@ -140,7 +140,7 @@ export const SECTION = {
     },
     lead: {
       en: "Whether it is the business or the build, if you want to move a workflow forward with data and AI, get in touch.",
-      ja: "事業の話でも、実装の話でも。データとAIで業務を前に進めたい方、お気軽にご連絡ください。",
+      ja: "事業も実装も、お気軽にご連絡を。",
     },
     meta: [
       { labelEn: "Based", body: { en: "Sydney, working across Japan and Australia.", ja: "シドニー。日本とオーストラリアの両市場で。" } },
