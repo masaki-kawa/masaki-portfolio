@@ -1744,6 +1744,15 @@ a.w-comcard:hover .w-slide-open i {
 .w-sec-hero {
   height: 225vh;
 }
+/* phones: the 225vh prologue leaves ~1.5 screens of scenery with no
+   copy at all between the hero sub-line and chapter 01 — it reads as
+   a dead stretch, not a reveal. Shorten the runway (the fly-through
+   window in World.tsx compresses to match via the same 768px break) */
+@media (max-width: 768px) {
+  .w-sec-hero {
+    height: 185vh;
+  }
+}
 .w-cue {
   left: 28px;
   transform: none;

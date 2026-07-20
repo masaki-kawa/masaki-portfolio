@@ -532,8 +532,12 @@ export function World() {
 
       /* fly-through: past the sweep the camera passes THROUGH the
          glass. Entirely scroll-driven; nothing ever gates the page */
-      const fA = vh * 0.62;
-      const fB = vh * 1.55;
+      /* phones use a shorter hero (185vh vs 225vh, globals.css), so the
+         fly-through window compresses with it: the flash and the hand-off
+         into the dark chapter finish just before chapter 01's copy
+         scrolls up, instead of a screen and a half later */
+      const fA = vh * (isMobile ? 0.55 : 0.62);
+      const fB = vh * (isMobile ? 1.05 : 1.55);
       const flyT = reduced
         ? y > fA
           ? 1
