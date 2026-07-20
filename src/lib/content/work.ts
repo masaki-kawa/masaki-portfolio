@@ -342,6 +342,15 @@ export const WORK: WorkEntry[] = [
         img: ["kodoku-2"],
       },
     ],
+    gallery: [
+      "kodoku-3",
+      "kodoku-4",
+      "kodoku-5",
+      "kodoku-6",
+      "kodoku-7",
+      "kodoku-8",
+      "kodoku-9",
+    ],
   },
 ];
 
